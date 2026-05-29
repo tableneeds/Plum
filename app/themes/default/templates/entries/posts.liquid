@@ -1,0 +1,16 @@
+<article>
+  <h1>{{ entry.title }}</h1>
+  {% if entry.published_at %}
+  <p class="meta">Published on {{ entry.published_at | date: "%B %d, %Y" }}</p>
+  {% endif %}
+
+  <div class="content prose">
+    {{ entry.data.body | markdown }}
+  </div>
+
+  {% if entry.data.excerpt %}
+  <aside class="excerpt">
+    <p><strong>Summary:</strong> {{ entry.data.excerpt }}</p>
+  </aside>
+  {% endif %}
+</article>

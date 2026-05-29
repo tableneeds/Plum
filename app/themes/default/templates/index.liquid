@@ -1,0 +1,15 @@
+<h1>Welcome to {{ site.name }}</h1>
+{% if site.tagline %}
+<p>{{ site.tagline }}</p>
+{% endif %}
+
+{% if entries.posts.size > 0 %}
+<section>
+  <h2>Latest Posts</h2>
+  <ul>
+    {% for post in entries.posts %}
+    <li><a href="{{ post.url }}">{{ post.title }}</a></li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}

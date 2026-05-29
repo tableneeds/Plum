@@ -1,0 +1,84 @@
+<%= form_with model: [:cp, content_type], class: "space-y-6" do |f| %>
+  <% if content_type.errors.any? %>
+    <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+      <ul class="list-disc list-inside">
+        <% content_type.errors.full_messages.each do |msg| %>
+          <li><%= msg %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="bg-white shadow rounded-lg p-6 space-y-6">
+    <div>
+      <%= f.label :name, class: "block text-sm font-medium text-gray-700" %>
+      <%= f.text_field :name, class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500" %>
+    </div>
+
+    <div>
+      <%= f.label :handle, class: "block text-sm font-medium text-gray-700" %>
+      <%= f.text_field :handle, class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 font-mono",
+          placeholder: "auto-generated from name" %>
+      <p class="mt-1 text-sm text-gray-500">Used in URLs and templates. Lowercase letters, numbers, and underscores only.</p>
+    </div>
+
+    <div>
+      <%= f.label :icon, class: "block text-sm font-medium text-gray-700" %>
+      <%= f.text_field :icon, class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500",
+          placeholder: "e.g., document, photo, calendar" %>
+    </div>
+
+    <div class="flex items-center">
+      <%= f.check_box :singleton, class: "h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded" %>
+      <%= f.label :singleton, "Singleton (only one entry allowed)", class: "ml-2 block text-sm text-gray-700" %>
+    </div>
+  </div>
+
+  <div class="bg-white shadow rounded-lg p-6" data-controller="blueprint">
+    <h3 class="text-lg font-medium text-gray-900 mb-4">Blueprint</h3>
+    <p class="text-sm text-gray-500 mb-4">Define the fields for this content type using JSON format.</p>
+
+    <%= f.hidden_field :blueprint, value: (content_type.blueprint || { "fields" => [] }).to_json, data: { blueprint_target: "input" } %>
+
+    <div class="space-y-4" data-blueprint-target="fields">
+      <% (content_type.fields || []).each_with_index do |field, index| %>
+        <div class="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg" data-blueprint-target="field">
+          <input type="text" value="<%= field['handle'] %>" placeholder="handle" data-field="handle"
+                 data-action="input->blueprint#inputChanged"
+                 class="flex-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 font-mono text-sm">
+          <select data-field="type" data-action="change->blueprint#inputChanged"
+                  class="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 text-sm">
+            <option value="text" <%= 'selected' if field['type'] == 'text' %>>Text</option>
+            <option value="textarea" <%= 'selected' if field['type'] == 'textarea' %>>Textarea</option>
+            <option value="rich_text" <%= 'selected' if field['type'] == 'rich_text' %>>Rich Text</option>
+            <option value="number" <%= 'selected' if field['type'] == 'number' %>>Number</option>
+            <option value="boolean" <%= 'selected' if field['type'] == 'boolean' %>>Boolean</option>
+            <option value="date" <%= 'selected' if field['type'] == 'date' %>>Date</option>
+          </select>
+          <input type="text" value="<%= field['label'] %>" placeholder="Label" data-field="label"
+                 data-action="input->blueprint#inputChanged"
+                 class="flex-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 text-sm">
+          <button type="button" data-action="blueprint#removeField" class="text-red-500 hover:text-red-700">
+            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+          </button>
+        </div>
+      <% end %>
+    </div>
+
+    <button type="button" data-action="blueprint#addField"
+            class="mt-4 inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+      <svg class="h-5 w-5 mr-2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+      </svg>
+      Add Field
+    </button>
+  </div>
+
+  <div class="flex justify-end space-x-3">
+    <%= link_to "Cancel", cp_content_types_path,
+        class: "px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50" %>
+    <%= f.submit class: "px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 cursor-pointer" %>
+  </div>
+<% end %>

@@ -1,0 +1,50 @@
+<div class="mb-8">
+  <h1 class="text-2xl font-bold text-gray-900">Dashboard</h1>
+  <p class="mt-1 text-sm text-gray-500">Welcome back, <%= current_user.email %></p>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+  <% @content_types.each do |ct| %>
+    <%= link_to cp_content_type_path(ct), class: "block p-6 bg-white rounded-lg shadow hover:shadow-md transition-shadow" do %>
+      <h3 class="text-lg font-medium text-gray-900"><%= ct.name %></h3>
+      <p class="mt-1 text-3xl font-bold text-purple-600"><%= ct.entries.count %></p>
+      <p class="text-sm text-gray-500">entries</p>
+    <% end %>
+  <% end %>
+
+  <% if @content_types.empty? %>
+    <%= link_to new_cp_content_type_path, class: "block p-6 bg-white rounded-lg shadow border-2 border-dashed border-gray-300 hover:border-purple-400 transition-colors" do %>
+      <div class="text-center">
+        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+        </svg>
+        <h3 class="mt-2 text-sm font-medium text-gray-900">Create your first content type</h3>
+      </div>
+    <% end %>
+  <% end %>
+</div>
+
+<% if @recent_entries.any? %>
+  <div class="bg-white rounded-lg shadow">
+    <div class="px-6 py-4 border-b border-gray-200">
+      <h2 class="text-lg font-medium text-gray-900">Recent Entries</h2>
+    </div>
+    <ul class="divide-y divide-gray-200">
+      <% @recent_entries.each do |entry| %>
+        <li>
+          <%= link_to cp_content_type_entry_path(entry.content_type, entry), class: "block px-6 py-4 hover:bg-gray-50" do %>
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-sm font-medium text-gray-900"><%= entry.title %></p>
+                <p class="text-xs text-gray-500"><%= entry.content_type.name %></p>
+              </div>
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium <%= entry.published? ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800' %>">
+                <%= entry.status %>
+              </span>
+            </div>
+          <% end %>
+        </li>
+      <% end %>
+    </ul>
+  </div>
+<% end %>

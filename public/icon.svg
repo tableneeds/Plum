@@ -1,0 +1,7 @@
+<svg width="512" height="512" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="plum-mark-title">
+  <title id="plum-mark-title">Plum CMS mark</title>
+  <rect width="64" height="64" rx="14" fill="#241B27"/>
+  <path d="M32 10.5v7.5" fill="none" stroke="#F7F2EA" stroke-width="2.8" stroke-linecap="round"/>
+  <path d="M20.5 17h23L50 34.5 32 56 14 34.5 20.5 17Z" fill="#8E3E63"/>
+  <path d="M27 24h10l3.5 10.3L32 45.5l-8.5-11.2L27 24Z" fill="#F7F2EA" opacity=".14"/>
+</svg>
