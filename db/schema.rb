@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_05_29_144500) do
+ActiveRecord::Schema[8.0].define(version: 2026_05_29_170000) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
@@ -39,15 +39,17 @@ ActiveRecord::Schema[8.0].define(version: 2026_05_29_144500) do
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
   end
 
-  create_table "assets", force: :cascade do |t|
+  create_table "plum_assets", force: :cascade do |t|
     t.string "alt_text"
     t.text "caption"
     t.string "folder"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "site_id", null: false
+    t.index ["site_id"], name: "index_plum_assets_on_site_id"
   end
 
-  create_table "content_types", force: :cascade do |t|
+  create_table "plum_content_types", force: :cascade do |t|
     t.string "name"
     t.string "handle"
     t.boolean "singleton"
@@ -55,52 +57,65 @@ ActiveRecord::Schema[8.0].define(version: 2026_05_29_144500) do
     t.string "icon"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["handle"], name: "index_content_types_on_handle", unique: true
+    t.integer "site_id", null: false
+    t.index ["site_id", "handle"], name: "index_plum_content_types_on_site_id_and_handle", unique: true
+    t.index ["site_id"], name: "index_plum_content_types_on_site_id"
   end
 
-  create_table "entries", force: :cascade do |t|
+  create_table "plum_entries", force: :cascade do |t|
     t.integer "content_type_id", null: false
     t.string "title"
     t.string "slug"
     t.integer "status"
     t.json "data"
     t.datetime "published_at"
-    t.integer "author_id", null: false
+    t.integer "author_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["author_id"], name: "index_entries_on_author_id"
-    t.index ["content_type_id"], name: "index_entries_on_content_type_id"
-    t.index ["slug"], name: "index_entries_on_slug", unique: true
+    t.integer "site_id", null: false
+    t.string "author_name"
+    t.string "author_email"
+    t.string "author_gid"
+    t.index ["author_id"], name: "index_plum_entries_on_author_id"
+    t.index ["content_type_id"], name: "index_plum_entries_on_content_type_id"
+    t.index ["site_id", "slug"], name: "index_plum_entries_on_site_id_and_slug", unique: true
+    t.index ["site_id"], name: "index_plum_entries_on_site_id"
   end
 
-  create_table "form_definitions", force: :cascade do |t|
+  create_table "plum_form_definitions", force: :cascade do |t|
     t.string "name"
     t.string "handle"
     t.json "fields"
     t.string "notification_email"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["handle"], name: "index_form_definitions_on_handle", unique: true
+    t.integer "site_id", null: false
+    t.index ["site_id", "handle"], name: "index_plum_form_definitions_on_site_id_and_handle", unique: true
+    t.index ["site_id"], name: "index_plum_form_definitions_on_site_id"
   end
 
-  create_table "form_submissions", force: :cascade do |t|
+  create_table "plum_form_submissions", force: :cascade do |t|
     t.integer "form_definition_id", null: false
     t.json "data"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["form_definition_id"], name: "index_form_submissions_on_form_definition_id"
+    t.integer "site_id", null: false
+    t.index ["form_definition_id"], name: "index_plum_form_submissions_on_form_definition_id"
+    t.index ["site_id"], name: "index_plum_form_submissions_on_site_id"
   end
 
-  create_table "globals", force: :cascade do |t|
+  create_table "plum_globals", force: :cascade do |t|
     t.string "name"
     t.string "handle"
     t.json "data"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["handle"], name: "index_globals_on_handle", unique: true
+    t.integer "site_id", null: false
+    t.index ["site_id", "handle"], name: "index_plum_globals_on_site_id_and_handle", unique: true
+    t.index ["site_id"], name: "index_plum_globals_on_site_id"
   end
 
-  create_table "nav_items", force: :cascade do |t|
+  create_table "plum_nav_items", force: :cascade do |t|
     t.integer "nav_menu_id", null: false
     t.integer "parent_id"
     t.string "label"
@@ -109,20 +124,24 @@ ActiveRecord::Schema[8.0].define(version: 2026_05_29_144500) do
     t.integer "position"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["entry_id"], name: "index_nav_items_on_entry_id"
-    t.index ["nav_menu_id"], name: "index_nav_items_on_nav_menu_id"
-    t.index ["parent_id"], name: "index_nav_items_on_parent_id"
+    t.integer "site_id", null: false
+    t.index ["entry_id"], name: "index_plum_nav_items_on_entry_id"
+    t.index ["nav_menu_id"], name: "index_plum_nav_items_on_nav_menu_id"
+    t.index ["parent_id"], name: "index_plum_nav_items_on_parent_id"
+    t.index ["site_id"], name: "index_plum_nav_items_on_site_id"
   end
 
-  create_table "nav_menus", force: :cascade do |t|
+  create_table "plum_nav_menus", force: :cascade do |t|
     t.string "name"
     t.string "handle"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["handle"], name: "index_nav_menus_on_handle", unique: true
+    t.integer "site_id", null: false
+    t.index ["site_id", "handle"], name: "index_plum_nav_menus_on_site_id_and_handle", unique: true
+    t.index ["site_id"], name: "index_plum_nav_menus_on_site_id"
   end
 
-  create_table "site_settings", force: :cascade do |t|
+  create_table "plum_site_settings", force: :cascade do |t|
     t.string "name"
     t.string "tagline"
     t.string "logo"
@@ -134,23 +153,43 @@ ActiveRecord::Schema[8.0].define(version: 2026_05_29_144500) do
     t.datetime "updated_at", null: false
     t.string "primary_color"
     t.string "support_email"
+    t.integer "site_id", null: false
+    t.index ["site_id"], name: "index_plum_site_settings_on_site_id", unique: true
   end
 
-  create_table "users", force: :cascade do |t|
+  create_table "plum_sites", force: :cascade do |t|
+    t.string "name", null: false
+    t.string "domain"
+    t.string "theme_name"
+    t.json "settings"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  create_table "plum_users", force: :cascade do |t|
     t.string "email"
     t.string "password_digest"
     t.integer "role"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["email"], name: "index_users_on_email", unique: true
+    t.index ["email"], name: "index_plum_users_on_email", unique: true
   end
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
-  add_foreign_key "entries", "content_types"
-  add_foreign_key "entries", "users", column: "author_id"
-  add_foreign_key "form_submissions", "form_definitions"
-  add_foreign_key "nav_items", "entries"
-  add_foreign_key "nav_items", "nav_items", column: "parent_id"
-  add_foreign_key "nav_items", "nav_menus"
+  add_foreign_key "plum_assets", "plum_sites", column: "site_id"
+  add_foreign_key "plum_content_types", "plum_sites", column: "site_id"
+  add_foreign_key "plum_entries", "plum_content_types", column: "content_type_id"
+  add_foreign_key "plum_entries", "plum_sites", column: "site_id"
+  add_foreign_key "plum_entries", "plum_users", column: "author_id"
+  add_foreign_key "plum_form_definitions", "plum_sites", column: "site_id"
+  add_foreign_key "plum_form_submissions", "plum_form_definitions", column: "form_definition_id"
+  add_foreign_key "plum_form_submissions", "plum_sites", column: "site_id"
+  add_foreign_key "plum_globals", "plum_sites", column: "site_id"
+  add_foreign_key "plum_nav_items", "plum_entries", column: "entry_id"
+  add_foreign_key "plum_nav_items", "plum_nav_items", column: "parent_id"
+  add_foreign_key "plum_nav_items", "plum_nav_menus", column: "nav_menu_id"
+  add_foreign_key "plum_nav_items", "plum_sites", column: "site_id"
+  add_foreign_key "plum_nav_menus", "plum_sites", column: "site_id"
+  add_foreign_key "plum_site_settings", "plum_sites", column: "site_id"
 end

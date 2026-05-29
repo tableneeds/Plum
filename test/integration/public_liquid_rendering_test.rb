@@ -2,13 +2,14 @@ require "test_helper"
 
 class PublicLiquidRenderingTest < ActionDispatch::IntegrationTest
   setup do
-    @admin = User.create!(
+    @site = Plum::Site.first_or_create_standalone!
+    @admin = Plum::User.create!(
       email: "admin@example.com",
       password: "password123",
       role: :admin
     )
 
-    SiteSetting.instance.update!(
+    Plum::SiteSetting.instance(@site).update!(
       name: "Bagel Boy",
       tagline: "Best bagels on the Gulf Coast",
       seo_title: "Bagel Boy Bakery",
@@ -17,7 +18,7 @@ class PublicLiquidRenderingTest < ActionDispatch::IntegrationTest
       support_email: "hello@example.com"
     )
 
-    @posts = ContentType.create!(
+    @posts = @site.content_types.create!(
       name: "Blog Posts",
       handle: "posts",
       blueprint: {
@@ -76,6 +77,7 @@ class PublicLiquidRenderingTest < ActionDispatch::IntegrationTest
   def create_entry(attributes)
     @posts.entries.create!(
       {
+        site: @site,
         author: @admin,
         title: attributes.fetch(:title),
         slug: attributes.fetch(:slug),

@@ -2,16 +2,16 @@ require "application_system_test_case"
 
 class PublicPagesTest < ApplicationSystemTestCase
   setup do
-    @admin = User.create!(
-      email: "test@example.com",
+    @admin = Plum::User.create!(
+      email: "test-#{SecureRandom.hex(6)}@example.com",
       password: "password123",
       role: :admin
     )
-    SiteSetting.instance.update!(
+    Plum::SiteSetting.instance.update!(
       name: "Test Site",
       tagline: "A test site"
     )
-    @content_type = ContentType.create!(
+    @content_type = Plum::ContentType.create!(
       name: "Blog Posts",
       handle: "posts",
       blueprint: {
@@ -30,7 +30,7 @@ class PublicPagesTest < ApplicationSystemTestCase
   end
 
   test "viewing a published entry" do
-    Entry.create!(
+    Plum::Entry.create!(
       content_type: @content_type,
       author: @admin,
       title: "Public Post",
@@ -47,7 +47,7 @@ class PublicPagesTest < ApplicationSystemTestCase
   end
 
   test "draft entries return 404" do
-    Entry.create!(
+    Plum::Entry.create!(
       content_type: @content_type,
       author: @admin,
       title: "Draft Post",
@@ -62,7 +62,7 @@ class PublicPagesTest < ApplicationSystemTestCase
   end
 
   test "future published entries return 404" do
-    Entry.create!(
+    Plum::Entry.create!(
       content_type: @content_type,
       author: @admin,
       title: "Future Post",

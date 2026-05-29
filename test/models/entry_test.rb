@@ -2,12 +2,13 @@ require "test_helper"
 
 class EntryTest < ActiveSupport::TestCase
   setup do
-    @author = User.create!(
+    @site = Plum::Site.first_or_create_standalone!
+    @author = Plum::User.create!(
       email: "author@example.com",
       password: "password123",
       role: :admin
     )
-    @posts = ContentType.create!(
+    @posts = @site.content_types.create!(
       name: "Blog Posts",
       handle: "posts",
       blueprint: { "fields" => [] }
@@ -15,7 +16,7 @@ class EntryTest < ActiveSupport::TestCase
   end
 
   test "status enum matches the brief" do
-    assert_equal({ "draft" => 0, "published" => 1, "scheduled" => 2 }, Entry.statuses)
+    assert_equal({ "draft" => 0, "published" => 1, "scheduled" => 2 }, Plum::Entry.statuses)
   end
 
   test "published entries default published_at to now" do
@@ -30,13 +31,14 @@ class EntryTest < ActiveSupport::TestCase
     create_entry("Future", :published, 1.hour.from_now)
     create_entry("Scheduled", :scheduled, 1.hour.ago)
 
-    assert_equal [ live ], Entry.live.to_a
+    assert_equal [ live ], Plum::Entry.live.to_a
   end
 
   private
 
   def create_entry(title, status, published_at)
     @posts.entries.create!(
+      site: @site,
       author: @author,
       title: title,
       slug: title.parameterize,

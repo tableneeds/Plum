@@ -2,8 +2,8 @@ require "application_system_test_case"
 
 class AuthenticationTest < ApplicationSystemTestCase
   setup do
-    @admin = User.create!(
-      email: "test@example.com",
+    @admin = Plum::User.create!(
+      email: "test-#{SecureRandom.hex(6)}@example.com",
       password: "password123",
       role: :admin
     )

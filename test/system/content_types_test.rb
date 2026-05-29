@@ -2,8 +2,8 @@ require "application_system_test_case"
 
 class ContentTypesTest < ApplicationSystemTestCase
   setup do
-    @admin = User.create!(
-      email: "test@example.com",
+    @admin = Plum::User.create!(
+      email: "test-#{SecureRandom.hex(6)}@example.com",
       password: "password123",
       role: :admin
     )
@@ -29,7 +29,7 @@ class ContentTypesTest < ApplicationSystemTestCase
   end
 
   test "editing a content type" do
-    content_type = ContentType.create!(
+    content_type = Plum::ContentType.create!(
       name: "Pages",
       handle: "pages",
       blueprint: { "fields" => [] }
@@ -45,7 +45,7 @@ class ContentTypesTest < ApplicationSystemTestCase
   end
 
   test "deleting a content type" do
-    content_type = ContentType.create!(
+    content_type = Plum::ContentType.create!(
       name: "Temporary",
       handle: "temporary",
       blueprint: { "fields" => [] }

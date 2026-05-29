@@ -1,12 +1,17 @@
 # Create admin user
-admin = User.find_or_create_by!(email: "admin@example.com") do |user|
+admin = Plum::User.find_or_create_by!(email: "admin@example.com") do |user|
   user.password = "password123"
   user.role = :admin
 end
 puts "Created admin user: admin@example.com / password123"
 
+# Create standalone site
+plum_site = Plum::Site.first_or_create_standalone!
+plum_site.update!(name: "My Plum Site", theme_name: "default")
+puts "Created Plum site"
+
 # Create site settings
-site = SiteSetting.instance
+site = Plum::SiteSetting.instance(plum_site)
 site.update!(
   name: "My Plum Site",
   tagline: "A fresh CMS experience",
@@ -18,7 +23,7 @@ site.update!(
 puts "Created site settings"
 
 # Create Blog Posts content type
-posts = ContentType.find_or_create_by!(handle: "posts") do |ct|
+posts = plum_site.content_types.find_or_create_by!(handle: "posts") do |ct|
   ct.name = "Blog Posts"
   ct.blueprint = {
     "fields" => [
@@ -31,7 +36,7 @@ end
 puts "Created 'Blog Posts' content type"
 
 # Create a sample entry
-entry = Entry.find_or_create_by!(slug: "hello-world") do |e|
+entry = plum_site.entries.find_or_create_by!(slug: "hello-world") do |e|
   e.content_type = posts
   e.author = admin
   e.title = "Hello World"

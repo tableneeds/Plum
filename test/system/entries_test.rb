@@ -2,12 +2,12 @@ require "application_system_test_case"
 
 class EntriesTest < ApplicationSystemTestCase
   setup do
-    @admin = User.create!(
-      email: "test@example.com",
+    @admin = Plum::User.create!(
+      email: "test-#{SecureRandom.hex(6)}@example.com",
       password: "password123",
       role: :admin
     )
-    @content_type = ContentType.create!(
+    @content_type = Plum::ContentType.create!(
       name: "Blog Posts",
       handle: "posts",
       blueprint: {
@@ -33,7 +33,7 @@ class EntriesTest < ApplicationSystemTestCase
   end
 
   test "editing an entry" do
-    entry = Entry.create!(
+    entry = Plum::Entry.create!(
       content_type: @content_type,
       author: @admin,
       title: "Original Title",
@@ -52,7 +52,7 @@ class EntriesTest < ApplicationSystemTestCase
   end
 
   test "deleting an entry" do
-    entry = Entry.create!(
+    entry = Plum::Entry.create!(
       content_type: @content_type,
       author: @admin,
       title: "To Be Deleted",
@@ -79,7 +79,7 @@ class EntriesTest < ApplicationSystemTestCase
   end
 
   test "markdown content renders on public page" do
-    Entry.create!(
+    Plum::Entry.create!(
       content_type: @content_type,
       author: @admin,
       title: "Markdown Test",
