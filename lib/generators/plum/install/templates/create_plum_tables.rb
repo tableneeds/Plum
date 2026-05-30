@@ -11,7 +11,7 @@ class CreatePlumTables < ActiveRecord::Migration[8.0]
       t.bigint :owner_id
       t.timestamps
 
-      t.index [ :owner_type, :owner_id ]
+      t.index [ :owner_type, :owner_id ], unique: true, name: "index_plum_sites_on_owner"
     end
 
     create_table :plum_users do |t|
