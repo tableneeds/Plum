@@ -44,3 +44,12 @@
   </ul>
 </section>
 {% endif %}
+
+{% if forms.contact %}
+<section class="wrap section">
+  <h2>Contact the Counter</h2>
+  <div class="contact-panel">
+    {% form "contact" %}
+  </div>
+</section>
+{% endif %}

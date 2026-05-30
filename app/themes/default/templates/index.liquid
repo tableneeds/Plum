@@ -13,3 +13,10 @@
   </ul>
 </section>
 {% endif %}
+
+{% if forms.contact %}
+<section class="contact-section">
+  <h2>Contact</h2>
+  {% form "contact" %}
+</section>
+{% endif %}

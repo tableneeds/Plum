@@ -53,6 +53,8 @@ module Plum
 
         copy_file Plum::Engine.root.join("app/javascript/controllers/plum/blueprint_controller.js"),
                   "app/javascript/controllers/plum/blueprint_controller.js"
+        copy_file Plum::Engine.root.join("app/javascript/controllers/plum/form_fields_controller.js"),
+                  "app/javascript/controllers/plum/form_fields_controller.js"
         copy_file Plum::Engine.root.join("app/javascript/controllers/plum/theme_settings_controller.js"),
                   "app/javascript/controllers/plum/theme_settings_controller.js"
       end

@@ -110,6 +110,18 @@ blog_item = main_nav.nav_items.find_or_initialize_by(label: "Blog")
 blog_item.update!(site: plum_site, url: nil, entry: entry, parent: nil, position: 3)
 puts "Created main navigation"
 
+contact_form = plum_site.form_definitions.find_or_initialize_by(handle: "contact")
+contact_form.update!(
+  name: "Contact",
+  notification_email: site.support_email,
+  fields: [
+    { "handle" => "name", "type" => "text", "label" => "Name", "required" => true, "options" => [] },
+    { "handle" => "email", "type" => "email", "label" => "Email", "required" => true, "options" => [] },
+    { "handle" => "message", "type" => "textarea", "label" => "Message", "required" => true, "options" => [] }
+  ]
+)
+puts "Created contact form"
+
 puts "\n✓ Seeds complete!"
 puts "Login at: http://localhost:3000/login"
 puts "View your page at: http://localhost:3000/about"

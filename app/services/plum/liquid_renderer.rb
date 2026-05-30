@@ -1,8 +1,11 @@
 require "liquid"
 require_relative "liquid_filters"
+require "plum/liquid_tags/form_tag"
 
 module Plum
   class LiquidRenderer
+    Liquid::Environment.default.register_tag("form", LiquidTags::FormTag)
+
     class << self
       def render_template(template_name, context = {})
         theme = current_theme(context)
@@ -37,7 +40,8 @@ module Plum
         base_url = context.dig("site", "theme_asset_base_url").presence || "/theme_assets/#{current_theme(context)}"
 
         {
-          theme_asset_url_builder: ->(path) { ThemeAssetPath.url(base_url: base_url, path: path) }
+          theme_asset_url_builder: ->(path) { ThemeAssetPath.url(base_url: base_url, path: path) },
+          form_renderer: ->(handle) { FormRenderer.new(context.dig("forms", handle)).render }
         }
       end
     end

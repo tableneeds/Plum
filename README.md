@@ -152,6 +152,24 @@ with handle `main` is available as `nav.main`:
 Navigation items can point to a custom URL or a Plum entry. Entry-backed items
 resolve to the correct mounted URL when Plum is embedded in another Rails app.
 
+## Forms
+
+Forms are defined in the control panel and rendered in Liquid by handle:
+
+```liquid
+{% if forms.contact %}
+  {% form "contact" %}
+{% endif %}
+```
+
+Supported field types are `text`, `email`, `textarea`, `select`, and
+`checkbox`. Public submissions post back to Plum, are scoped to the current
+site, and can be reviewed from the form detail screen in the control panel.
+
+The v1 form contract stores submissions in `plum_form_submissions.data`. The
+`notification_email` setting is captured on the form definition, but email
+delivery is intentionally left for a later mailer/queue pass.
+
 ## Theme Packages
 
 Themes can be installed from a zip in the control panel. A package must contain

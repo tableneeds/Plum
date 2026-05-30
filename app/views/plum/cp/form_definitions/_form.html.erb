@@ -1,0 +1,90 @@
+<%= form_with model: [:cp, form_definition], class: "space-y-6" do |f| %>
+  <% if form_definition.errors.any? %>
+    <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+      <ul class="list-disc list-inside">
+        <% form_definition.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="bg-white shadow rounded-lg p-6 space-y-6">
+    <div>
+      <%= f.label :name, class: "block text-sm font-medium text-gray-700" %>
+      <%= f.text_field :name,
+          class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500" %>
+    </div>
+
+    <div>
+      <%= f.label :handle, class: "block text-sm font-medium text-gray-700" %>
+      <%= f.text_field :handle,
+          class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 font-mono",
+          placeholder: "contact, quote_request, newsletter" %>
+      <p class="mt-1 text-sm text-gray-500">Used in Liquid as <span class="font-mono">{% form "<%= form_definition.handle.presence || "contact" %>" %}</span>.</p>
+    </div>
+
+    <div>
+      <%= f.label :notification_email, "Notification Email", class: "block text-sm font-medium text-gray-700" %>
+      <%= f.email_field :notification_email,
+          class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500",
+          placeholder: "owner@example.com" %>
+    </div>
+  </div>
+
+  <div class="bg-white shadow rounded-lg p-6" data-controller="plum--form-fields">
+    <div class="flex items-center justify-between gap-4 mb-4">
+      <div>
+        <h2 class="text-lg font-medium text-gray-900">Fields</h2>
+        <p class="mt-1 text-sm text-gray-500">Text, email, textarea, select, and checkbox fields.</p>
+      </div>
+      <button type="button" data-action="plum--form-fields#addField"
+              class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+        Add Field
+      </button>
+    </div>
+
+    <%= hidden_field_tag "form_definition[fields_json]",
+        form_fields_json(form_definition),
+        data: { "plum--form-fields-target": "input" } %>
+
+    <div class="space-y-4" data-plum--form-fields-target="fields">
+      <% form_definition.form_fields.each do |field| %>
+        <div class="grid grid-cols-1 gap-4 p-4 bg-gray-50 rounded-lg sm:grid-cols-2" data-plum--form-fields-target="field">
+          <input type="text" value="<%= field["handle"] %>" placeholder="handle" data-field="handle"
+                 data-action="input->plum--form-fields#inputChanged"
+                 class="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 font-mono text-sm">
+          <input type="text" value="<%= field["label"] %>" placeholder="Label" data-field="label"
+                 data-action="input->plum--form-fields#inputChanged"
+                 class="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 text-sm">
+          <select data-field="type" data-action="change->plum--form-fields#inputChanged"
+                  class="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 text-sm">
+            <% Plum::FormDefinition::FIELD_TYPES.each do |type| %>
+              <option value="<%= type %>" <%= "selected" if field["type"] == type %>><%= type.humanize %></option>
+            <% end %>
+          </select>
+          <input type="text" value="<%= Array(field["options"]).join(", ") %>" placeholder="Options, comma-separated" data-field="options"
+                 data-action="input->plum--form-fields#inputChanged"
+                 class="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 text-sm">
+          <label class="flex items-center gap-2 text-sm text-gray-700">
+            <input type="checkbox" data-field="required" data-action="change->plum--form-fields#inputChanged"
+                   <%= "checked" if ActiveModel::Type::Boolean.new.cast(field["required"]) %>
+                   class="h-4 w-4 rounded border-gray-300 text-purple-600 focus:ring-purple-500">
+            Required
+          </label>
+          <button type="button" data-action="plum--form-fields#removeField"
+                  class="justify-self-start text-sm font-medium text-red-700 hover:text-red-700">
+            Remove
+          </button>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <div class="flex justify-end space-x-3">
+    <%= link_to "Cancel", form_definition.persisted? ? cp_form_definition_path(form_definition) : cp_form_definitions_path,
+        class: "px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50" %>
+    <%= f.submit form_definition.persisted? ? "Save Form" : "Create Form",
+        class: "px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 cursor-pointer" %>
+  </div>
+<% end %>

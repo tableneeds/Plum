@@ -13,6 +13,7 @@ module Plum
         "site" => site_context,
         "entry" => entry ? entry_context(entry) : nil,
         "entries" => entries_context,
+        "forms" => forms_context,
         "globals" => globals_context,
         "nav" => nav_context
       }.compact.merge(Plum.content_sources_for(controller, site: site))
@@ -77,6 +78,20 @@ module Plum
       end
     end
 
+    def forms_context
+      FormDefinition.for_site(site).each_with_object({}) do |form, hash|
+        hash[form.handle] = {
+          "name" => form.name,
+          "handle" => form.handle,
+          "fields" => form.form_fields,
+          "action" => public_form_path(form),
+          "csrf_token" => form_authenticity_token,
+          "csrf_param" => "authenticity_token",
+          "return_to" => controller.request.fullpath
+        }
+      end
+    end
+
     def nav_context
       NavMenu.for_site(site).includes(nav_items: [ :entry, :children ]).each_with_object({}) do |menu, hash|
         hash[menu.handle] = {
@@ -120,6 +135,14 @@ module Plum
 
     def public_entry_path(entry)
       "#{controller.request.script_name.to_s.chomp("/")}/#{entry.slug}"
+    end
+
+    def public_form_path(form)
+      "#{controller.request.script_name.to_s.chomp("/")}/forms/#{form.handle}"
+    end
+
+    def form_authenticity_token
+      controller.send(:form_authenticity_token) if controller.respond_to?(:form_authenticity_token, true)
     end
   end
 end

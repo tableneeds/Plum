@@ -1,0 +1,43 @@
+<div class="flex items-center justify-between gap-6 mb-8">
+  <div>
+    <h1 class="text-2xl font-bold text-gray-900">Forms</h1>
+    <p class="mt-1 text-sm text-gray-500">Public forms and submissions.</p>
+  </div>
+  <%= link_to "New Form", new_cp_form_definition_path,
+      class: "inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-purple-600 hover:bg-purple-700" %>
+</div>
+
+<% if @form_definitions.any? %>
+  <div class="bg-white shadow rounded-lg overflow-hidden">
+    <table class="min-w-full divide-y divide-gray-200">
+      <thead class="bg-gray-50">
+        <tr>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Handle</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fields</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Submissions</th>
+          <th class="relative px-6 py-3"><span class="sr-only">Actions</span></th>
+        </tr>
+      </thead>
+      <tbody class="bg-white divide-y divide-gray-200">
+        <% @form_definitions.each do |form| %>
+          <tr>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <%= link_to form.name, cp_form_definition_path(form), class: "text-sm font-medium text-purple-600 hover:text-purple-900" %>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-mono"><%= form.handle %></td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><%= form.form_fields.size %></td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><%= form.form_submissions.size %></td>
+            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+              <%= link_to "Edit", edit_cp_form_definition_path(form), class: "text-purple-600 hover:text-purple-900" %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+<% else %>
+  <div class="bg-white shadow rounded-lg p-6">
+    <p class="text-sm text-gray-500">No forms yet.</p>
+  </div>
+<% end %>
