@@ -41,11 +41,61 @@ Plum.configure do |config|
   config.host_authorization_resolver = ->(_controller) { Current.user.can_manage_website?(Current.restaurant) }
   config.register_content_source :restaurant, ->(context) { context.site.owner.to_liquid }
   config.register_content_source :menu, "TableNeeds::PlumAdapters::Menu"
+  config.register_content_source :hours, ->(context) { context.owner.hours_for_web }
 end
 ```
 
 Each customer should get one `Plum::Site`, commonly through the optional
 polymorphic `owner` association.
+
+## Host Content Sources
+
+Host apps can expose read-only application data to Liquid without copying it
+into Plum tables. Register each source with a lowercase, underscore-separated
+handle:
+
+```ruby
+Plum.configure do |config|
+  config.register_content_source :restaurant, ->(context) { context.owner.to_liquid }
+  config.register_content_source :menu, "TableNeeds::PlumAdapters::Menu"
+end
+```
+
+Adapters receive a `Plum::ContentSourceContext` with `controller`, `site`,
+`owner`, `request`, `params`, `session`, and `current_user`. Adapter classes can
+subclass `Plum::ContentSource`:
+
+```ruby
+class TableNeeds::PlumAdapters::Menu < Plum::ContentSource
+  def to_liquid
+    {
+      items: owner.menu_items.visible.map do |item|
+        {
+          name: item.name,
+          price: item.formatted_price,
+          description: item.description
+        }
+      end
+    }
+  end
+end
+```
+
+Registered sources become top-level Liquid objects:
+
+```liquid
+<h1>{{ restaurant.name }}</h1>
+
+{% for item in menu.items %}
+  <h2>{{ item.name }}</h2>
+  <p>{{ item.description }}</p>
+  <strong>{{ item.price }}</strong>
+{% endfor %}
+```
+
+Content sources must return Liquid-safe data: hashes, arrays, strings, numbers,
+booleans, dates/times, or objects that implement `to_liquid`. Hash keys are
+normalized to strings.
 
 ## Theme Packages
 

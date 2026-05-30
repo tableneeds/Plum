@@ -22,5 +22,9 @@ module Plum
     def current_user
       controller.send(:current_user) if controller.respond_to?(:current_user, true)
     end
+
+    def owner
+      site.owner if site.respond_to?(:owner)
+    end
   end
 end

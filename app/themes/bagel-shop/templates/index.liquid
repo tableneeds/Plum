@@ -1,11 +1,16 @@
 <section class="wrap hero">
   <div>
     <span class="kicker">Fresh from the oven</span>
-    <h1>{{ site.name }}</h1>
+    <h1>{{ restaurant.name | default: site.name }}</h1>
     {% if site.tagline %}
       <p class="lede">{{ site.tagline }}</p>
     {% else %}
       <p class="lede">Hand-rolled bagels, steady coffee, and a counter that knows your order.</p>
+    {% endif %}
+    {% if hours.today %}
+      <div class="host-details">
+        <p>Open today: {{ hours.today }}</p>
+      </div>
     {% endif %}
   </div>
 
@@ -14,6 +19,20 @@
     <p class="hero-note">{{ site.theme_settings.hero_note | default: "Boiled, baked, and ready early." }}</p>
   </aside>
 </section>
+
+{% if menu.items.size > 0 %}
+<section class="wrap section">
+  <h2>Menu Favorites</h2>
+  <ul class="menu-list">
+    {% for item in menu.items limit: 6 %}
+      <li class="menu-item">
+        <h3>{{ item.name }}</h3>
+        {% if item.price %}<span class="menu-price">{{ item.price }}</span>{% endif %}
+      </li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}
 
 {% if entries.posts.size > 0 %}
 <section class="wrap section">

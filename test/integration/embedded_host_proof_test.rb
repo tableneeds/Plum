@@ -21,14 +21,10 @@ class EmbeddedHostProofTest < ActionDispatch::IntegrationTest
     end
   end
 
-  MenuAdapter = Class.new do
-    def initialize(context)
-      @context = context
-    end
-
+  MenuAdapter = Class.new(Plum::ContentSource) do
     def to_liquid
       {
-        "items" => @context.site.owner.menu_items
+        items: owner.menu_items
       }
     end
   end
@@ -103,6 +99,19 @@ class EmbeddedHostProofTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "$3.50"
     assert_includes response.body, "Cold Brew"
     assert_includes response.body, "6 AM - 2 PM"
+  end
+
+  test "bundled bagel shop theme can render optional host content sources" do
+    @site.update!(theme_name: "bagel-shop")
+
+    get root_path
+
+    assert_response :success
+    assert_includes response.body, "Bagel Boy"
+    assert_includes response.body, "Open today: 6 AM - 2 PM"
+    assert_includes response.body, "Sesame Bagel"
+    assert_includes response.body, "$3.50"
+    assert_includes response.body, "Cold Brew"
   end
 
   test "lets host authorization control embedded CP access" do

@@ -1,4 +1,5 @@
 require_relative "plum/version"
+require_relative "plum/content_source"
 require_relative "plum/configuration"
 
 module Plum
