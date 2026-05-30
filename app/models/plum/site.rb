@@ -1,5 +1,7 @@
 module Plum
   class Site < ApplicationRecord
+    belongs_to :owner, polymorphic: true, optional: true
+
     has_one :site_setting, dependent: :destroy
     has_many :content_types, dependent: :destroy
     has_many :entries, dependent: :destroy

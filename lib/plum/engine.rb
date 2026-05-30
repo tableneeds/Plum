@@ -4,6 +4,7 @@ module Plum
   class Engine < ::Rails::Engine
     isolate_namespace Plum
     config.paths["config/routes.rb"] = []
+    config.paths["db/migrate"] = []
 
     routes.draw do
       get "login", to: "sessions#new"
