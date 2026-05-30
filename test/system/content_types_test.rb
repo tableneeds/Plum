@@ -16,7 +16,7 @@ class ContentTypesTest < ApplicationSystemTestCase
     fill_in "Name", with: "Articles"
     click_button "Add Field"
 
-    within "[data-blueprint-target='fields'] [data-blueprint-target='field']:last-child" do
+    within "[data-plum--blueprint-target='fields'] [data-plum--blueprint-target='field']:last-child" do
       find("input[data-field='handle']").fill_in with: "body"
       find("select[data-field='type']").select "Rich Text"
       find("input[data-field='label']").fill_in with: "Body Content"

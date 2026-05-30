@@ -3,7 +3,7 @@
 </div>
 
 <%= form_with model: [:cp, @site_settings], url: cp_site_settings_path, method: :patch,
-    class: "space-y-6", data: { controller: "theme-settings" } do |f| %>
+    class: "space-y-6", data: { controller: "plum--theme-settings" } do |f| %>
   <% if @site_settings.errors.any? %>
     <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
       <ul class="list-disc list-inside">
@@ -33,7 +33,7 @@
           @themes.map { |theme| ["#{theme.name} (#{theme.handle})", theme.handle] },
           {},
           class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500",
-          data: { theme_settings_target: "select", action: "theme-settings#update" } %>
+          data: { "plum--theme-settings-target": "select", action: "plum--theme-settings#update" } %>
       <% if @current_theme&.description.present? %>
         <p class="mt-1 text-sm text-gray-500"><%= @current_theme.description %></p>
       <% end %>
@@ -65,8 +65,8 @@
     </div>
 
     <% @themes.each do |theme| %>
-      <div data-theme-settings-target="panel"
-           data-theme-settings-handle="<%= theme.handle %>"
+      <div data-plum--theme-settings-target="panel"
+           data-plum--theme-settings-handle="<%= theme.handle %>"
            <%= "hidden" unless theme.handle == @site_settings.theme_name %>>
         <% if theme.settings_fields.any? %>
           <div class="space-y-4">

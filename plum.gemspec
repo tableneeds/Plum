@@ -17,9 +17,10 @@ Gem::Specification.new do |spec|
 
   spec.files = Dir.chdir(__dir__) do
     `git ls-files -z --cached --others --exclude-standard`.split("\x0").select do |path|
-      path.match?(%r{\A(app/(assets|controllers/plum|helpers|javascript|models/plum|services/plum|themes|views/layouts/plum|views/plum)|config/locales|lib)/}) ||
-        path == "config/plum_routes.rb" ||
-        path == "README.md"
+      File.file?(path) &&
+        (path.match?(%r{\A(app/(assets|controllers/plum|helpers|javascript|models/plum|services/plum|themes|views/layouts/plum|views/plum)|config/locales|lib)/}) ||
+          path == "config/plum_routes.rb" ||
+          path == "README.md")
     end
   end
 

@@ -11,7 +11,7 @@ export default class extends Controller {
     const selectedHandle = this.selectTarget.value
 
     this.panelTargets.forEach((panel) => {
-      panel.hidden = panel.dataset.themeSettingsHandle !== selectedHandle
+      panel.hidden = panel.getAttribute("data-plum--theme-settings-handle") !== selectedHandle
     })
   }
 }

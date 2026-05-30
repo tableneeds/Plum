@@ -5,9 +5,8 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <%= csrf_meta_tags %>
   <%= csp_meta_tag %>
-  <link rel="icon" href="/icon.svg" type="image/svg+xml">
-  <%= stylesheet_link_tag "tailwind", "data-turbo-track": "reload" %>
-  <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
+  <%= favicon_link_tag "plum-mark.svg", type: "image/svg+xml" %>
+  <%= stylesheet_link_tag "plum/control_panel", "data-turbo-track": "reload" %>
   <%= javascript_importmap_tags %>
 </head>
 <body class="h-full bg-[#F6F3EF]">
