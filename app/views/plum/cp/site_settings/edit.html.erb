@@ -28,8 +28,13 @@
 
     <div>
       <%= f.label :theme_name, "Theme", class: "block text-sm font-medium text-gray-700" %>
-      <%= f.text_field :theme_name, placeholder: "default",
+      <%= f.select :theme_name,
+          @themes.map { |theme| ["#{theme.name} (#{theme.handle})", theme.handle] },
+          {},
           class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500" %>
+      <% if @current_theme&.description.present? %>
+        <p class="mt-1 text-sm text-gray-500"><%= @current_theme.description %></p>
+      <% end %>
     </div>
 
     <div>

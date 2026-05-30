@@ -24,7 +24,10 @@
     </div>
     <div>
       <dt class="text-sm font-medium text-gray-500">Theme</dt>
-      <dd class="mt-1 text-sm text-gray-900"><%= @site_settings.theme_name || "default" %></dd>
+      <dd class="mt-1 text-sm text-gray-900">
+        <%= @current_theme&.name || @site_settings.theme_name || "default" %>
+        <span class="text-gray-500">(<%= @site_settings.theme_name || "default" %>)</span>
+      </dd>
     </div>
     <div>
       <dt class="text-sm font-medium text-gray-500">Primary Color</dt>

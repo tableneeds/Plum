@@ -3,6 +3,7 @@ require_relative "content_source_registry"
 module Plum
   class Configuration
     attr_accessor :authorize_with, :current_site_resolver, :current_user_resolver
+    attr_writer :theme_paths
     attr_reader :content_sources
 
     def initialize
@@ -12,6 +13,19 @@ module Plum
       @current_user_resolver = lambda { |controller|
         Plum::User.find_by(id: controller.session[:plum_user_id]) if controller.session[:plum_user_id]
       }
+    end
+
+    def theme_paths
+      Array(@theme_paths.presence || default_theme_paths).map { |path| Pathname(path) }.uniq(&:to_s)
+    end
+
+    private
+
+    def default_theme_paths
+      paths = []
+      paths << Rails.root.join("app/themes") if defined?(Rails) && Rails.root
+      paths << Plum::Engine.root.join("app/themes") if defined?(Plum::Engine)
+      paths
     end
   end
 

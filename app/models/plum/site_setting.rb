@@ -2,10 +2,12 @@ module Plum
   class SiteSetting < ApplicationRecord
     include SiteScoped
 
-    before_validation :set_defaults, on: :create
+    before_validation :set_defaults
+    after_save :sync_site_summary
 
     validates :name, presence: true
     validates :site_id, uniqueness: true
+    validates :theme_name, presence: true
     validates :primary_color, format: { with: /\A#[0-9a-fA-F]{6}\z/ }, allow_blank: true
     validates :support_email, format: { with: URI::MailTo::EMAIL_REGEXP }, allow_blank: true
 
@@ -21,6 +23,13 @@ module Plum
     def set_defaults
       self.theme_name = "default" if theme_name.blank?
       self.primary_color = "#7c3aed" if primary_color.blank?
+    end
+
+    def sync_site_summary
+      return unless site
+      return if site.name == name && site.theme_name == theme_name
+
+      site.update!(name: name, theme_name: theme_name)
     end
   end
 end

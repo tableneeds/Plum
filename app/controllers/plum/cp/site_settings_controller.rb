@@ -2,6 +2,7 @@ module Plum
   module Cp
     class SiteSettingsController < BaseController
       before_action :set_site_settings
+      before_action :set_theme_options
 
       def show
       end
@@ -21,6 +22,12 @@ module Plum
 
       def set_site_settings
         @site_settings = SiteSetting.instance(current_site)
+      end
+
+      def set_theme_options
+        registry = ThemeRegistry.new
+        @themes = registry.all
+        @current_theme = registry.fetch(@site_settings.theme_name)
       end
 
       def site_settings_params

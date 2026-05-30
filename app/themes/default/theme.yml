@@ -1,0 +1,10 @@
+name: Default
+handle: default
+version: 0.1.0
+author: Plum
+description: Clean starter theme for simple Plum sites.
+settings:
+  fields:
+    - handle: accent_color
+      type: color
+      label: Accent Color

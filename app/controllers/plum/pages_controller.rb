@@ -36,6 +36,8 @@ module Plum
         "primary_color" => settings.primary_color,
         "support_email" => settings.support_email,
         "theme_name" => settings.theme_name,
+        "theme_settings" => current_site.theme_settings,
+        "custom_css" => current_site.custom_css,
         "meta_title" => settings.seo_title,
         "meta_description" => settings.seo_description
       }
