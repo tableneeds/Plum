@@ -38,6 +38,13 @@ module Plum
       end
     end
 
+    test "bundled themes include default and bagel shop" do
+      handles = ThemeRegistry.new(theme_paths: [ Rails.root.join("app/themes") ]).all.map(&:handle)
+
+      assert_includes handles, "default"
+      assert_includes handles, "bagel-shop"
+    end
+
     private
 
     def build_theme(base_dir, handle, name)

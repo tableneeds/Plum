@@ -39,6 +39,29 @@ module Plum
       end
     end
 
+    test "renders bundled bagel shop theme" do
+      html = LiquidRenderer.render_template("index", {
+        "site" => {
+          "name" => "Bagel Boy",
+          "tagline" => "Best bagels on the Gulf Coast",
+          "theme_name" => "bagel-shop",
+          "theme_settings" => { "hero_note" => "Hot bagels until noon." },
+          "url" => "/"
+        },
+        "entries" => {
+          "posts" => [
+            { "title" => "Today at the counter", "url" => "/today-at-the-counter" }
+          ]
+        }
+      })
+
+      assert_includes html, "Fresh from the oven"
+      assert_includes html, "Best bagels on the Gulf Coast"
+      assert_includes html, "Hot bagels until noon."
+      assert_includes html, "Shop Notes"
+      assert_includes html, "/today-at-the-counter"
+    end
+
     private
 
     def with_theme_paths(paths)

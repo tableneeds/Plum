@@ -38,6 +38,7 @@ module Plum
         "theme_name" => settings.theme_name,
         "theme_settings" => current_site.theme_settings,
         "custom_css" => current_site.custom_css,
+        "url" => public_root_path,
         "meta_title" => settings.seo_title,
         "meta_description" => settings.seo_description
       }
@@ -48,9 +49,17 @@ module Plum
         "title" => entry.title,
         "slug" => entry.slug,
         "published_at" => entry.published_at,
-        "url" => "/#{entry.slug}",
+        "url" => public_entry_path(entry),
         "data" => entry.data || {}
       }
+    end
+
+    def public_root_path
+      request.script_name.presence || "/"
+    end
+
+    def public_entry_path(entry)
+      "#{request.script_name.to_s.chomp("/")}/#{entry.slug}"
     end
 
     def entries_context

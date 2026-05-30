@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ entry.title | default: site.seo_title | default: site.name }} - {{ site.name }}</title>
+  <meta name="description" content="{{ site.seo_description }}">
+  <link rel="icon" href="/icon.svg" type="image/svg+xml">
+  <style>
+    :root {
+      --bagel-ink: #2b2119;
+      --bagel-muted: #765f4b;
+      --bagel-paper: #fffaf0;
+      --bagel-cream: #f5e7cf;
+      --bagel-crust: #b9652d;
+      --bagel-crust-dark: #7d3f1d;
+      --bagel-accent: {{ site.theme_settings.accent_color | default: site.primary_color | default: "#1f6f63" }};
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bagel-paper);
+      color: var(--bagel-ink);
+      font-family: ui-serif, Georgia, Cambria, "Times New Roman", serif;
+      line-height: 1.65;
+    }
+
+    a { color: inherit; }
+
+    .page {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .site-header {
+      border-bottom: 2px solid rgba(43, 33, 25, 0.12);
+      background: #fff7e8;
+    }
+
+    .header-inner {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 1.1rem 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.8rem;
+      color: var(--bagel-ink);
+      text-decoration: none;
+      min-width: 0;
+    }
+
+    .bagel-mark {
+      width: 3rem;
+      height: 3rem;
+      flex: 0 0 auto;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at center, var(--bagel-paper) 0 23%, transparent 24%),
+        radial-gradient(circle at 38% 28%, #f7d58a 0 5%, transparent 6%),
+        radial-gradient(circle at 64% 35%, #f7d58a 0 4%, transparent 5%),
+        radial-gradient(circle at 50% 67%, #f7d58a 0 4%, transparent 5%),
+        linear-gradient(140deg, #d99045, var(--bagel-crust) 62%, var(--bagel-crust-dark));
+      box-shadow: inset -0.25rem -0.35rem 0 rgba(69, 38, 19, 0.18), 0 0.2rem 0 rgba(43, 33, 25, 0.14);
+    }
+
+    .brand-name {
+      display: block;
+      font-size: 2.2rem;
+      line-height: 1;
+      font-weight: 800;
+      letter-spacing: 0;
+    }
+
+    .brand-tagline {
+      display: block;
+      margin-top: 0.2rem;
+      color: var(--bagel-muted);
+      font-family: ui-sans-serif, system-ui, sans-serif;
+      font-size: 0.88rem;
+    }
+
+    .header-link {
+      color: var(--bagel-accent);
+      font-family: ui-sans-serif, system-ui, sans-serif;
+      font-size: 0.9rem;
+      font-weight: 700;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    main {
+      flex: 1;
+    }
+
+    .wrap {
+      width: min(1080px, calc(100% - 2rem));
+      margin: 0 auto;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 18rem;
+      gap: 3rem;
+      align-items: center;
+      padding: 6rem 0;
+      border-bottom: 2px solid rgba(43, 33, 25, 0.12);
+    }
+
+    .kicker {
+      display: inline-block;
+      margin-bottom: 1rem;
+      color: var(--bagel-accent);
+      font-family: ui-sans-serif, system-ui, sans-serif;
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      max-width: 13ch;
+      font-size: 6.5rem;
+      line-height: 0.92;
+      letter-spacing: 0;
+    }
+
+    .lede {
+      max-width: 40rem;
+      margin-top: 1.3rem;
+      color: var(--bagel-muted);
+      font-family: ui-sans-serif, system-ui, sans-serif;
+      font-size: 1.25rem;
+      line-height: 1.6;
+    }
+
+    .hero-card {
+      background: var(--bagel-cream);
+      border: 2px solid rgba(43, 33, 25, 0.16);
+      border-radius: 0.5rem;
+      padding: 1.35rem;
+      transform: rotate(1deg);
+    }
+
+    .hero-bagel {
+      width: 100%;
+      aspect-ratio: 1;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at center, var(--bagel-cream) 0 25%, transparent 26%),
+        radial-gradient(circle at 35% 28%, #f9db8d 0 4%, transparent 5%),
+        radial-gradient(circle at 59% 24%, #f9db8d 0 3.5%, transparent 4.5%),
+        radial-gradient(circle at 69% 54%, #f9db8d 0 4%, transparent 5%),
+        radial-gradient(circle at 43% 72%, #f9db8d 0 3%, transparent 4%),
+        linear-gradient(150deg, #e5a24d, var(--bagel-crust) 60%, var(--bagel-crust-dark));
+      box-shadow: inset -0.8rem -1rem 0 rgba(69, 38, 19, 0.16);
+    }
+
+    .hero-note {
+      margin-top: 1rem;
+      color: var(--bagel-muted);
+      font-family: ui-sans-serif, system-ui, sans-serif;
+      font-size: 0.92rem;
+      text-align: center;
+    }
+
+    .section {
+      padding: 3rem 0;
+    }
+
+    .section h2 {
+      margin-bottom: 1.2rem;
+      font-size: 2.5rem;
+      line-height: 1;
+    }
+
+    .post-list {
+      display: grid;
+      gap: 1rem;
+      list-style: none;
+    }
+
+    .post-list a {
+      display: block;
+      padding: 1.1rem 1.2rem;
+      border: 2px solid rgba(43, 33, 25, 0.12);
+      border-radius: 0.45rem;
+      background: #fffdf8;
+      color: var(--bagel-ink);
+      text-decoration: none;
+    }
+
+    .post-list a:hover {
+      border-color: var(--bagel-accent);
+    }
+
+    article {
+      width: min(760px, calc(100% - 2rem));
+      margin: 0 auto;
+      padding: 5rem 0;
+    }
+
+    article h1 {
+      max-width: 14ch;
+      font-size: 5.8rem;
+    }
+
+    .meta {
+      margin-top: 1rem;
+      color: var(--bagel-muted);
+      font-family: ui-sans-serif, system-ui, sans-serif;
+      font-size: 0.95rem;
+    }
+
+    .content {
+      margin-top: 2rem;
+      font-family: ui-sans-serif, system-ui, sans-serif;
+      font-size: 1.08rem;
+      line-height: 1.8;
+    }
+
+    .content p,
+    .content ul,
+    .content ol {
+      margin-bottom: 1.1rem;
+    }
+
+    .content ul,
+    .content ol {
+      padding-left: 1.35rem;
+    }
+
+    .content h2,
+    .content h3 {
+      margin: 2rem 0 0.8rem;
+      font-family: ui-serif, Georgia, Cambria, "Times New Roman", serif;
+      line-height: 1.1;
+    }
+
+    .content a {
+      color: var(--bagel-accent);
+      font-weight: 700;
+    }
+
+    .excerpt {
+      margin-top: 2rem;
+      padding: 1rem 1.2rem;
+      border-left: 0.35rem solid var(--bagel-accent);
+      background: var(--bagel-cream);
+      color: var(--bagel-muted);
+      font-family: ui-sans-serif, system-ui, sans-serif;
+    }
+
+    .site-footer {
+      margin-top: auto;
+      border-top: 2px solid rgba(43, 33, 25, 0.12);
+      background: #2b2119;
+      color: #fff7e8;
+    }
+
+    .footer-inner {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 1.5rem 1.25rem;
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      font-family: ui-sans-serif, system-ui, sans-serif;
+      font-size: 0.9rem;
+    }
+
+    .footer-inner a {
+      color: #f5d38f;
+      text-decoration: none;
+    }
+
+    {% if site.custom_css %}
+    {{ site.custom_css }}
+    {% endif %}
+
+    @media (max-width: 760px) {
+      .brand-name {
+        font-size: 1.5rem;
+      }
+
+      .header-inner,
+      .footer-inner {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      h1,
+      article h1 {
+        font-size: 3.2rem;
+      }
+
+      .lede {
+        font-size: 1.05rem;
+      }
+
+      .section h2 {
+        font-size: 1.9rem;
+      }
+
+      .hero {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+        padding: 3rem 0;
+      }
+
+      .hero-card {
+        width: min(18rem, 100%);
+        transform: none;
+      }
+
+      article {
+        padding: 3rem 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header class="site-header">
+      <div class="header-inner">
+        <a class="brand" href="{{ site.url }}">
+          <span class="bagel-mark" aria-hidden="true"></span>
+          <span>
+            <span class="brand-name">{{ site.name }}</span>
+            {% if site.tagline %}<span class="brand-tagline">{{ site.tagline }}</span>{% endif %}
+          </span>
+        </a>
+        {% if site.support_email %}
+          <a class="header-link" href="mailto:{{ site.support_email }}">Order ahead</a>
+        {% endif %}
+      </div>
+    </header>
+
+    <main>
+      {{ content }}
+    </main>
+
+    <footer class="site-footer">
+      <div class="footer-inner">
+        <span>{{ site.name }}</span>
+        <span><a href="{{ site.url }}">Back to top</a></span>
+      </div>
+    </footer>
+  </div>
+</body>
+</html>

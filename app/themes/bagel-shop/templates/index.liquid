@@ -1,0 +1,27 @@
+<section class="wrap hero">
+  <div>
+    <span class="kicker">Fresh from the oven</span>
+    <h1>{{ site.name }}</h1>
+    {% if site.tagline %}
+      <p class="lede">{{ site.tagline }}</p>
+    {% else %}
+      <p class="lede">Hand-rolled bagels, steady coffee, and a counter that knows your order.</p>
+    {% endif %}
+  </div>
+
+  <aside class="hero-card" aria-label="Bagel shop feature">
+    <div class="hero-bagel" aria-hidden="true"></div>
+    <p class="hero-note">{{ site.theme_settings.hero_note | default: "Boiled, baked, and ready early." }}</p>
+  </aside>
+</section>
+
+{% if entries.posts.size > 0 %}
+<section class="wrap section">
+  <h2>Shop Notes</h2>
+  <ul class="post-list">
+    {% for post in entries.posts %}
+      <li><a href="{{ post.url }}">{{ post.title }}</a></li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}
