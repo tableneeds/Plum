@@ -7,8 +7,12 @@ module Plum
       private
 
       def require_login
-        unless logged_in?
+        return if Plum.authorized?(self)
+
+        if Plum.configuration.authorize_with == :plum
           redirect_to login_path, alert: "Please log in to continue"
+        else
+          head :forbidden
         end
       end
     end

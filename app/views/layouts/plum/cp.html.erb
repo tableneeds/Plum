@@ -50,10 +50,12 @@
         <!-- User -->
         <div class="flex items-center p-4 border-t border-white/10">
           <div class="flex-1 min-w-0">
-            <p class="text-sm font-medium text-white truncate"><%= current_user.email %></p>
+            <p class="text-sm font-medium text-white truncate"><%= current_user_label %></p>
           </div>
-          <%= button_to "Logout", logout_path, method: :delete,
-              class: "ml-2 px-3 py-1 text-xs font-medium text-[#D9CBD4] hover:text-white" %>
+          <% if plum_managed_auth? %>
+            <%= button_to "Logout", logout_path, method: :delete,
+                class: "ml-2 px-3 py-1 text-xs font-medium text-[#D9CBD4] hover:text-white" %>
+          <% end %>
         </div>
       </div>
     </div>
