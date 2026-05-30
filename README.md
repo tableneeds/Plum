@@ -125,6 +125,21 @@ Plum stores the asset id in `entry.data`, then expands it for Liquid:
 Image objects expose `id`, `url`, `alt_text`, `caption`, `filename`,
 `content_type`, `byte_size`, and `folder`.
 
+## Rich Text Fields
+
+Blueprint fields with `"type": "rich_text"` use the Tiptap editor in the
+control panel. Plum stores the generated HTML in `entry.data`, while existing
+Markdown-style content still renders through the bundled themes' `markdown`
+filter.
+
+```json
+{
+  "fields": [
+    { "handle": "body", "type": "rich_text", "label": "Body" }
+  ]
+}
+```
+
 ## Globals And Navigation
 
 Globals are reusable JSON objects for site-wide data such as company info,

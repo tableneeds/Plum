@@ -55,8 +55,25 @@ module Plum
                   "app/javascript/controllers/plum/blueprint_controller.js"
         copy_file Plum::Engine.root.join("app/javascript/controllers/plum/form_fields_controller.js"),
                   "app/javascript/controllers/plum/form_fields_controller.js"
+        copy_file Plum::Engine.root.join("app/javascript/controllers/plum/rich_text_editor_controller.js"),
+                  "app/javascript/controllers/plum/rich_text_editor_controller.js"
         copy_file Plum::Engine.root.join("app/javascript/controllers/plum/theme_settings_controller.js"),
                   "app/javascript/controllers/plum/theme_settings_controller.js"
+      end
+
+      def copy_tiptap_vendor_files
+        empty_directory "vendor/javascript"
+
+        Dir[Plum::Engine.root.join("vendor/javascript/*.js")].each do |path|
+          copy_file path, "vendor/javascript/#{File.basename(path)}"
+        end
+      end
+
+      def install_tiptap_importmap_pins
+        template_path = Plum::Engine.root.join("lib/generators/plum/install/templates/tiptap_importmap_pins.rb")
+        pins = File.read(template_path)
+
+        append_to_file "config/importmap.rb", "\n#{pins}" unless destination_file_includes?("config/importmap.rb", 'pin "@tiptap/core"')
       end
 
       def mount_engine

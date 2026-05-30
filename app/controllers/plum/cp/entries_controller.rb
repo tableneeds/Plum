@@ -1,6 +1,11 @@
 module Plum
   module Cp
     class EntriesController < BaseController
+      ALLOWED_RICH_TEXT_TAGS = %w[
+        a blockquote br code em h1 h2 h3 hr li ol p pre s strong ul
+      ].freeze
+      ALLOWED_RICH_TEXT_ATTRIBUTES = %w[href rel target title].freeze
+
       before_action :set_content_type
       before_action :set_entry, only: [ :show, :edit, :update, :destroy ]
       before_action :set_assets, only: [ :new, :create, :edit, :update ]
@@ -124,9 +129,19 @@ module Plum
           ActiveModel::Type::Boolean.new.cast(value)
         when "image"
           value.present? ? value.to_i : nil
+        when "rich_text"
+          sanitized_rich_text(value)
         else
           value
         end
+      end
+
+      def sanitized_rich_text(value)
+        Rails::HTML5::SafeListSanitizer.new.sanitize(
+          value.to_s,
+          tags: ALLOWED_RICH_TEXT_TAGS,
+          attributes: ALLOWED_RICH_TEXT_ATTRIBUTES
+        )
       end
 
       def image_fields

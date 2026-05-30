@@ -71,11 +71,14 @@ class EntriesTest < ApplicationSystemTestCase
     assert_text "Entry deleted"
   end
 
-  test "rich text field shows markdown hint" do
+  test "rich text field shows editor toolbar" do
     visit new_cp_content_type_entry_path(@content_type)
 
-    assert_text "Supports Markdown"
-    assert_text "**bold**"
+    within "[data-controller='plum--rich-text-editor']" do
+      assert_button "Bold"
+      assert_button "Italic"
+      assert_selector ".ProseMirror"
+    end
   end
 
   test "creating an entry with an uploaded image field" do
@@ -92,7 +95,7 @@ class EntriesTest < ApplicationSystemTestCase
     visit new_cp_content_type_entry_path(@content_type)
 
     fill_in "Title", with: "Image Entry"
-    fill_in "Body", with: "Image body"
+    fill_rich_text with: "Image body"
     attach_file "Or upload a new image", image_path
     select "Published", from: "Status"
     click_button "Save"
@@ -129,7 +132,42 @@ class EntriesTest < ApplicationSystemTestCase
     assert_selector "strong", text: "bold"
   end
 
+  test "creating an entry with Tiptap rich text HTML" do
+    visit new_cp_content_type_entry_path(@content_type)
+
+    fill_in "Title", with: "Rich Text Post"
+
+    within "[data-controller='plum--rich-text-editor']" do
+      click_button "Bold"
+      editor = find(".ProseMirror")
+      editor.click
+      editor.send_keys("Bold intro")
+      click_button "Bold"
+      editor.send_keys(" and plain text.")
+    end
+
+    select "Published", from: "Status"
+    click_button "Save"
+
+    assert_text "Entry created"
+
+    entry = Plum::Entry.find_by!(slug: "rich-text-post")
+    assert_includes entry.data["body"], "<strong>Bold intro</strong>"
+
+    visit "/rich-text-post"
+    assert_selector "strong", text: "Bold intro"
+    assert_text "and plain text."
+  end
+
   private
+
+  def fill_rich_text(with:)
+    within "[data-controller='plum--rich-text-editor']" do
+      editor = find(".ProseMirror")
+      editor.click
+      editor.send_keys(with)
+    end
+  end
 
   def login_as(user)
     visit login_path
