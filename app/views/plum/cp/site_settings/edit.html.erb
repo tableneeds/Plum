@@ -2,7 +2,8 @@
   <h1 class="text-2xl font-bold text-gray-900">Edit Site Settings</h1>
 </div>
 
-<%= form_with model: [:cp, @site_settings], url: cp_site_settings_path, method: :patch, class: "space-y-6" do |f| %>
+<%= form_with model: [:cp, @site_settings], url: cp_site_settings_path, method: :patch,
+    class: "space-y-6", data: { controller: "theme-settings" } do |f| %>
   <% if @site_settings.errors.any? %>
     <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
       <ul class="list-disc list-inside">
@@ -31,7 +32,8 @@
       <%= f.select :theme_name,
           @themes.map { |theme| ["#{theme.name} (#{theme.handle})", theme.handle] },
           {},
-          class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500" %>
+          class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500",
+          data: { theme_settings_target: "select", action: "theme-settings#update" } %>
       <% if @current_theme&.description.present? %>
         <p class="mt-1 text-sm text-gray-500"><%= @current_theme.description %></p>
       <% end %>
@@ -48,6 +50,65 @@
       <%= f.email_field :support_email,
           class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500" %>
     </div>
+  </div>
+
+  <div class="bg-white shadow rounded-lg p-6 space-y-6">
+    <div class="flex items-center justify-between gap-4">
+      <h3 class="text-lg font-medium text-gray-900">Theme Settings</h3>
+      <div class="flex flex-wrap justify-end gap-2">
+        <% @themes.each do |theme| %>
+          <%= link_to "Preview #{theme.name}", cp_theme_preview_path(theme.handle),
+              target: "_blank", rel: "noopener",
+              class: "px-3 py-1.5 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50" %>
+        <% end %>
+      </div>
+    </div>
+
+    <% @themes.each do |theme| %>
+      <div data-theme-settings-target="panel"
+           data-theme-settings-handle="<%= theme.handle %>"
+           <%= "hidden" unless theme.handle == @site_settings.theme_name %>>
+        <% if theme.settings_fields.any? %>
+          <div class="space-y-4">
+            <% theme.settings_fields.each do |field| %>
+              <% field_id = theme_setting_input_id(theme, field) %>
+              <% field_name = theme_setting_input_name(theme, field) %>
+              <% field_value = theme_setting_value(field) %>
+              <div>
+                <label for="<%= field_id %>" class="block text-sm font-medium text-gray-700"><%= field["label"] || field["handle"].to_s.humanize %></label>
+
+                <% case field["type"].to_s %>
+                <% when "color" %>
+                  <%= color_field_tag field_name, field_value.presence || @site_settings.primary_color,
+                      id: field_id,
+                      class: "mt-1 h-10 w-16 rounded-md border border-gray-300 bg-white p-1" %>
+                <% when "textarea" %>
+                  <%= text_area_tag field_name, field_value, id: field_id, rows: 3,
+                      class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500" %>
+                <% when "boolean" %>
+                  <div class="mt-2 flex items-center gap-2">
+                    <%= hidden_field_tag field_name, "0" %>
+                    <%= check_box_tag field_name, "1", theme_setting_checked?(field),
+                        id: field_id,
+                        class: "h-4 w-4 rounded border-gray-300 text-purple-600 focus:ring-purple-500" %>
+                  </div>
+                <% when "select" %>
+                  <%= select_tag field_name,
+                      options_for_select(Array(field["options"]), field_value),
+                      id: field_id,
+                      class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500" %>
+                <% else %>
+                  <%= text_field_tag field_name, field_value, id: field_id,
+                      class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500" %>
+                <% end %>
+              </div>
+            <% end %>
+          </div>
+        <% else %>
+          <p class="text-sm text-gray-500">This theme does not define editable settings.</p>
+        <% end %>
+      </div>
+    <% end %>
   </div>
 
   <div class="bg-white shadow rounded-lg p-6 space-y-6">

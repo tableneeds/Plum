@@ -2,14 +2,14 @@ module Plum
   class PagesController < ApplicationController
     def home
       @site_settings = SiteSetting.instance(current_site)
-      html = Plum::LiquidRenderer.render_template("index", build_context)
+      html = Plum::LiquidRenderer.render_template("index", build_context.to_h)
       render html: html.html_safe, layout: false
     end
 
     def show
       @entry = Entry.for_site(current_site).live.find_by!(slug: params[:slug])
       template = "entries/#{@entry.content_type.handle}"
-      html = Plum::LiquidRenderer.render_template(template, build_context(@entry))
+      html = Plum::LiquidRenderer.render_template(template, build_context(@entry).to_h)
       render html: html.html_safe, layout: false
     rescue ActiveRecord::RecordNotFound
       render file: Rails.public_path.join("404.html"), status: :not_found, layout: false
@@ -18,61 +18,7 @@ module Plum
     private
 
     def build_context(entry = nil)
-      {
-        "site" => site_context,
-        "entry" => entry ? entry_context(entry) : nil,
-        "entries" => entries_context,
-        "globals" => globals_context
-      }.compact.merge(Plum.content_sources_for(self))
-    end
-
-    def site_context
-      settings = SiteSetting.instance(current_site)
-      {
-        "name" => settings.name,
-        "tagline" => settings.tagline,
-        "seo_title" => settings.seo_title,
-        "seo_description" => settings.seo_description,
-        "primary_color" => settings.primary_color,
-        "support_email" => settings.support_email,
-        "theme_name" => settings.theme_name,
-        "theme_settings" => current_site.theme_settings,
-        "custom_css" => current_site.custom_css,
-        "url" => public_root_path,
-        "meta_title" => settings.seo_title,
-        "meta_description" => settings.seo_description
-      }
-    end
-
-    def entry_context(entry)
-      {
-        "title" => entry.title,
-        "slug" => entry.slug,
-        "published_at" => entry.published_at,
-        "url" => public_entry_path(entry),
-        "data" => entry.data || {}
-      }
-    end
-
-    def public_root_path
-      request.script_name.presence || "/"
-    end
-
-    def public_entry_path(entry)
-      "#{request.script_name.to_s.chomp("/")}/#{entry.slug}"
-    end
-
-    def entries_context
-      ContentType.for_site(current_site).includes(:entries).each_with_object({}) do |content_type, hash|
-        live_entries = content_type.entries.live.order(published_at: :desc, created_at: :desc)
-        hash[content_type.handle] = live_entries.map { |entry| entry_context(entry) }
-      end
-    end
-
-    def globals_context
-      Global.for_site(current_site).each_with_object({}) do |global, hash|
-        hash[global.handle] = global.data
-      end
+      LiquidContext.new(controller: self, site: current_site, entry: entry)
     end
   end
 end

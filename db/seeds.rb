@@ -22,6 +22,18 @@ site.update!(
 )
 puts "Created site settings"
 
+# Create Pages content type
+pages = plum_site.content_types.find_or_create_by!(handle: "pages") do |ct|
+  ct.name = "Pages"
+  ct.blueprint = {
+    "fields" => [
+      { "handle" => "body", "type" => "rich_text", "label" => "Body" }
+    ]
+  }
+  ct.icon = "page"
+end
+puts "Created 'Pages' content type"
+
 # Create Blog Posts content type
 posts = plum_site.content_types.find_or_create_by!(handle: "posts") do |ct|
   ct.name = "Blog Posts"
@@ -35,7 +47,20 @@ posts = plum_site.content_types.find_or_create_by!(handle: "posts") do |ct|
 end
 puts "Created 'Blog Posts' content type"
 
-# Create a sample entry
+# Create a sample page
+about_page = plum_site.entries.find_or_create_by!(slug: "about") do |e|
+  e.content_type = pages
+  e.author = admin
+  e.title = "About"
+  e.status = :published
+  e.published_at = Time.current
+  e.data = {
+    "body" => "Plum is a small Rails-native CMS for calm websites, reusable themes, and client-friendly editing."
+  }
+end
+puts "Created sample page: /about"
+
+# Create a sample blog post
 entry = plum_site.entries.find_or_create_by!(slug: "hello-world") do |e|
   e.content_type = posts
   e.author = admin
@@ -60,4 +85,5 @@ puts "Created sample entry: /hello-world"
 
 puts "\n✓ Seeds complete!"
 puts "Login at: http://localhost:3000/login"
+puts "View your page at: http://localhost:3000/about"
 puts "View your post at: http://localhost:3000/hello-world"

@@ -39,3 +39,24 @@
     </div>
   </dl>
 </div>
+
+<% if @current_theme&.settings_fields&.any? %>
+  <div class="mt-6 bg-white shadow rounded-lg p-6">
+    <h2 class="text-lg font-medium text-gray-900">Theme Settings</h2>
+    <dl class="mt-4 grid grid-cols-1 gap-6 sm:grid-cols-2">
+      <% @current_theme.settings_fields.each do |field| %>
+        <% value = current_site.theme_settings[field["handle"].to_s] %>
+        <div>
+          <dt class="text-sm font-medium text-gray-500"><%= field["label"] || field["handle"].to_s.humanize %></dt>
+          <dd class="mt-1 text-sm text-gray-900">
+            <% if field["type"] == "boolean" %>
+              <%= ActiveModel::Type::Boolean.new.cast(value) ? "Yes" : "No" %>
+            <% else %>
+              <%= value.presence || "—" %>
+            <% end %>
+          </dd>
+        </div>
+      <% end %>
+    </dl>
+  </div>
+<% end %>
