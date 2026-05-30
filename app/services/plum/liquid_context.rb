@@ -13,7 +13,8 @@ module Plum
         "site" => site_context,
         "entry" => entry ? entry_context(entry) : nil,
         "entries" => entries_context,
-        "globals" => globals_context
+        "globals" => globals_context,
+        "nav" => nav_context
       }.compact.merge(Plum.content_sources_for(controller, site: site))
     end
 
@@ -74,6 +75,29 @@ module Plum
       Global.for_site(site).each_with_object({}) do |global, hash|
         hash[global.handle] = global.data
       end
+    end
+
+    def nav_context
+      NavMenu.for_site(site).includes(nav_items: [ :entry, :children ]).each_with_object({}) do |menu, hash|
+        hash[menu.handle] = {
+          "name" => menu.name,
+          "handle" => menu.handle,
+          "items" => menu.root_items.map { |item| nav_item_context(item) }
+        }
+      end
+    end
+
+    def nav_item_context(item)
+      {
+        "label" => item.label,
+        "url" => nav_item_url(item),
+        "entry" => item.entry ? entry_context(item.entry) : nil,
+        "children" => item.children.map { |child| nav_item_context(child) }
+      }
+    end
+
+    def nav_item_url(item)
+      item.entry ? public_entry_path(item.entry) : item.url
     end
 
     def image_asset_context(value)

@@ -13,10 +13,12 @@ module Plum
       nav_items.where(parent_id: nil).order(:position)
     end
 
+    alias root_items items
+
     private
 
     def generate_handle
-      self.handle ||= name&.parameterize(separator: "_")
+      self.handle = name&.parameterize(separator: "_") if handle.blank?
     end
   end
 end

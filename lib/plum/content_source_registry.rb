@@ -4,7 +4,7 @@ require_relative "content_source_context"
 
 module Plum
   class ContentSourceRegistry
-    RESERVED_HANDLES = %w[entry entries globals site].freeze
+    RESERVED_HANDLES = %w[entry entries globals nav site].freeze
     HANDLE_PATTERN = /\A[a-z][a-z0-9_]*\z/
 
     def initialize

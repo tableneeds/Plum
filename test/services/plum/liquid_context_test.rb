@@ -66,6 +66,43 @@ module Plum
       assert_includes context.dig("entry", "data", "hero_image", "url"), "/rails/active_storage/blobs"
     end
 
+    test "exposes globals and navigation menus" do
+      site = Plum::Site.create!(name: "Bagel Boy", theme_name: "default")
+      site.globals.create!(
+        name: "Company Info",
+        handle: "company",
+        data: {
+          "phone" => "555-0100",
+          "address" => "123 Bagel Street"
+        }
+      )
+      content_type = site.content_types.create!(
+        name: "Pages",
+        handle: "pages",
+        blueprint: { "fields" => [] }
+      )
+      entry = content_type.entries.create!(
+        site: site,
+        title: "About",
+        slug: "about",
+        status: :published,
+        published_at: 1.hour.ago,
+        data: {}
+      )
+      menu = site.nav_menus.create!(name: "Main", handle: "main")
+      menu.nav_items.create!(site: site, label: "Home", url: "/", position: 1)
+      menu.nav_items.create!(site: site, label: "About", entry: entry, position: 2)
+
+      context = LiquidContext.new(controller: fake_controller(script_name: "/website"), site: site).to_h
+
+      assert_equal "555-0100", context.dig("globals", "company", "phone")
+      assert_equal "Main", context.dig("nav", "main", "name")
+      assert_equal "Home", context.dig("nav", "main", "items", 0, "label")
+      assert_equal "/", context.dig("nav", "main", "items", 0, "url")
+      assert_equal "About", context.dig("nav", "main", "items", 1, "label")
+      assert_equal "/website/about", context.dig("nav", "main", "items", 1, "url")
+    end
+
     private
 
     def fake_controller(script_name: "")

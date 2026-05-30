@@ -125,6 +125,33 @@ Plum stores the asset id in `entry.data`, then expands it for Liquid:
 Image objects expose `id`, `url`, `alt_text`, `caption`, `filename`,
 `content_type`, `byte_size`, and `folder`.
 
+## Globals And Navigation
+
+Globals are reusable JSON objects for site-wide data such as company info,
+announcements, social links, or contact details. A global with handle `company`
+is available in Liquid as:
+
+```liquid
+{{ globals.company.phone }}
+{{ globals.company.address }}
+```
+
+Navigation menus are managed in the control panel and exposed by handle. A menu
+with handle `main` is available as `nav.main`:
+
+```liquid
+{% if nav.main.items.size > 0 %}
+  <nav>
+    {% for item in nav.main.items %}
+      <a href="{{ item.url }}">{{ item.label }}</a>
+    {% endfor %}
+  </nav>
+{% endif %}
+```
+
+Navigation items can point to a custom URL or a Plum entry. Entry-backed items
+resolve to the correct mounted URL when Plum is embedded in another Rails app.
+
 ## Theme Packages
 
 Themes can be installed from a zip in the control panel. A package must contain

@@ -1,0 +1,11 @@
+<div class="flex items-center justify-between gap-6 mb-8">
+  <div>
+    <h1 class="text-2xl font-bold text-gray-900">Edit Navigation Item</h1>
+    <p class="mt-1 text-sm text-gray-500"><%= @nav_menu.name %></p>
+  </div>
+  <%= button_to "Delete", cp_nav_menu_nav_item_path(@nav_menu, @nav_item), method: :delete,
+      data: { turbo_confirm: "Delete this navigation item?" },
+      class: "px-4 py-2 border border-red-300 rounded-md shadow-sm text-sm font-medium text-red-700 bg-white hover:bg-red-50" %>
+</div>
+
+<%= render "form", nav_item: @nav_item %>

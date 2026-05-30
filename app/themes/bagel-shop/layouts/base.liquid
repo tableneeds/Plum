@@ -99,6 +99,34 @@
       white-space: nowrap;
     }
 
+    .header-actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .site-nav {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 0.4rem 0.9rem;
+      flex-wrap: wrap;
+      font-family: ui-sans-serif, system-ui, sans-serif;
+      font-size: 0.9rem;
+      font-weight: 700;
+    }
+
+    .site-nav a {
+      color: var(--bagel-ink);
+      text-decoration: none;
+    }
+
+    .site-nav a:hover {
+      color: var(--bagel-accent);
+    }
+
     main {
       flex: 1;
     }
@@ -344,6 +372,11 @@
         flex-direction: column;
       }
 
+      .header-actions,
+      .site-nav {
+        justify-content: flex-start;
+      }
+
       h1,
       article h1 {
         font-size: 3.2rem;
@@ -385,9 +418,19 @@
             {% if site.tagline %}<span class="brand-tagline">{{ site.tagline }}</span>{% endif %}
           </span>
         </a>
-        {% if site.support_email %}
-          <a class="header-link" href="mailto:{{ site.support_email }}">Order ahead</a>
-        {% endif %}
+        <div class="header-actions">
+          {% if nav.main.items.size > 0 %}
+            <nav class="site-nav" aria-label="Main navigation">
+              {% for item in nav.main.items %}
+                <a href="{{ item.url }}">{{ item.label }}</a>
+              {% endfor %}
+            </nav>
+          {% endif %}
+
+          {% if site.support_email %}
+            <a class="header-link" href="mailto:{{ site.support_email }}">Order ahead</a>
+          {% endif %}
+        </div>
       </div>
     </header>
 

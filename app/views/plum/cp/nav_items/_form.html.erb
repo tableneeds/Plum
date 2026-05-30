@@ -1,0 +1,56 @@
+<%= form_with model: [:cp, @nav_menu, nav_item], class: "space-y-6" do |f| %>
+  <% if nav_item.errors.any? %>
+    <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+      <ul class="list-disc list-inside">
+        <% nav_item.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="bg-white shadow rounded-lg p-6 space-y-6">
+    <div>
+      <%= f.label :label, class: "block text-sm font-medium text-gray-700" %>
+      <%= f.text_field :label,
+          class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500" %>
+    </div>
+
+    <div>
+      <%= f.label :url, "Custom URL", class: "block text-sm font-medium text-gray-700" %>
+      <%= f.text_field :url,
+          class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 font-mono",
+          placeholder: "/menu or https://example.com" %>
+      <p class="mt-1 text-sm text-gray-500">Leave blank when linking to an entry.</p>
+    </div>
+
+    <div>
+      <%= f.label :entry_id, "Entry", class: "block text-sm font-medium text-gray-700" %>
+      <%= f.select :entry_id,
+          options_for_select([["No entry", ""]] + @entries.map { |entry| ["#{entry.title} (#{entry.content_type.name})", entry.id] }, nav_item.entry_id),
+          {},
+          class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500" %>
+    </div>
+
+    <div>
+      <%= f.label :parent_id, "Parent Item", class: "block text-sm font-medium text-gray-700" %>
+      <%= f.select :parent_id,
+          options_for_select([["No parent", ""]] + @parent_options.map { |item| [item.label, item.id] }, nav_item.parent_id),
+          {},
+          class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500" %>
+    </div>
+
+    <div>
+      <%= f.label :position, class: "block text-sm font-medium text-gray-700" %>
+      <%= f.number_field :position,
+          min: 0,
+          class: "mt-1 block w-32 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500" %>
+    </div>
+  </div>
+
+  <div class="flex justify-end space-x-3">
+    <%= link_to "Cancel", cp_nav_menu_path(@nav_menu),
+        class: "px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50" %>
+    <%= f.submit class: "px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 cursor-pointer" %>
+  </div>
+<% end %>

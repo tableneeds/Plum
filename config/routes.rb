@@ -14,6 +14,10 @@ Rails.application.routes.draw do
         resources :entries
       end
       resources :assets, except: [ :show ]
+      resources :globals
+      resources :nav_menus do
+        resources :nav_items, except: [ :index, :show ]
+      end
       resource :site_settings, only: [ :show, :edit, :update ]
       resources :themes, only: [ :index, :create, :update ]
       get "theme_previews/:handle", to: "theme_previews#show", as: :theme_preview

@@ -18,9 +18,13 @@
     }
     .container { max-width: 720px; margin: 0 auto; padding: 2rem 1rem; }
     header { border-bottom: 1px solid #eee; padding-bottom: 1rem; margin-bottom: 2rem; }
+    .site-header-main { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; }
     header h1 { font-size: 1.5rem; }
     header h1 a { color: inherit; text-decoration: none; }
     header p { color: #666; font-size: 0.9rem; }
+    .site-nav { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 0.35rem 0.8rem; padding-top: 0.15rem; }
+    .site-nav a { color: #4a3d45; font-size: 0.9rem; font-weight: 600; text-decoration: none; }
+    .site-nav a:hover { color: var(--plum-primary); }
     article h1 { font-size: 2rem; margin-bottom: 0.5rem; }
     article .meta { color: #666; font-size: 0.9rem; margin-bottom: 2rem; }
     article .entry-hero-image { width: 100%; margin: 1.5rem 0 2rem; border-radius: 0.5rem; }
@@ -33,6 +37,10 @@
     footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid #eee; color: #666; font-size: 0.9rem; }
     footer .plum-powered { display: inline-flex; align-items: center; gap: 0.45rem; color: #4a3d45; }
     footer .plum-powered img { width: 1.15rem; height: 1.15rem; border-radius: 0.25rem; }
+    @media (max-width: 640px) {
+      .site-header-main { display: block; }
+      .site-nav { justify-content: flex-start; margin-top: 1rem; }
+    }
   </style>
   {% if site.custom_css %}
   <style id="plum-custom-css">
@@ -43,8 +51,20 @@
 <body>
   <div class="container">
     <header>
-      <h1><a href="{{ site.url }}">{{ site.name }}</a></h1>
-      {% if site.tagline %}<p>{{ site.tagline }}</p>{% endif %}
+      <div class="site-header-main">
+        <div>
+          <h1><a href="{{ site.url }}">{{ site.name }}</a></h1>
+          {% if site.tagline %}<p>{{ site.tagline }}</p>{% endif %}
+        </div>
+
+        {% if nav.main.items.size > 0 %}
+          <nav class="site-nav" aria-label="Main navigation">
+            {% for item in nav.main.items %}
+              <a href="{{ item.url }}">{{ item.label }}</a>
+            {% endfor %}
+          </nav>
+        {% endif %}
+      </div>
     </header>
 
     <main>

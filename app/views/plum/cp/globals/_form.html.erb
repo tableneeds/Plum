@@ -1,0 +1,44 @@
+<%= form_with model: [:cp, global], class: "space-y-6" do |f| %>
+  <% if global.errors.any? %>
+    <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+      <ul class="list-disc list-inside">
+        <% global.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="bg-white shadow rounded-lg p-6 space-y-6">
+    <div>
+      <%= f.label :name, class: "block text-sm font-medium text-gray-700" %>
+      <%= f.text_field :name,
+          class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500" %>
+    </div>
+
+    <div>
+      <%= f.label :handle, class: "block text-sm font-medium text-gray-700" %>
+      <%= f.text_field :handle,
+          class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 font-mono",
+          placeholder: "auto-generated from name" %>
+      <p class="mt-1 text-sm text-gray-500">Used in Liquid as <span class="font-mono">globals.company.phone</span>.</p>
+    </div>
+
+    <div>
+      <%= f.label :data_json, "Data", class: "block text-sm font-medium text-gray-700" %>
+      <%= f.text_area :data_json,
+          name: "global[data_json]",
+          value: global_data_json(global),
+          rows: 14,
+          class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 font-mono text-sm",
+          spellcheck: false %>
+      <p class="mt-1 text-sm text-gray-500">Must be a JSON object.</p>
+    </div>
+  </div>
+
+  <div class="flex justify-end space-x-3">
+    <%= link_to "Cancel", global.persisted? ? cp_global_path(global) : cp_globals_path,
+        class: "px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50" %>
+    <%= f.submit class: "px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 cursor-pointer" %>
+  </div>
+<% end %>

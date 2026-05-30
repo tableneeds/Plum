@@ -85,6 +85,31 @@ Plum uses **Liquid templates** to render your content, giving you full control o
 end
 puts "Created sample entry: /hello-world"
 
+company = plum_site.globals.find_or_create_by!(handle: "company") do |global|
+  global.name = "Company Info"
+end
+company.update!(
+  name: "Company Info",
+  data: {
+    "phone" => "555-0100",
+    "address" => "123 Plum Street"
+  }
+)
+puts "Created company global"
+
+main_nav = plum_site.nav_menus.find_or_initialize_by(handle: "main")
+main_nav.update!(name: "Main")
+
+home_item = main_nav.nav_items.find_or_initialize_by(label: "Home")
+home_item.update!(site: plum_site, url: "/", entry: nil, parent: nil, position: 1)
+
+about_item = main_nav.nav_items.find_or_initialize_by(label: "About")
+about_item.update!(site: plum_site, url: nil, entry: about_page, parent: nil, position: 2)
+
+blog_item = main_nav.nav_items.find_or_initialize_by(label: "Blog")
+blog_item.update!(site: plum_site, url: nil, entry: entry, parent: nil, position: 3)
+puts "Created main navigation"
+
 puts "\n✓ Seeds complete!"
 puts "Login at: http://localhost:3000/login"
 puts "View your page at: http://localhost:3000/about"

@@ -7,6 +7,10 @@ module Plum
 
     before_validation :generate_handle, on: :create
 
+    def data
+      super || {}
+    end
+
     def value(key)
       data&.dig(key)
     end
@@ -14,7 +18,7 @@ module Plum
     private
 
     def generate_handle
-      self.handle ||= name&.parameterize(separator: "_")
+      self.handle = name&.parameterize(separator: "_") if handle.blank?
     end
   end
 end

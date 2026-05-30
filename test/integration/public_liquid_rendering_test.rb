@@ -49,6 +49,18 @@ class PublicLiquidRenderingTest < ActionDispatch::IntegrationTest
     refute_includes response.body, "Scheduled Post"
   end
 
+  test "homepage renders the main navigation menu" do
+    @site.nav_menus.create!(name: "Main", handle: "main").tap do |menu|
+      menu.nav_items.create!(site: @site, label: "About", url: "/about", position: 1)
+    end
+
+    get root_path
+
+    assert_response :success
+    assert_includes response.body, "About"
+    assert_includes response.body, "/about"
+  end
+
   test "scheduled entries are not public pages" do
     create_entry(title: "Scheduled Post", slug: "scheduled-post", status: :scheduled, published_at: 1.hour.ago)
 
