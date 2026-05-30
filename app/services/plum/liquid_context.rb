@@ -14,7 +14,7 @@ module Plum
         "entry" => entry ? entry_context(entry) : nil,
         "entries" => entries_context,
         "globals" => globals_context
-      }.compact.merge(Plum.content_sources_for(controller))
+      }.compact.merge(Plum.content_sources_for(controller, site: site))
     end
 
     private

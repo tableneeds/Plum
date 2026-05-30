@@ -19,6 +19,10 @@ module Plum
       Array(@theme_paths.presence || default_theme_paths).map { |path| Pathname(path) }.uniq(&:to_s)
     end
 
+    def register_content_source(handle, source = nil, &block)
+      content_sources.register(handle, source, &block)
+    end
+
     private
 
     def default_theme_paths
@@ -45,7 +49,11 @@ module Plum
     configuration.current_user_resolver.call(controller)
   end
 
-  def self.content_sources_for(controller)
-    configuration.content_sources.to_liquid_context(controller)
+  def self.register_content_source(handle, source = nil, &block)
+    configuration.register_content_source(handle, source, &block)
+  end
+
+  def self.content_sources_for(controller, site:)
+    configuration.content_sources.to_liquid_context(controller: controller, site: site)
   end
 end
