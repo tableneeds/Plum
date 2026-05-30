@@ -72,3 +72,4 @@ end
 gem "tailwindcss-rails", "~> 4.4"
 
 gem "redcarpet", "~> 3.6"
+gem "rubyzip", ">= 2.4", "< 4.0"

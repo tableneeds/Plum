@@ -14,6 +14,7 @@ module Plum
         if Pathname(raw_path).absolute? || parts.any? { |part| part == "." || part == ".." }
           raise UnsafePathError, "Theme asset path must stay inside the theme assets directory"
         end
+        raise UnsafePathError, "Theme asset path cannot be blank" if parts.blank?
 
         parts.join("/")
       end

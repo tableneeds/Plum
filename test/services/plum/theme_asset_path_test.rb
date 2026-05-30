@@ -12,6 +12,7 @@ module Plum
       assert_equal "", ThemeAssetPath.url(base_url: "/theme_assets/default", path: "../theme.yml")
       assert_equal "", ThemeAssetPath.url(base_url: "/theme_assets/default", path: "/etc/passwd")
       assert_equal "", ThemeAssetPath.url(base_url: "/theme_assets/default", path: "")
+      assert_equal "", ThemeAssetPath.url(base_url: "/theme_assets/default", path: ".")
     end
   end
 end

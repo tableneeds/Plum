@@ -46,3 +46,19 @@ end
 
 Each customer should get one `Plum::Site`, commonly through the optional
 polymorphic `owner` association.
+
+## Theme Packages
+
+Themes can be installed from a zip in the control panel. A package must contain
+`theme.yml` at the root, or inside one top-level folder:
+
+```text
+theme.yml
+layouts/base.liquid
+templates/index.liquid
+assets/theme.css
+```
+
+Theme handles must use lowercase letters, numbers, and hyphens. Plum rejects
+packages with unsafe paths, missing manifests, duplicate handles, or no Liquid
+templates/layouts.

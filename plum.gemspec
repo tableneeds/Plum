@@ -32,6 +32,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency "propshaft", "~> 1.0"
   spec.add_dependency "rails", ">= 8.0", "< 9.0"
   spec.add_dependency "redcarpet", "~> 3.6"
+  spec.add_dependency "rubyzip", ">= 2.4", "< 4.0"
   spec.add_dependency "stimulus-rails", "~> 1.3"
   spec.add_dependency "tailwindcss-rails", "~> 4.0"
   spec.add_dependency "turbo-rails", "~> 2.0"
