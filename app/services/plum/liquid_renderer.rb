@@ -1,3 +1,4 @@
+require "liquid"
 require_relative "liquid_filters"
 
 module Plum

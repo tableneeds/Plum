@@ -25,6 +25,12 @@ Mount path can be changed for embedded products:
 bin/rails generate plum:install --mount-path=/website
 ```
 
+Or mount the engine manually:
+
+```ruby
+mount Plum::Engine, at: "/website"
+```
+
 For Table Needs, configure Plum with host-owned resolvers:
 
 ```ruby

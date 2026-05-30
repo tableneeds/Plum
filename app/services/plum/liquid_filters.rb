@@ -1,3 +1,5 @@
+require "redcarpet"
+
 module Plum
   module LiquidFilters
     def markdown(input)

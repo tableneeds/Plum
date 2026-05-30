@@ -33,7 +33,7 @@ module Plum
       def mount_engine
         return if options[:skip_route]
 
-        route %(mount Plum::Engine => "#{options[:mount_path]}")
+        route %(mount Plum::Engine, at: "#{options[:mount_path]}")
       end
 
       def print_next_steps
