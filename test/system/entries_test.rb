@@ -78,6 +78,40 @@ class EntriesTest < ApplicationSystemTestCase
     assert_text "**bold**"
   end
 
+  test "creating an entry with an uploaded image field" do
+    image_path = png_fixture_path(filename: "hero.png")
+    @content_type.update!(
+      blueprint: {
+        "fields" => [
+          { "handle" => "body", "type" => "rich_text", "label" => "Body" },
+          { "handle" => "hero_image", "type" => "image", "label" => "Hero Image" }
+        ]
+      }
+    )
+
+    visit new_cp_content_type_entry_path(@content_type)
+
+    fill_in "Title", with: "Image Entry"
+    fill_in "Body", with: "Image body"
+    attach_file "Or upload a new image", image_path
+    select "Published", from: "Status"
+    click_button "Save"
+
+    assert_text "Entry created"
+    assert_text "hero.png"
+
+    entry = Plum::Entry.find_by!(slug: "image-entry")
+    asset = Plum::Asset.find(entry.data["hero_image"])
+
+    assert_equal "Image Entry Hero Image", asset.alt_text
+
+    visit "/image-entry"
+
+    assert_selector "img[alt='Image Entry Hero Image']"
+  ensure
+    FileUtils.rm_f(image_path) if image_path
+  end
+
   test "markdown content renders on public page" do
     Plum::Entry.create!(
       content_type: @content_type,

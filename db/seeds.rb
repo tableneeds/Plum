@@ -27,6 +27,7 @@ pages = plum_site.content_types.find_or_create_by!(handle: "pages") do |ct|
   ct.name = "Pages"
   ct.blueprint = {
     "fields" => [
+      { "handle" => "hero_image", "type" => "image", "label" => "Hero Image" },
       { "handle" => "body", "type" => "rich_text", "label" => "Body" }
     ]
   }
@@ -39,6 +40,7 @@ posts = plum_site.content_types.find_or_create_by!(handle: "posts") do |ct|
   ct.name = "Blog Posts"
   ct.blueprint = {
     "fields" => [
+      { "handle" => "hero_image", "type" => "image", "label" => "Hero Image" },
       { "handle" => "body", "type" => "rich_text", "label" => "Body" },
       { "handle" => "excerpt", "type" => "textarea", "label" => "Excerpt" }
     ]

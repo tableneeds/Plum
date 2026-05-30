@@ -97,6 +97,34 @@ Content sources must return Liquid-safe data: hashes, arrays, strings, numbers,
 booleans, dates/times, or objects that implement `to_liquid`. Hash keys are
 normalized to strings.
 
+## Assets And Image Fields
+
+Images live in `Plum::Asset` records with files stored through Active Storage.
+The control panel exposes an asset library at `/cp/assets` for uploading images
+and editing alt text, captions, and folders.
+
+Blueprints can define image fields:
+
+```json
+{
+  "fields": [
+    { "handle": "hero_image", "type": "image", "label": "Hero Image" }
+  ]
+}
+```
+
+Entry forms let editors choose an existing asset or upload a new image inline.
+Plum stores the asset id in `entry.data`, then expands it for Liquid:
+
+```liquid
+{% if entry.data.hero_image.url %}
+  <img src="{{ entry.data.hero_image.url }}" alt="{{ entry.data.hero_image.alt_text }}">
+{% endif %}
+```
+
+Image objects expose `id`, `url`, `alt_text`, `caption`, `filename`,
+`content_type`, `byte_size`, and `folder`.
+
 ## Theme Packages
 
 Themes can be installed from a zip in the control panel. A package must contain

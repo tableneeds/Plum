@@ -23,7 +23,8 @@ class PublicLiquidRenderingTest < ActionDispatch::IntegrationTest
       handle: "posts",
       blueprint: {
         "fields" => [
-          { "handle" => "body", "type" => "rich_text", "label" => "Body" }
+          { "handle" => "body", "type" => "rich_text", "label" => "Body" },
+          { "handle" => "hero_image", "type" => "image", "label" => "Hero Image" }
         ]
       }
     )
@@ -70,6 +71,28 @@ class PublicLiquidRenderingTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_includes response.body, "Menu Update"
     assert_includes response.body, "<strong>sesame</strong>"
+  end
+
+  test "published entry renders image fields through Liquid" do
+    asset = @site.assets.build(alt_text: "Bagel tray", caption: "Morning batch")
+    attach_test_png(asset, filename: "bagels.png")
+    asset.save!
+    create_entry(
+      title: "Image Post",
+      slug: "image-post",
+      status: :published,
+      published_at: 1.hour.ago,
+      data: {
+        "body" => "Image body",
+        "hero_image" => asset.id
+      }
+    )
+
+    get "/image-post"
+
+    assert_response :success
+    assert_includes response.body, "Bagel tray"
+    assert_includes response.body, "/rails/active_storage/blobs"
   end
 
   private

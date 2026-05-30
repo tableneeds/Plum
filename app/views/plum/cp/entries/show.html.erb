@@ -28,7 +28,7 @@
       <dd class="mt-1 text-sm text-gray-900"><%= @entry.published_at&.strftime("%B %d, %Y at %I:%M %p") || "Not published" %></dd>
     </div>
     <% @content_type.fields.each do |field| %>
-      <div class="<%= field['type'] == 'rich_text' ? 'sm:col-span-2' : '' %>">
+      <div class="<%= %w[rich_text image].include?(field['type']) ? 'sm:col-span-2' : '' %>">
         <dt class="text-sm font-medium text-gray-500"><%= field['label'] || field['handle'].titleize %></dt>
         <dd class="mt-1 text-sm text-gray-900">
           <% value = @entry.field_value(field['handle']) %>
@@ -36,6 +36,16 @@
             <div class="prose max-w-none"><%= raw value %></div>
           <% elsif field['type'] == 'boolean' %>
             <%= value ? 'Yes' : 'No' %>
+          <% elsif field['type'] == 'image' %>
+            <% asset = current_site.assets.with_attached_file.find_by(id: value) if value.present? %>
+            <% if asset %>
+              <div class="overflow-hidden rounded-lg border border-gray-200 bg-gray-100">
+                <%= image_tag plum_asset_image_url(asset), alt: asset.alt_text.to_s, class: "h-44 w-full object-cover" %>
+              </div>
+              <p class="mt-2 text-xs text-gray-500"><%= plum_asset_label(asset) %></p>
+            <% else %>
+              —
+            <% end %>
           <% else %>
             <%= value %>
           <% end %>

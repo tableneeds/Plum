@@ -54,6 +54,7 @@
             <option value="number" <%= 'selected' if field['type'] == 'number' %>>Number</option>
             <option value="boolean" <%= 'selected' if field['type'] == 'boolean' %>>Boolean</option>
             <option value="date" <%= 'selected' if field['type'] == 'date' %>>Date</option>
+            <option value="image" <%= 'selected' if field['type'] == 'image' %>>Image</option>
           </select>
           <input type="text" value="<%= field['label'] %>" placeholder="Label" data-field="label"
                  data-action="input->plum--blueprint#inputChanged"

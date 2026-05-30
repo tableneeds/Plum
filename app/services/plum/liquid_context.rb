@@ -46,8 +46,21 @@ module Plum
         "slug" => entry.slug,
         "published_at" => entry.published_at,
         "url" => public_entry_path(entry),
-        "data" => entry.data || {}
+        "data" => entry_data_context(entry)
       }
+    end
+
+    def entry_data_context(entry)
+      data = (entry.data || {}).deep_dup
+
+      entry.content_type.fields.each do |field|
+        next unless field["type"] == "image"
+
+        handle = field["handle"].to_s
+        data[handle] = image_asset_context(data[handle])
+      end
+
+      data
     end
 
     def entries_context
@@ -61,6 +74,16 @@ module Plum
       Global.for_site(site).each_with_object({}) do |global, hash|
         hash[global.handle] = global.data
       end
+    end
+
+    def image_asset_context(value)
+      return if value.blank?
+
+      asset_cache[value.to_i]&.to_liquid
+    end
+
+    def asset_cache
+      @asset_cache ||= Asset.for_site(site).with_attached_file.index_by(&:id)
     end
 
     def public_root_path

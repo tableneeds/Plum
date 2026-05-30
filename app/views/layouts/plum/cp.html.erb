@@ -38,6 +38,8 @@
             <% end %>
             <%= link_to "+ New Type", new_cp_content_type_path,
                 class: "flex items-center px-4 py-2 mt-2 text-sm font-medium text-[#E6B3CB] hover:text-white" %>
+            <%= link_to "Assets", cp_assets_path,
+                class: "flex items-center px-4 py-2 mt-2 text-sm font-medium rounded-md #{request.path.include?('/cp/assets') ? 'bg-white/10 text-white' : 'text-[#D9CBD4] hover:bg-white/10 hover:text-white'}" %>
           </div>
 
           <div class="pt-4">

@@ -1,6 +1,10 @@
 <article>
   <h1>{{ entry.title }}</h1>
 
+  {% if entry.data.hero_image.url %}
+    <img class="entry-hero-image" src="{{ entry.data.hero_image.url }}" alt="{{ entry.data.hero_image.alt_text | default: entry.title }}">
+  {% endif %}
+
   <div class="content prose">
     {{ entry.data.body | markdown }}
   </div>

@@ -1,5 +1,5 @@
 <div class="space-y-6">
-  <%= form_with model: [:cp, @content_type, entry], class: "space-y-6", id: "entry-form" do |f| %>
+  <%= form_with model: [:cp, @content_type, entry], multipart: true, class: "space-y-6", id: "entry-form" do |f| %>
     <% if entry.errors.any? %>
       <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
         <ul class="list-disc list-inside">
@@ -32,29 +32,53 @@
         <div class="bg-white shadow rounded-lg p-6 space-y-6">
           <h3 class="text-lg font-medium text-gray-900">Content</h3>
           <% @content_type.fields.each do |field| %>
+            <% field_handle = field["handle"].to_s %>
+            <% field_id = "entry_data_#{field_handle.parameterize}" %>
             <div>
-              <label class="block text-sm font-medium text-gray-700"><%= field["label"] || field["handle"].titleize %></label>
+              <label for="<%= field_id %>" class="block text-sm font-medium text-gray-700"><%= field["label"] || field_handle.titleize %></label>
               <% case field["type"] %>
               <% when "text" %>
-                <%= f.text_field "data[#{field['handle']}]", value: entry.data&.dig(field["handle"]),
+                <%= text_field_tag "entry[data][#{field_handle}]", entry.data&.dig(field_handle), id: field_id,
                     class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500" %>
               <% when "textarea" %>
-                <%= f.text_area "data[#{field['handle']}]", value: entry.data&.dig(field["handle"]), rows: 4,
+                <%= text_area_tag "entry[data][#{field_handle}]", entry.data&.dig(field_handle), id: field_id, rows: 4,
                     class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500" %>
               <% when "rich_text" %>
-                <%= f.text_area "data[#{field['handle']}]", value: entry.data&.dig(field["handle"]), rows: 12,
+                <%= text_area_tag "entry[data][#{field_handle}]", entry.data&.dig(field_handle), id: field_id, rows: 12,
                     class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 font-mono text-sm" %>
                 <p class="mt-1 text-xs text-gray-500">Supports Markdown: **bold**, *italic*, # Heading, - list, [link](url)</p>
               <% when "number" %>
-                <%= f.number_field "data[#{field['handle']}]", value: entry.data&.dig(field["handle"]),
+                <%= number_field_tag "entry[data][#{field_handle}]", entry.data&.dig(field_handle), id: field_id,
                     class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500" %>
               <% when "boolean" %>
                 <div class="mt-1">
-                  <%= f.check_box "data[#{field['handle']}]", { checked: entry.data&.dig(field["handle"]) }, "true", "false" %>
+                  <%= hidden_field_tag "entry[data][#{field_handle}]", "false" %>
+                  <%= check_box_tag "entry[data][#{field_handle}]", "true", ActiveModel::Type::Boolean.new.cast(entry.data&.dig(field_handle)), id: field_id %>
                 </div>
               <% when "date" %>
-                <%= f.date_field "data[#{field['handle']}]", value: entry.data&.dig(field["handle"]),
+                <%= date_field_tag "entry[data][#{field_handle}]", entry.data&.dig(field_handle), id: field_id,
                     class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500" %>
+              <% when "image" %>
+                <% selected_asset_id = entry.data&.dig(field_handle).to_s %>
+                <% selected_asset = @assets.detect { |asset| asset.id.to_s == selected_asset_id } %>
+                <% upload_id = "entry_image_uploads_#{field_handle}" %>
+                <div class="mt-1 space-y-3">
+                  <% if selected_asset %>
+                    <div class="overflow-hidden rounded-lg border border-gray-200 bg-gray-100">
+                      <%= image_tag plum_asset_image_url(selected_asset), alt: selected_asset.alt_text.to_s, class: "h-44 w-full object-cover" %>
+                    </div>
+                  <% end %>
+
+                  <%= select_tag "entry[data][#{field_handle}]",
+                      options_for_select([["No image", ""]] + @assets.map { |asset| [plum_asset_label(asset), asset.id] }, selected_asset_id),
+                      id: field_id,
+                      class: "block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500" %>
+
+                  <div>
+                    <label for="<%= upload_id %>" class="block text-xs font-medium text-gray-500">Or upload a new image</label>
+                    <%= file_field_tag "entry[image_uploads][#{field_handle}]", id: upload_id, accept: "image/*", class: "mt-1 block w-full text-sm text-gray-700" %>
+                  </div>
+                </div>
               <% end %>
             </div>
           <% end %>

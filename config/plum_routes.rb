@@ -8,6 +8,7 @@ Plum::Engine.routes.draw do
     resources :content_types do
       resources :entries
     end
+    resources :assets, except: [ :show ]
     resource :site_settings, only: [ :show, :edit, :update ]
     resources :themes, only: [ :index, :create, :update ]
     get "theme_previews/:handle", to: "theme_previews#show", as: :theme_preview
