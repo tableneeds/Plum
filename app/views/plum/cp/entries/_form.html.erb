@@ -100,6 +100,13 @@
                     <%= file_field_tag "entry[image_uploads][#{field_handle}]", id: upload_id, accept: "image/*", class: "mt-1 block w-full text-sm text-gray-700" %>
                   </div>
                 </div>
+              <% when "relationship" %>
+                <% selected_entry_id = entry.data&.dig(field_handle).to_s %>
+                <% relationship_entries = (@relationship_entries_by_field || {}).fetch(field_handle, []) %>
+                <%= select_tag "entry[data][#{field_handle}]",
+                    options_for_select([["No entry", ""]] + relationship_entries.map { |related_entry| ["#{related_entry.title} (#{related_entry.content_type.name})", related_entry.id] }, selected_entry_id),
+                    id: field_id,
+                    class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500" %>
               <% end %>
             </div>
           <% end %>

@@ -115,6 +115,44 @@ class EntriesTest < ApplicationSystemTestCase
     FileUtils.rm_f(image_path) if image_path
   end
 
+  test "creating an entry with a relationship field" do
+    related_entry = Plum::Entry.create!(
+      content_type: @content_type,
+      author: @admin,
+      title: "Everything Bagel",
+      slug: "everything-bagel",
+      status: :draft,
+      data: { "body" => "Related body", "excerpt" => "Related excerpt" }
+    )
+    page_type = Plum::ContentType.create!(
+      name: "Pages",
+      handle: "pages",
+      blueprint: {
+        "fields" => [
+          {
+            "handle" => "featured_post",
+            "type" => "relationship",
+            "label" => "Featured Post",
+            "content_type" => "posts"
+          }
+        ]
+      }
+    )
+
+    visit new_cp_content_type_entry_path(page_type)
+
+    fill_in "Title", with: "Homepage"
+    select "Everything Bagel (Blog Posts)", from: "Featured Post"
+    click_button "Save"
+
+    assert_text "Entry created"
+    assert_text "Everything Bagel"
+
+    click_link "Edit"
+
+    assert_equal related_entry.id.to_s, find("#entry_data_featured_post").value
+  end
+
   test "markdown content renders on public page" do
     Plum::Entry.create!(
       content_type: @content_type,

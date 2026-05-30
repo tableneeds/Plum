@@ -140,6 +140,35 @@ filter.
 }
 ```
 
+## Relationship Fields
+
+Relationship fields let one entry point at another entry on the same site. Add
+`content_type` to limit the selector to a specific content type handle:
+
+```json
+{
+  "fields": [
+    {
+      "handle": "featured_post",
+      "type": "relationship",
+      "label": "Featured Post",
+      "content_type": "posts"
+    }
+  ]
+}
+```
+
+Plum stores the related entry id in `entry.data`. Public Liquid expands
+published related entries into entry objects:
+
+```liquid
+{% if entry.data.featured_post %}
+  <a href="{{ entry.data.featured_post.url }}">
+    {{ entry.data.featured_post.title }}
+  </a>
+{% endif %}
+```
+
 ## Globals And Navigation
 
 Globals are reusable JSON objects for site-wide data such as company info,

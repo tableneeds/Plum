@@ -28,6 +28,31 @@ class ContentTypesTest < ApplicationSystemTestCase
     assert_text "Articles"
   end
 
+  test "creating a relationship field" do
+    visit new_cp_content_type_path
+
+    fill_in "Name", with: "Pages"
+    click_button "Add Field"
+
+    within "[data-plum--blueprint-target='fields'] [data-plum--blueprint-target='field']:last-child" do
+      find("input[data-field='handle']").fill_in with: "featured_post"
+      find("select[data-field='type']").select "Relationship"
+      find("input[data-field='label']").fill_in with: "Featured Post"
+      find("input[data-field='content_type']").fill_in with: "posts"
+    end
+
+    click_button "Create Content type"
+
+    assert_text "Content type created"
+
+    click_link "Edit Type"
+
+    within "[data-plum--blueprint-target='fields'] [data-plum--blueprint-target='field']:first-child" do
+      assert_equal "relationship", find("select[data-field='type']").value
+      assert_equal "posts", find("input[data-field='content_type']").value
+    end
+  end
+
   test "editing a content type" do
     content_type = Plum::ContentType.create!(
       name: "Pages",

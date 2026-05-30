@@ -8,7 +8,7 @@ module Plum
 
       before_action :set_content_type
       before_action :set_entry, only: [ :show, :edit, :update, :destroy ]
-      before_action :set_assets, only: [ :new, :create, :edit, :update ]
+      before_action :set_form_collections, only: [ :new, :create, :edit, :update ]
 
       def index
         @entries = @content_type.entries.order(updated_at: :desc)
@@ -61,8 +61,11 @@ module Plum
         @entry = @content_type.entries.find(params[:id])
       end
 
-      def set_assets
+      def set_form_collections
         @assets = current_site.assets.with_attached_file.order(created_at: :desc)
+        @relationship_entries_by_field = relationship_fields.each_with_object({}) do |field, entries_by_field|
+          entries_by_field[field["handle"].to_s] = relationship_entry_scope(@entry, field).order(:title)
+        end
       end
 
       def entry_params
@@ -83,8 +86,7 @@ module Plum
       def attach_uploaded_image_fields(entry)
         image_uploads = params.dig(:entry, :image_uploads)
         unless image_uploads.respond_to?(:[])
-          normalize_entry_data_fields(entry)
-          return true
+          return normalize_entry_data_fields(entry)
         end
 
         image_fields.each do |field|
@@ -108,7 +110,6 @@ module Plum
         end
 
         normalize_entry_data_fields(entry)
-        true
       end
 
       def normalize_entry_data_fields(entry)
@@ -119,11 +120,14 @@ module Plum
           next if handle.blank?
 
           value = entry.data[handle]
-          entry.data[handle] = normalized_field_value(field, value)
+          entry.data[handle] = normalized_field_value(entry, field, value)
+          return false if entry.errors.any?
         end
+
+        true
       end
 
-      def normalized_field_value(field, value)
+      def normalized_field_value(entry, field, value)
         case field["type"]
         when "boolean"
           ActiveModel::Type::Boolean.new.cast(value)
@@ -131,9 +135,21 @@ module Plum
           value.present? ? value.to_i : nil
         when "rich_text"
           sanitized_rich_text(value)
+        when "relationship"
+          normalized_relationship_value(entry, field, value)
         else
           value
         end
+      end
+
+      def normalized_relationship_value(entry, field, value)
+        return nil if value.blank?
+
+        related_entry = relationship_entry_scope(entry, field).find_by(id: value.to_i)
+        return related_entry.id if related_entry
+
+        entry.errors.add(:base, "#{field_label(field)} is not a valid entry")
+        nil
       end
 
       def sanitized_rich_text(value)
@@ -146,6 +162,19 @@ module Plum
 
       def image_fields
         @content_type.fields.select { |field| field["type"] == "image" && field["handle"].present? }
+      end
+
+      def relationship_fields
+        @content_type.fields.select { |field| field["type"] == "relationship" && field["handle"].present? }
+      end
+
+      def relationship_entry_scope(entry, field)
+        site = entry&.site || current_site
+        scope = Entry.for_site(site).includes(:content_type)
+        target_handle = field["content_type"].to_s.strip.presence
+        return scope unless target_handle
+
+        scope.joins(:content_type).where(ContentType.table_name => { handle: target_handle })
       end
 
       def field_label(field)

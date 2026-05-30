@@ -1,5 +1,7 @@
 module Plum
   class LiquidContext
+    MAX_RELATIONSHIP_DEPTH = 2
+
     def initialize(controller:, site:, entry: nil, theme_name: nil, theme_settings: nil)
       @controller = controller
       @site = site
@@ -42,24 +44,29 @@ module Plum
       }
     end
 
-    def entry_context(entry)
+    def entry_context(entry, relationship_depth: MAX_RELATIONSHIP_DEPTH)
       {
         "title" => entry.title,
         "slug" => entry.slug,
         "published_at" => entry.published_at,
         "url" => public_entry_path(entry),
-        "data" => entry_data_context(entry)
+        "data" => entry_data_context(entry, relationship_depth: relationship_depth)
       }
     end
 
-    def entry_data_context(entry)
+    def entry_data_context(entry, relationship_depth:)
       data = (entry.data || {}).deep_dup
 
       entry.content_type.fields.each do |field|
-        next unless field["type"] == "image"
-
         handle = field["handle"].to_s
-        data[handle] = image_asset_context(data[handle])
+        next if handle.blank?
+
+        case field["type"]
+        when "image"
+          data[handle] = image_asset_context(data[handle])
+        when "relationship"
+          data[handle] = relationship_entry_context(data[handle], relationship_depth: relationship_depth)
+        end
       end
 
       data
@@ -121,8 +128,21 @@ module Plum
       asset_cache[value.to_i]&.to_liquid
     end
 
+    def relationship_entry_context(value, relationship_depth:)
+      return if value.blank? || relationship_depth <= 0
+
+      related_entry = relationship_entry_cache[value.to_i]
+      return unless related_entry
+
+      entry_context(related_entry, relationship_depth: relationship_depth - 1)
+    end
+
     def asset_cache
       @asset_cache ||= Asset.for_site(site).with_attached_file.index_by(&:id)
+    end
+
+    def relationship_entry_cache
+      @relationship_entry_cache ||= Entry.for_site(site).live.includes(:content_type).index_by(&:id)
     end
 
     def public_root_path

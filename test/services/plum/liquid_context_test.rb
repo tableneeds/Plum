@@ -66,6 +66,67 @@ module Plum
       assert_includes context.dig("entry", "data", "hero_image", "url"), "/rails/active_storage/blobs"
     end
 
+    test "expands relationship field ids into published entry objects" do
+      site = Plum::Site.create!(name: "Bagel Boy", theme_name: "default")
+      posts = site.content_types.create!(
+        name: "Posts",
+        handle: "posts",
+        blueprint: {
+          "fields" => [
+            { "handle" => "category", "type" => "text", "label" => "Category" }
+          ]
+        }
+      )
+      pages = site.content_types.create!(
+        name: "Pages",
+        handle: "pages",
+        blueprint: {
+          "fields" => [
+            {
+              "handle" => "featured_post",
+              "type" => "relationship",
+              "label" => "Featured Post",
+              "content_type" => "posts"
+            }
+          ]
+        }
+      )
+      featured_post = posts.entries.create!(
+        site: site,
+        title: "Fresh Today",
+        slug: "fresh-today",
+        status: :published,
+        published_at: 1.hour.ago,
+        data: { "category" => "News" }
+      )
+      draft_post = posts.entries.create!(
+        site: site,
+        title: "Draft Special",
+        slug: "draft-special",
+        status: :draft,
+        data: { "category" => "Drafts" }
+      )
+      page = pages.entries.create!(
+        site: site,
+        title: "Home",
+        slug: "home",
+        status: :published,
+        published_at: 1.hour.ago,
+        data: { "featured_post" => featured_post.id }
+      )
+
+      context = LiquidContext.new(controller: fake_controller, site: site, entry: page).to_h
+
+      assert_equal "Fresh Today", context.dig("entry", "data", "featured_post", "title")
+      assert_equal "/fresh-today", context.dig("entry", "data", "featured_post", "url")
+      assert_equal "News", context.dig("entry", "data", "featured_post", "data", "category")
+
+      page.update!(data: { "featured_post" => draft_post.id })
+      context = LiquidContext.new(controller: fake_controller, site: site, entry: page).to_h
+
+      assert_nil context.dig("entry", "data", "featured_post")
+    end
+
     test "exposes globals and navigation menus" do
       site = Plum::Site.create!(name: "Bagel Boy", theme_name: "default")
       site.globals.create!(
