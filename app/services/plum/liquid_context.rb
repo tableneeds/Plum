@@ -32,6 +32,7 @@ module Plum
         "support_email" => settings.support_email,
         "theme_name" => theme_name.presence || settings.theme_name,
         "theme_settings" => theme_settings || site.theme_settings,
+        "theme_asset_base_url" => theme_asset_base_url,
         "custom_css" => site.custom_css,
         "url" => public_root_path,
         "meta_title" => settings.seo_title,
@@ -64,6 +65,10 @@ module Plum
 
     def public_root_path
       controller.request.script_name.presence || "/"
+    end
+
+    def theme_asset_base_url
+      "#{controller.request.script_name.to_s.chomp("/")}/theme_assets/#{theme_name.presence || site.theme_name}"
     end
 
     def public_entry_path(entry)

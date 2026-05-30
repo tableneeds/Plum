@@ -56,10 +56,24 @@ module Plum
       })
 
       assert_includes html, "Fresh from the oven"
+      assert_includes html, 'href="/theme_assets/bagel-shop/theme.css"'
       assert_includes html, "Best bagels on the Gulf Coast"
       assert_includes html, "Hot bagels until noon."
       assert_includes html, "Shop Notes"
       assert_includes html, "/today-at-the-counter"
+    end
+
+    test "renders theme asset URLs using the configured base URL" do
+      html = LiquidRenderer.render_template("index", {
+        "site" => {
+          "name" => "Mounted Site",
+          "theme_name" => "default",
+          "theme_asset_base_url" => "/website/theme_assets/default"
+        },
+        "entries" => {}
+      })
+
+      assert_includes html, 'href="/website/theme_assets/default/theme.css"'
     end
 
     private

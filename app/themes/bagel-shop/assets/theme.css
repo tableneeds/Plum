@@ -1,0 +1,7 @@
+html {
+  color-scheme: light;
+}
+
+.hero-card {
+  will-change: transform;
+}

@@ -21,5 +21,12 @@ module Plum
 
       md.render(input.to_s)
     end
+
+    def theme_asset_url(input)
+      builder = @context.registers[:theme_asset_url_builder]
+      return "" unless builder
+
+      builder.call(input)
+    end
   end
 end

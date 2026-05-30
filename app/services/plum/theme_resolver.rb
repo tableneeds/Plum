@@ -17,6 +17,10 @@ module Plum
       themes_for(theme_handle).map { |theme| theme.layout_path(layout_name) }.find(&:file?)
     end
 
+    def find_asset(theme_handle, asset_name)
+      themes_for(theme_handle).filter_map { |theme| theme.asset_path(asset_name) }.find(&:file?)
+    end
+
     private
 
     attr_reader :registry, :fallback_handle

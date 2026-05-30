@@ -6,6 +6,7 @@
   <title>{{ entry.title | default: site.seo_title | default: site.name }} - {{ site.name }}</title>
   <meta name="description" content="{{ site.seo_description }}">
   <link rel="icon" href="/icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="{{ 'theme.css' | theme_asset_url }}">
   <style>
     :root { --plum-primary: {{ site.primary_color | default: "#7c3aed" }}; }
     * { box-sizing: border-box; margin: 0; padding: 0; }

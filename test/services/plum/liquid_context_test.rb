@@ -27,11 +27,21 @@ module Plum
       assert_equal "/from-host", context.dig("restaurant", "request_path")
     end
 
+    test "adds mounted theme asset base URL to the site context" do
+      site = Plum::Site.create!(name: "Bagel Boy", theme_name: "bagel-shop")
+      controller = fake_controller(script_name: "/website")
+
+      context = LiquidContext.new(controller: controller, site: site).to_h
+
+      assert_equal "/website/theme_assets/bagel-shop", context.dig("site", "theme_asset_base_url")
+    end
+
     private
 
-    def fake_controller
+    def fake_controller(script_name: "")
       request = ActionDispatch::TestRequest.create
       request.path = "/from-host"
+      request.script_name = script_name
 
       Struct.new(:request) do
         def params
