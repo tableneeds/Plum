@@ -6,6 +6,7 @@ require "zip"
 module Plum
   class ThemePackageInstaller
     HANDLE_PATTERN = /\A[a-z0-9][a-z0-9-]*\z/
+    SETTING_HANDLE_PATTERN = /\A[a-z][a-z0-9_]*\z/
 
     PackageEntry = Struct.new(:zip_entry, :path, :directory?, keyword_init: true)
 
@@ -27,6 +28,8 @@ module Plum
 
         handle = validate_manifest(manifest)
         validate_renderable_files(entries)
+        validate_screenshot(manifest, entries)
+        validate_settings(manifest)
         next false if errors.any?
 
         target_root = validate_target(handle)
@@ -156,6 +159,93 @@ module Plum
       end
 
       handle
+    end
+
+    def validate_screenshot(manifest, entries)
+      screenshot = manifest_asset_path(manifest["screenshot"])
+      return if screenshot.blank?
+
+      expected_entry_path = "assets/#{screenshot}"
+      has_screenshot = entries.any? do |entry|
+        !entry.directory? && entry.path == expected_entry_path
+      end
+
+      errors << "theme.yml screenshot must point to a file inside assets" unless has_screenshot
+    end
+
+    def validate_settings(manifest)
+      fields = manifest.dig("settings", "fields")
+      return if fields.blank?
+
+      unless fields.is_a?(Array)
+        errors << "theme.yml settings.fields must be an array"
+        return
+      end
+
+      fields.each_with_index do |field, index|
+        validate_setting_field(field, index + 1)
+      end
+    end
+
+    def validate_setting_field(field, position)
+      unless field.is_a?(Hash)
+        errors << "theme.yml settings field #{position} must be a mapping"
+        return
+      end
+
+      field = field.deep_stringify_keys
+      handle = field["handle"].to_s
+      type = field["type"].presence || "text"
+
+      if handle.blank?
+        errors << "theme.yml settings field #{position} must define a handle"
+      elsif !handle.match?(SETTING_HANDLE_PATTERN)
+        errors << "theme.yml settings field #{handle} must use lowercase letters, numbers, and underscores"
+      end
+
+      unless Theme::SUPPORTED_SETTING_TYPES.include?(type)
+        errors << "theme.yml settings field #{handle.presence || position} has unsupported type #{type}"
+        return
+      end
+
+      validate_select_setting(field, handle.presence || position) if type == "select"
+    end
+
+    def validate_select_setting(field, identifier)
+      values = select_option_values(field["options"])
+
+      if values.blank?
+        errors << "theme.yml settings field #{identifier} must define select options"
+        return
+      end
+
+      default_value = field["default"].to_s
+      if field.key?("default") && values.exclude?(default_value)
+        errors << "theme.yml settings field #{identifier} default must match one of its options"
+      end
+    end
+
+    def select_option_values(options)
+      return [] unless options.is_a?(Array)
+
+      options.filter_map do |option|
+        if option.is_a?(Hash)
+          option.deep_stringify_keys["value"].to_s.presence
+        else
+          option.to_s.presence
+        end
+      end
+    end
+
+    def manifest_asset_path(path)
+      raw_path = path.to_s
+      return if raw_path.blank?
+
+      raw_path = raw_path.delete_prefix("assets/")
+      normalize_entry_path(raw_path)
+    rescue ThemeAssetPath::UnsafePathError
+      errors << "theme.yml screenshot path must be a safe asset path"
+      nil
     end
 
     def validate_renderable_files(entries)

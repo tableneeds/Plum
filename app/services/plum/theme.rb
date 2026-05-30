@@ -1,5 +1,7 @@
 module Plum
   class Theme
+    SUPPORTED_SETTING_TYPES = %w[text textarea color boolean select].freeze
+
     attr_reader :handle, :root, :manifest
 
     def initialize(root:, manifest: {})
@@ -24,12 +26,25 @@ module Plum
       manifest["description"].presence
     end
 
+    def category
+      manifest["category"].presence
+    end
+
+    def screenshot_path
+      path = normalize_asset_reference(manifest["screenshot"])
+      return if path.blank?
+
+      asset_path(path)&.file? ? path : nil
+    end
+
     def parent_handle
       manifest["extends"].presence || manifest["parent"].presence
     end
 
     def settings_fields
-      Array(manifest.dig("settings", "fields"))
+      Array(manifest.dig("settings", "fields")).filter_map do |field|
+        normalize_setting_field(field)
+      end
     end
 
     def asset_root
@@ -54,6 +69,35 @@ module Plum
 
     def layout_path(layout_name = "base")
       root.join("layouts", "#{layout_name}.liquid")
+    end
+
+    private
+
+    def normalize_asset_reference(asset_name)
+      raw_name = asset_name.to_s
+      return if raw_name.blank?
+
+      raw_name = raw_name.delete_prefix("assets/")
+      ThemeAssetPath.normalize(raw_name)
+    rescue ThemeAssetPath::UnsafePathError
+      nil
+    end
+
+    def normalize_setting_field(field)
+      return unless field.respond_to?(:to_h)
+
+      normalized = field.to_h.deep_stringify_keys
+      handle = normalized["handle"].to_s
+      return if handle.blank?
+
+      type = normalized["type"].presence || "text"
+      type = "text" unless SUPPORTED_SETTING_TYPES.include?(type)
+
+      normalized.merge(
+        "handle" => handle,
+        "type" => type,
+        "label" => normalized["label"].presence || handle.humanize
+      )
     end
   end
 end

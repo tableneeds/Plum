@@ -2,6 +2,8 @@ module Plum
   module Cp
     class BaseController < Plum::ApplicationController
       layout "plum/cp"
+      helper ThemeSettingsHelper
+
       before_action :require_login
 
       private

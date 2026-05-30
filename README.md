@@ -57,8 +57,48 @@ theme.yml
 layouts/base.liquid
 templates/index.liquid
 assets/theme.css
+assets/screenshot.svg
 ```
 
-Theme handles must use lowercase letters, numbers, and hyphens. Plum rejects
-packages with unsafe paths, missing manifests, duplicate handles, or no Liquid
-templates/layouts.
+`theme.yml` is the v1 theme contract:
+
+```yaml
+name: Bagel Shop
+handle: bagel-shop
+version: 1.0.0
+author: Plum
+category: Restaurant
+screenshot: screenshot.svg
+description: Warm retail theme for neighborhood food brands.
+settings:
+  fields:
+    - handle: accent_color
+      type: color
+      label: Accent Color
+      default: "#1f6f63"
+    - handle: hero_note
+      type: text
+      label: Hero Note
+    - handle: show_powered_by
+      type: boolean
+      label: Show Powered By
+      default: true
+    - handle: corner_style
+      type: select
+      label: Corner Style
+      options:
+        - label: Soft
+          value: soft
+        - label: Square
+          value: square
+      default: soft
+```
+
+Theme handles must use lowercase letters, numbers, and hyphens. Theme setting
+handles must use lowercase letters, numbers, and underscores. Supported setting
+types are `text`, `textarea`, `color`, `boolean`, and `select`.
+
+Screenshots are optional and are resolved relative to the theme's `assets`
+folder. Plum rejects packages with unsafe paths, missing manifests, duplicate
+handles, invalid setting schemas, screenshots that point outside `assets`, or no
+Liquid templates/layouts.

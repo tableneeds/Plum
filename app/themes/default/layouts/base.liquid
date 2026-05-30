@@ -8,7 +8,7 @@
   <link rel="icon" href="/icon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="{{ 'theme.css' | theme_asset_url }}">
   <style>
-    :root { --plum-primary: {{ site.primary_color | default: "#7c3aed" }}; }
+    :root { --plum-primary: {{ site.theme_settings.accent_color | default: site.primary_color | default: "#7c3aed" }}; }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -51,7 +51,9 @@
     </main>
 
     <footer>
-      <p class="plum-powered"><img src="/icon.svg" alt=""> Powered by Plum CMS</p>
+      {% unless site.theme_settings.show_powered_by == false %}
+        <p class="plum-powered"><img src="/icon.svg" alt=""> Powered by Plum CMS</p>
+      {% endunless %}
     </footer>
   </div>
 </body>

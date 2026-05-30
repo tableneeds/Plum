@@ -47,7 +47,7 @@
       <% @current_theme.settings_fields.each do |field| %>
         <% value = current_site.theme_settings[field["handle"].to_s] %>
         <div>
-          <dt class="text-sm font-medium text-gray-500"><%= field["label"] || field["handle"].to_s.humanize %></dt>
+          <dt class="text-sm font-medium text-gray-500"><%= theme_setting_label(field) %></dt>
           <dd class="mt-1 text-sm text-gray-900">
             <% if field["type"] == "boolean" %>
               <%= ActiveModel::Type::Boolean.new.cast(value) ? "Yes" : "No" %>

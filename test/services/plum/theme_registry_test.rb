@@ -6,13 +6,22 @@ module Plum
     test "discovers themes from manifests" do
       Dir.mktmpdir do |dir|
         theme_root = Pathname(dir).join("restaurant")
-        FileUtils.mkdir_p(theme_root)
+        FileUtils.mkdir_p(theme_root.join("assets"))
+        theme_root.join("assets/screenshot.svg").write("<svg></svg>")
         theme_root.join("theme.yml").write(<<~YAML)
           name: Restaurant
           handle: restaurant
           version: 1.2.3
           author: Plum
+          category: Restaurant
+          screenshot: screenshot.svg
           description: Built for restaurants.
+          settings:
+            fields:
+              - handle: accent_color
+                type: color
+                label: Accent Color
+                default: "#123456"
         YAML
 
         theme = ThemeRegistry.new(theme_paths: [ dir ]).find("restaurant")
@@ -21,7 +30,11 @@ module Plum
         assert_equal "restaurant", theme.handle
         assert_equal "1.2.3", theme.version
         assert_equal "Plum", theme.author
+        assert_equal "Restaurant", theme.category
+        assert_equal "screenshot.svg", theme.screenshot_path
         assert_equal "Built for restaurants.", theme.description
+        assert_equal "accent_color", theme.settings_fields.first["handle"]
+        assert_equal "#123456", theme.settings_fields.first["default"]
       end
     end
 

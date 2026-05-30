@@ -2,9 +2,17 @@ name: Default
 handle: default
 version: 0.1.0
 author: Plum
+category: Starter
+screenshot: screenshot.svg
 description: Clean starter theme for simple Plum sites.
 settings:
   fields:
     - handle: accent_color
       type: color
       label: Accent Color
+      default: "#7c3aed"
+      help: Used for links and small accents.
+    - handle: show_powered_by
+      type: boolean
+      label: Show Powered By
+      default: true

@@ -16,6 +16,7 @@
       --bagel-crust: #b9652d;
       --bagel-crust-dark: #7d3f1d;
       --bagel-accent: {{ site.theme_settings.accent_color | default: site.primary_color | default: "#1f6f63" }};
+      --bagel-radius: {% if site.theme_settings.corner_style == "square" %}0.15rem{% else %}0.5rem{% endif %};
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -146,7 +147,7 @@
     .hero-card {
       background: var(--bagel-cream);
       border: 2px solid rgba(43, 33, 25, 0.16);
-      border-radius: 0.5rem;
+      border-radius: var(--bagel-radius);
       padding: 1.35rem;
       transform: rotate(1deg);
     }
@@ -193,7 +194,7 @@
       display: block;
       padding: 1.1rem 1.2rem;
       border: 2px solid rgba(43, 33, 25, 0.12);
-      border-radius: 0.45rem;
+      border-radius: var(--bagel-radius);
       background: #fffdf8;
       color: var(--bagel-ink);
       text-decoration: none;
@@ -352,7 +353,11 @@
     <footer class="site-footer">
       <div class="footer-inner">
         <span>{{ site.name }}</span>
-        <span><a href="{{ site.url }}">Back to top</a></span>
+        {% unless site.theme_settings.show_powered_by == false %}
+          <span>Powered by Plum CMS</span>
+        {% else %}
+          <span><a href="{{ site.url }}">Back to top</a></span>
+        {% endunless %}
       </div>
     </footer>
   </div>

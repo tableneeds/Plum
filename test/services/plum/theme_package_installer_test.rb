@@ -13,9 +13,11 @@ module Plum
         assert installer.install, installer.errors.join(", ")
         assert_equal "Counter Theme", installer.theme.name
         assert_equal "counter-theme", installer.theme.handle
+        assert_equal "screenshot.svg", installer.theme.screenshot_path
         assert install_root.join("counter-theme/theme.yml").file?
         assert install_root.join("counter-theme/templates/index.liquid").file?
         assert install_root.join("counter-theme/assets/theme.css").file?
+        assert install_root.join("counter-theme/assets/screenshot.svg").file?
       end
     end
 
@@ -49,6 +51,36 @@ module Plum
 
         refute installer.install
         assert_includes installer.errors, "theme.yml handle must use lowercase letters, numbers, and hyphens"
+      end
+    end
+
+    test "rejects packages with invalid setting handles" do
+      with_theme_package do |zip_path, install_root|
+        manifest = <<~YAML
+          name: Bad Settings
+          handle: bad-settings
+          settings:
+            fields:
+              - handle: Bad Setting
+                type: text
+        YAML
+        build_theme_zip(zip_path, manifest: manifest)
+
+        installer = ThemePackageInstaller.new(zip_path, install_root: install_root)
+
+        refute installer.install
+        assert_includes installer.errors, "theme.yml settings field Bad Setting must use lowercase letters, numbers, and underscores"
+      end
+    end
+
+    test "rejects packages with missing screenshots" do
+      with_theme_package do |zip_path, install_root|
+        build_theme_zip(zip_path, extra_files: { "assets/screenshot.svg" => nil })
+
+        installer = ThemePackageInstaller.new(zip_path, install_root: install_root)
+
+        refute installer.install
+        assert_includes installer.errors, "theme.yml screenshot must point to a file inside assets"
       end
     end
 
@@ -101,8 +133,10 @@ module Plum
         "theme.yml" => manifest,
         "layouts/base.liquid" => "<main>{{ content }}</main>",
         "templates/index.liquid" => "Counter theme",
-        "assets/theme.css" => "body { color: #222; }"
+        "assets/theme.css" => "body { color: #222; }",
+        "assets/screenshot.svg" => "<svg></svg>"
       }.merge(extra_files)
+        .compact
 
       files = files.transform_keys { |path| root ? "#{root}/#{path}" : path }
 
@@ -122,6 +156,13 @@ module Plum
         name: Counter Theme
         handle: counter-theme
         version: 1.0.0
+        screenshot: screenshot.svg
+        settings:
+          fields:
+            - handle: accent_color
+              type: color
+              label: Accent Color
+              default: "#123456"
       YAML
     end
   end

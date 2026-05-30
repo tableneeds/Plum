@@ -30,6 +30,8 @@ class ThemesTest < ApplicationSystemTestCase
 
     assert_text "Default"
     assert_text "Bagel Shop"
+    assert_selector "img[alt='Default screenshot']"
+    assert_selector "img[alt='Bagel Shop screenshot']"
 
     attach_file "Theme zip", zip_path
     click_button "Install Theme"
@@ -45,6 +47,27 @@ class ThemesTest < ApplicationSystemTestCase
 
     visit root_path
     assert_text "Counter theme for My Site"
+  end
+
+  test "customizing the active theme from the themes screen" do
+    visit cp_themes_path
+
+    within "[data-theme-handle='bagel-shop']" do
+      click_button "Activate"
+    end
+
+    assert_text "Theme activated"
+    assert_text "Customize"
+    fill_in "Hero Note", with: "Steam all morning."
+    select "Square", from: "Corner Style"
+    uncheck "Show Powered By"
+    click_button "Save Settings"
+
+    assert_text "Theme settings updated"
+
+    visit root_path
+    assert_text "Steam all morning."
+    assert_no_text "Powered by Plum CMS"
   end
 
   private
@@ -64,7 +87,18 @@ class ThemesTest < ApplicationSystemTestCase
           name: Counter Theme
           handle: counter-theme
           version: 1.0.0
+          category: Test
+          screenshot: screenshot.svg
+          settings:
+            fields:
+              - handle: accent_color
+                type: color
+                label: Accent Color
+                default: "#334455"
         YAML
+      end
+      zip.get_output_stream("assets/screenshot.svg") do |stream|
+        stream.write("<svg></svg>")
       end
       zip.get_output_stream("layouts/base.liquid") do |stream|
         stream.write("<main>{{ content }}</main>")

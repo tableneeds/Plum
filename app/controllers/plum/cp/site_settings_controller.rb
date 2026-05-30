@@ -56,7 +56,10 @@ module Plum
       end
 
       def theme_setting_value(field)
-        current_site.theme_settings[field["handle"].to_s]
+        settings = current_site.theme_settings.to_h
+        handle = field["handle"].to_s
+
+        settings.key?(handle) ? settings[handle] : field["default"]
       end
 
       def theme_setting_checked?(field)

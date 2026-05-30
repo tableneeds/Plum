@@ -75,7 +75,7 @@
               <% field_name = theme_setting_input_name(theme, field) %>
               <% field_value = theme_setting_value(field) %>
               <div>
-                <label for="<%= field_id %>" class="block text-sm font-medium text-gray-700"><%= field["label"] || field["handle"].to_s.humanize %></label>
+                <label for="<%= field_id %>" class="block text-sm font-medium text-gray-700"><%= theme_setting_label(field) %></label>
 
                 <% case field["type"].to_s %>
                 <% when "color" %>
@@ -94,12 +94,15 @@
                   </div>
                 <% when "select" %>
                   <%= select_tag field_name,
-                      options_for_select(Array(field["options"]), field_value),
+                      options_for_select(theme_setting_options(field), field_value),
                       id: field_id,
                       class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500" %>
                 <% else %>
                   <%= text_field_tag field_name, field_value, id: field_id,
                       class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500" %>
+                <% end %>
+                <% if field["help"].present? %>
+                  <p class="mt-1 text-sm text-gray-500"><%= field["help"] %></p>
                 <% end %>
               </div>
             <% end %>

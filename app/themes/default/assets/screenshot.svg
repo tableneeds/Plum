@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 750" role="img" aria-labelledby="title desc">
+  <title id="title">Default theme screenshot</title>
+  <desc id="desc">A clean editorial website layout with a simple header and content column.</desc>
+  <rect width="1200" height="750" fill="#f8fafc"/>
+  <rect x="116" y="82" width="968" height="586" rx="20" fill="#ffffff" stroke="#e5e7eb" stroke-width="3"/>
+  <rect x="156" y="122" width="888" height="74" fill="#ffffff"/>
+  <circle cx="178" cy="159" r="18" fill="#7c3aed"/>
+  <rect x="212" y="145" width="142" height="14" rx="7" fill="#111827"/>
+  <rect x="212" y="167" width="88" height="9" rx="4.5" fill="#9ca3af"/>
+  <rect x="772" y="148" width="72" height="12" rx="6" fill="#d1d5db"/>
+  <rect x="868" y="148" width="72" height="12" rx="6" fill="#d1d5db"/>
+  <rect x="156" y="228" width="560" height="58" rx="8" fill="#111827"/>
+  <rect x="156" y="306" width="440" height="22" rx="11" fill="#6b7280"/>
+  <rect x="156" y="346" width="504" height="16" rx="8" fill="#d1d5db"/>
+  <rect x="156" y="374" width="448" height="16" rx="8" fill="#d1d5db"/>
+  <rect x="156" y="402" width="386" height="16" rx="8" fill="#d1d5db"/>
+  <rect x="156" y="468" width="256" height="20" rx="10" fill="#111827"/>
+  <rect x="156" y="510" width="318" height="24" rx="12" fill="#ede9fe"/>
+  <rect x="156" y="552" width="392" height="24" rx="12" fill="#ede9fe"/>
+  <rect x="754" y="244" width="232" height="232" rx="20" fill="#f3f4f6"/>
+  <path d="M820 386c55-77 97-77 143 0" fill="none" stroke="#7c3aed" stroke-width="14" stroke-linecap="round"/>
+  <circle cx="846" cy="324" r="24" fill="#111827"/>
+  <circle cx="926" cy="324" r="24" fill="#111827"/>
+</svg>

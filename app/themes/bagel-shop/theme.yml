@@ -2,15 +2,29 @@ name: Bagel Shop
 handle: bagel-shop
 version: 0.1.0
 author: Plum
+category: Restaurant
+screenshot: screenshot.svg
 description: Warm retail theme for bagel shops, cafes, bakeries, and small neighborhood food brands.
 settings:
   fields:
     - handle: accent_color
       type: color
       label: Accent Color
+      default: "#1f6f63"
     - handle: hero_note
       type: text
       label: Hero Note
+      default: Boiled, baked, and ready early.
     - handle: show_powered_by
       type: boolean
       label: Show Powered By
+      default: true
+    - handle: corner_style
+      type: select
+      label: Corner Style
+      options:
+        - label: Soft
+          value: soft
+        - label: Square
+          value: square
+      default: soft
