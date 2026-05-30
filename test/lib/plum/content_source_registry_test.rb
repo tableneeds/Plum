@@ -21,6 +21,18 @@ module Plum
       end
     end
 
+    LazyAdapter = Class.new(Adapter)
+
+    test "resolves adapter class names lazily" do
+      registry = ContentSourceRegistry.new
+      registry.register(:menu, "Plum::ContentSourceRegistryTest::LazyAdapter")
+
+      context = registry.to_liquid_context(controller: fake_controller, site: fake_site)
+
+      assert_equal "Bagel Boy", context.dig("menu", "site_name")
+      assert_equal "admin@example.com", context.dig("menu", "user")
+    end
+
     test "resolves block sources with a content source context" do
       registry = ContentSourceRegistry.new
       registry.register(:restaurant) do |context|

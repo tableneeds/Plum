@@ -1,6 +1,5 @@
 module Plum
   class ApplicationController < ::ApplicationController
-    helper Rails.application.routes.url_helpers
     helper_method :current_site, :current_user, :current_user_label, :logged_in?, :plum_managed_auth?
 
     private

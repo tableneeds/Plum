@@ -49,11 +49,19 @@ module Plum
     end
 
     def resolve_source(source, context)
+      source = constantize_source(source)
+
       return source.call(context) if source.respond_to?(:call)
       return source.to_liquid if source.respond_to?(:to_liquid)
       return source.new(context).to_liquid if source.respond_to?(:new)
 
       source
+    end
+
+    def constantize_source(source)
+      return source unless source.is_a?(String)
+
+      source.safe_constantize || source
     end
   end
 end

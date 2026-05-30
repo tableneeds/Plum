@@ -19,5 +19,5 @@ Plum.configure do |config|
   # config.authorize_with = :host
   # config.host_authorization_resolver = ->(_controller) { Current.user.can_manage_website?(Current.restaurant) }
   # config.register_content_source :restaurant, ->(context) { context.site.owner.to_liquid }
-  # config.register_content_source :menu, TableNeeds::PlumAdapters::Menu
+  # config.register_content_source :menu, "TableNeeds::PlumAdapters::Menu"
 end
