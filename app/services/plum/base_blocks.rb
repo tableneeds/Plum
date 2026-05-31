@@ -18,7 +18,9 @@ module Plum
         "fields" => [
           { "handle" => "heading", "type" => "text", "label" => "Heading" },
           { "handle" => "subheading", "type" => "textarea", "label" => "Subheading" },
-          { "handle" => "image", "type" => "image", "label" => "Background Image" }
+          { "handle" => "image", "type" => "image", "label" => "Image" },
+          { "handle" => "button_label", "type" => "text", "label" => "Button Label" },
+          { "handle" => "button_url", "type" => "text", "label" => "Button URL" }
         ]
       },
       {
@@ -81,11 +83,14 @@ module Plum
     TEMPLATES = {
       "hero" => <<~LIQUID,
         <section class="plum-block plum-block-hero">
+          {% if block.heading %}<h2>{{ block.heading }}</h2>{% endif %}
+          {% if block.subheading %}<p>{{ block.subheading }}</p>{% endif %}
           {% if block.image.url %}
             <img class="plum-block-hero-image" src="{{ block.image.url }}" alt="{{ block.image.alt_text | default: block.heading }}">
           {% endif %}
-          {% if block.heading %}<h2>{{ block.heading }}</h2>{% endif %}
-          {% if block.subheading %}<p>{{ block.subheading }}</p>{% endif %}
+          {% if block.button_label and block.button_url %}
+            <a class="plum-block-cta-button" href="{{ block.button_url }}">{{ block.button_label }}</a>
+          {% endif %}
         </section>
       LIQUID
       "rich_text" => <<~LIQUID,
