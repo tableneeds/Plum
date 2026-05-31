@@ -1,0 +1,7 @@
+<div class="plum-block bb-menu-item">
+  <div class="bb-menu-item-head">
+    {% if block.name %}<span class="bb-menu-item-name">{{ block.name }}</span>{% endif %}
+    {% if block.price %}<span class="bb-menu-item-price">{{ block.price }}</span>{% endif %}
+  </div>
+  {% if block.description %}<p class="bb-menu-item-desc">{{ block.description }}</p>{% endif %}
+</div>

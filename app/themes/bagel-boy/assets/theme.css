@@ -1,0 +1,169 @@
+/* Bagel Boy — retro neighborhood bakery
+   Official designer palette: Blood Burst #FB404C, Potato Chip #FCDE5A,
+   Blushing Cinnamon #FDC694, Soft Pillow #FFF6E9, Brilliance #FEFEFE, Raven #0C0B0A. */
+:root {
+  --bb-bg: #FFF6E9;          /* Soft Pillow */
+  --bb-surface: #FEFEFE;     /* Brilliance */
+  --bb-yellow: #FCDE5A;      /* Potato Chip */
+  --bb-ink: #0C0B0A;         /* Raven */
+  --bb-muted: #6f655b;
+  /* --bb-poppy (Blood Burst) and --bb-amber (Blushing Cinnamon) injected per-site in base.liquid */
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bb-bg);
+  color: var(--bb-ink);
+  font-family: "Nunito Sans", ui-sans-serif, system-ui, sans-serif;
+  line-height: 1.65;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+h1, h2, h3 {
+  font-family: "Lilita One", ui-rounded, "Segoe UI", sans-serif;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  color: var(--bb-poppy);
+  line-height: 1.05;
+}
+
+a { color: var(--bb-poppy); }
+
+.bb-wrap { width: min(1040px, calc(100% - 2.5rem)); margin: 0 auto; }
+
+/* Header */
+.bb-header {
+  background: var(--bb-surface);
+  border-bottom: 4px solid var(--bb-poppy);
+}
+.bb-header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.9rem 0;
+}
+.bb-brand { display: inline-flex; align-items: center; text-decoration: none; }
+.bb-logo { max-height: 78px; width: auto; display: block; }
+.bb-brand-text {
+  font-family: "Lilita One", ui-rounded, sans-serif;
+  font-size: 1.9rem;
+  color: var(--bb-poppy);
+}
+.bb-nav { display: flex; flex-wrap: wrap; gap: 0.4rem 1.25rem; }
+.bb-nav a {
+  color: var(--bb-ink);
+  font-weight: 700;
+  text-decoration: none;
+  font-size: 0.98rem;
+}
+.bb-nav a:hover { color: var(--bb-poppy); }
+
+main { flex: 1; }
+
+/* Generic block rhythm */
+.plum-block { margin: 3rem 0; }
+.bb-entry { padding: 2.5rem 0 4rem; }
+.bb-entry-image { width: 100%; border-radius: 1rem; margin: 1.5rem 0; }
+.prose p { margin-bottom: 1rem; }
+.prose h2 { margin: 2rem 0 1rem; }
+.prose ul, .prose ol { margin: 0 0 1rem 1.5rem; }
+
+/* Base blocks */
+.plum-block-hero { text-align: center; padding: 1.5rem 0; }
+.plum-block-hero-image { width: 100%; max-height: 460px; object-fit: cover; border-radius: 1.25rem; margin-bottom: 1.5rem; }
+.plum-block-hero h2 { font-size: 3.4rem; color: var(--bb-poppy); }
+.plum-block-hero p { font-size: 1.25rem; color: var(--bb-ink); max-width: 42rem; margin: 0.6rem auto 0; }
+
+.plum-block-image img { width: 100%; border-radius: 1rem; }
+.plum-block-image figcaption { text-align: center; color: var(--bb-muted); font-size: 0.9rem; margin-top: 0.5rem; }
+
+.plum-block-image-text { display: grid; grid-template-columns: 1fr 1fr; gap: 2.5rem; align-items: center; }
+.plum-block-image-text.plum-image-right .plum-block-image-text-media { order: 2; }
+.plum-block-image-text-media img { width: 100%; border-radius: 1rem; }
+
+.plum-block-cta {
+  text-align: center;
+  background: var(--bb-amber);
+  border-radius: 1.25rem;
+  padding: 2.75rem 1.5rem;
+}
+.plum-block-cta h2 { color: var(--bb-ink); }
+.plum-block-cta-button, .plum-block-button a {
+  display: inline-block;
+  margin-top: 1rem;
+  background: var(--bb-poppy);
+  color: #fff;
+  text-decoration: none;
+  font-weight: 700;
+  padding: 0.8rem 1.6rem;
+  border-radius: 999px;
+}
+
+.plum-block-gallery-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+.plum-block-gallery-grid img { width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 0.75rem; }
+
+.plum-block-spacer.plum-spacer-small { height: 1rem; }
+.plum-block-spacer.plum-spacer-medium { height: 2.5rem; }
+.plum-block-spacer.plum-spacer-large { height: 5rem; }
+
+/* Bagel Boy custom blocks */
+.bb-menu-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.9rem 0;
+  border-bottom: 2px dotted rgba(176, 84, 76, 0.4);
+  margin: 0;
+}
+.bb-menu-item-head { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; }
+.bb-menu-item-name { font-weight: 700; color: var(--bb-ink); font-size: 1.1rem; }
+.bb-menu-item-price { color: var(--bb-poppy); font-weight: 800; white-space: nowrap; }
+.bb-menu-item-desc { color: var(--bb-muted); font-size: 0.95rem; }
+
+.bb-hours { text-align: center; background: var(--bb-surface); border-radius: 1.25rem; padding: 2rem 1.5rem; }
+.bb-hours h2 { color: var(--bb-poppy); }
+.bb-hours-schedule {
+  font-family: "Nunito Sans", sans-serif;
+  font-size: 1.05rem;
+  line-height: 1.9;
+  white-space: pre-wrap;
+  color: var(--bb-ink);
+}
+
+/* Forms */
+.plum-form { display: grid; gap: 1rem; max-width: 36rem; }
+.plum-form-field { display: grid; gap: 0.35rem; }
+.plum-form label { font-weight: 700; color: var(--bb-ink); font-size: 0.9rem; }
+.plum-form input[type="text"], .plum-form input[type="email"], .plum-form textarea, .plum-form select {
+  width: 100%; border: 2px solid rgba(42, 38, 34, 0.25); border-radius: 0.6rem; padding: 0.65rem 0.8rem; font: inherit; background: #fff;
+}
+.plum-form textarea { min-height: 8rem; }
+.plum-form-submit {
+  justify-self: start; border: 0; border-radius: 999px;
+  background: var(--bb-poppy); color: #fff; padding: 0.75rem 1.6rem; font-weight: 700; cursor: pointer;
+}
+
+/* Footer */
+.bb-footer { background: var(--bb-ink); color: var(--bb-bg); margin-top: 3rem; }
+.bb-footer-inner {
+  display: flex; flex-wrap: wrap; gap: 1rem 2rem; justify-content: space-between;
+  padding: 2rem 0; font-size: 0.95rem;
+}
+.bb-footer a { color: var(--bb-amber); }
+.bb-footer-social { display: flex; gap: 1.25rem; }
+.bb-powered { opacity: 0.7; }
+
+.bb-hero-fallback { text-align: center; padding: 5rem 0; }
+.bb-empty-note { color: var(--bb-muted); margin-top: 1rem; }
+
+@media (max-width: 720px) {
+  .plum-block-image-text { grid-template-columns: 1fr; }
+  .plum-block-image-text.plum-image-right .plum-block-image-text-media { order: 0; }
+  .plum-block-gallery-grid { grid-template-columns: 1fr 1fr; }
+  .plum-block-hero h2 { font-size: 2.4rem; }
+  .bb-header-inner { flex-direction: column; align-items: flex-start; }
+}

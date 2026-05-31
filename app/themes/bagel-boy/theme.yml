@@ -1,0 +1,47 @@
+name: Bagel Boy
+handle: bagel-boy
+version: 1.0.0
+author: Bagel Boy
+category: Restaurant
+screenshot: screenshot.svg
+description: Retro neighborhood-bakery theme for Bagel Boy.
+settings:
+  fields:
+    - handle: accent_color
+      type: color
+      label: Accent Color
+      default: "#FB404C"
+      help: Blood Burst — buttons, links, accents.
+    - handle: secondary_color
+      type: color
+      label: Secondary Color
+      default: "#FDC694"
+      help: Blushing Cinnamon — soft panels and highlights.
+    - handle: show_powered_by
+      type: boolean
+      label: Show Powered By
+      default: true
+# Bagel Boy adds restaurant-specific blocks on top of Plum's base blocks.
+blocks:
+  - handle: menu_item
+    label: Menu Item
+    fields:
+      - handle: name
+        type: text
+        label: Name
+      - handle: price
+        type: text
+        label: Price
+      - handle: description
+        type: textarea
+        label: Description
+  - handle: hours
+    label: Hours
+    fields:
+      - handle: heading
+        type: text
+        label: Heading
+      - handle: schedule
+        type: textarea
+        label: Schedule
+        help: One line per day, e.g. "Mon–Fri  6a–2p"

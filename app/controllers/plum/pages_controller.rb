@@ -1,8 +1,13 @@
 module Plum
   class PagesController < ApplicationController
+    HOMEPAGE_SLUG = "home".freeze
+
     def home
       @site_settings = SiteSetting.instance(current_site)
-      html = Plum::LiquidRenderer.render_template("index", build_context.to_h)
+      @entry = Entry.for_site(current_site).live.includes(:content_type).find_by(slug: HOMEPAGE_SLUG)
+
+      template = @entry ? "entries/#{@entry.content_type.handle}" : "index"
+      html = Plum::LiquidRenderer.render_template(template, build_context(@entry).to_h)
       render html: html.html_safe, layout: false
     end
 

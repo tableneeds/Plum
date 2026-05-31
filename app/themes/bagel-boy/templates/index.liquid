@@ -1,0 +1,10 @@
+{% comment %}
+  Fallback shown at "/" only when no page is slugged "home".
+  Normally the homepage is the page with slug "home", rendered through its own
+  entry template (e.g. entries/pages.liquid).
+{% endcomment %}
+<section class="bb-wrap bb-hero-fallback">
+  <h1>{{ site.name }}</h1>
+  {% if site.tagline %}<p>{{ site.tagline }}</p>{% endif %}
+  <p class="bb-empty-note">Create a page with the slug “home” to build your homepage.</p>
+</section>

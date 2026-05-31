@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ entry.title | default: site.seo_title | default: site.name }}</title>
+  <meta name="description" content="{{ site.seo_description | default: site.tagline }}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ 'theme.css' | theme_asset_url }}">
+  <style>
+    :root {
+      --bb-poppy: {{ site.theme_settings.accent_color | default: '#FB404C' }};
+      --bb-amber: {{ site.theme_settings.secondary_color | default: '#FDC694' }};
+    }
+  </style>
+  {% if site.custom_css %}<style id="plum-custom-css">{{ site.custom_css }}</style>{% endif %}
+</head>
+<body>
+  <header class="bb-header">
+    <div class="bb-wrap bb-header-inner">
+      <a class="bb-brand" href="{{ site.url }}">
+        {% if site.logo.url %}
+          <img class="bb-logo" src="{{ site.logo.url }}" alt="{{ site.logo.alt_text | default: site.name }}">
+        {% else %}
+          <span class="bb-brand-text">{{ site.name }}</span>
+        {% endif %}
+      </a>
+      {% if nav.main.items.size > 0 %}
+        <nav class="bb-nav" aria-label="Main navigation">
+          {% for item in nav.main.items %}
+            <a href="{{ item.url }}">{{ item.label }}</a>
+          {% endfor %}
+        </nav>
+      {% endif %}
+    </div>
+  </header>
+
+  <main>
+    {{ content }}
+  </main>
+
+  <footer class="bb-footer">
+    <div class="bb-wrap bb-footer-inner">
+      {% if globals.company %}
+        <div class="bb-footer-info">
+          {% if globals.company.address %}<p>{{ globals.company.address }}</p>{% endif %}
+          {% if globals.company.phone %}<p>{{ globals.company.phone }}</p>{% endif %}
+        </div>
+      {% endif %}
+      {% if globals.social %}
+        <div class="bb-footer-social">
+          {% if globals.social.instagram %}<a href="{{ globals.social.instagram }}">Instagram</a>{% endif %}
+          {% if globals.social.facebook %}<a href="{{ globals.social.facebook }}">Facebook</a>{% endif %}
+        </div>
+      {% endif %}
+      {% unless site.theme_settings.show_powered_by == false %}
+        <p class="bb-powered">Powered by Plum</p>
+      {% endunless %}
+    </div>
+  </footer>
+</body>
+</html>
