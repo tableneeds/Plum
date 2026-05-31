@@ -23,6 +23,9 @@ gem "bcrypt", "~> 3.1.7"
 # Liquid template rendering
 gem "liquid"
 
+# Rich text editor (Lexxy from 37signals, built on Meta's Lexical)
+gem "lexxy", "~> 0.1.26.beta"
+
 # SQLite-native app services for the CMS runtime. Loaded explicitly once Plum swaps
 # Rails' Solid adapters over to Litestack-backed services.
 gem "litestack", "~> 0.4.3", require: false

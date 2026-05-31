@@ -44,29 +44,10 @@
                 <%= text_area_tag "entry[data][#{field_handle}]", entry.data&.dig(field_handle), id: field_id, rows: 4,
                     class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500" %>
               <% when "rich_text" %>
-                <div class="mt-1 rounded-lg border border-gray-300 bg-white shadow-sm" data-controller="plum--rich-text-editor">
-                  <div class="flex flex-wrap items-center gap-1 border-b border-gray-200 bg-gray-50 p-2">
-                    <button type="button" title="Bold" aria-label="Bold" data-command="bold" data-plum--rich-text-editor-target="button" data-action="plum--rich-text-editor#toggleBold"
-                            class="min-w-10 rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-sm font-bold text-gray-700 hover:bg-gray-50">B</button>
-                    <button type="button" title="Italic" aria-label="Italic" data-command="italic" data-plum--rich-text-editor-target="button" data-action="plum--rich-text-editor#toggleItalic"
-                            class="min-w-10 rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-sm italic text-gray-700 hover:bg-gray-50">I</button>
-                    <button type="button" title="Heading" aria-label="Heading" data-command="heading" data-plum--rich-text-editor-target="button" data-action="plum--rich-text-editor#toggleHeading"
-                            class="min-w-10 rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-700 hover:bg-gray-50">H2</button>
-                    <button type="button" title="Bulleted List" aria-label="Bulleted List" data-command="bulletList" data-plum--rich-text-editor-target="button" data-action="plum--rich-text-editor#toggleBulletList"
-                            class="min-w-10 rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-sm text-gray-700 hover:bg-gray-50">•</button>
-                    <button type="button" title="Numbered List" aria-label="Numbered List" data-command="orderedList" data-plum--rich-text-editor-target="button" data-action="plum--rich-text-editor#toggleOrderedList"
-                            class="min-w-10 rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-sm text-gray-700 hover:bg-gray-50">1.</button>
-                    <button type="button" title="Quote" aria-label="Quote" data-command="blockquote" data-plum--rich-text-editor-target="button" data-action="plum--rich-text-editor#toggleBlockquote"
-                            class="min-w-10 rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-sm text-gray-700 hover:bg-gray-50">“”</button>
-                    <button type="button" title="Link" aria-label="Link" data-command="link" data-plum--rich-text-editor-target="button" data-action="plum--rich-text-editor#setLink"
-                            class="min-w-10 rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-sm text-gray-700 hover:bg-gray-50">↗</button>
-                    <button type="button" title="Remove Link" aria-label="Remove Link" data-action="plum--rich-text-editor#unsetLink"
-                            class="min-w-10 rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-sm text-gray-700 hover:bg-gray-50">×</button>
-                  </div>
-                  <div class="min-h-64 px-4 py-3" data-plum--rich-text-editor-target="editor"></div>
-                  <%= text_area_tag "entry[data][#{field_handle}]", entry.data&.dig(field_handle), id: field_id, rows: 12,
-                      data: { "plum--rich-text-editor-target": "input" },
-                      class: "block w-full border-0 px-4 py-3 font-mono text-sm focus:outline-none focus:ring-purple-500" %>
+                <div class="mt-1">
+                  <lexxy-editor name="entry[data][<%= field_handle %>]"
+                                class="lexxy-content min-h-48 rounded-lg border border-gray-300 bg-white shadow-sm"
+                                placeholder="Write something…"><%= entry.data&.dig(field_handle) %></lexxy-editor>
                 </div>
               <% when "number" %>
                 <%= number_field_tag "entry[data][#{field_handle}]", entry.data&.dig(field_handle), id: field_id,

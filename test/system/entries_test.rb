@@ -170,7 +170,7 @@ class EntriesTest < ApplicationSystemTestCase
     assert_selector "strong", text: "bold"
   end
 
-  test "creating an entry with Tiptap rich text HTML" do
+  test "creating an entry with Lexxy rich text HTML" do
     visit new_cp_content_type_entry_path(@content_type)
 
     fill_in "Title", with: "Rich Text Post"
