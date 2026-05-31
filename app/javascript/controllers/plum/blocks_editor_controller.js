@@ -1,13 +1,19 @@
 import { Controller } from "@hotwired/stimulus"
 
-// Minimal, dependency-free block editor for `blocks` fields.
-// Phase B replaces this canvas with GrapesJS; the stored data contract
-// (an array of { id, type, fields }) stays the same.
+// Plum's own simple block editor (no GrapesJS).
+//
+// A calm vertical list of block "cards" — add, reorder, remove — each showing
+// its theme-declared fields as plain inputs. The block library comes from the
+// active theme via Plum::BlockEditorConfig (configValue); the editor never reads
+// a theme directly. The stored value is the canonical ordered array of
+// { id, type, fields }, persisted as JSON in the hidden input.
 export default class extends Controller {
-  static targets = ["input", "list", "picker"]
-  static values = { definitions: Array }
+  static targets = ["input", "list", "picker", "empty"]
+  static values = { config: Object }
 
   connect() {
+    this.defs = this.configValue.blocks || []
+    this.defsByType = Object.fromEntries(this.defs.map((d) => [d.id, d]))
     this.blocks = this.readInitial()
     this.render()
   }
@@ -21,14 +27,10 @@ export default class extends Controller {
     }
   }
 
-  definitionFor(type) {
-    return this.definitionsValue.find((d) => d.handle === type)
-  }
-
   add(event) {
     event.preventDefault()
-    const type = this.hasPickerTarget ? this.pickerTarget.value : null
-    if (!type) return
+    const type = this.hasPickerTarget ? this.pickerTarget.value : this.defs[0]?.id
+    if (!type || !this.defsByType[type]) return
     this.blocks.push({ id: this.uuid(), type, fields: {} })
     this.render()
   }
@@ -43,8 +45,7 @@ export default class extends Controller {
   move(event) {
     event.preventDefault()
     const index = Number(event.currentTarget.dataset.index)
-    const delta = Number(event.currentTarget.dataset.delta)
-    const target = index + delta
+    const target = index + Number(event.currentTarget.dataset.delta)
     if (target < 0 || target >= this.blocks.length) return
     const [item] = this.blocks.splice(index, 1)
     this.blocks.splice(target, 0, item)
@@ -70,51 +71,54 @@ export default class extends Controller {
   render() {
     this.serialize()
     this.listTarget.innerHTML = ""
-    this.blocks.forEach((block, index) => {
-      this.listTarget.appendChild(this.cardFor(block, index))
-    })
+    this.blocks.forEach((block, index) => this.listTarget.appendChild(this.card(block, index)))
+    if (this.hasEmptyTarget) this.emptyTarget.classList.toggle("hidden", this.blocks.length > 0)
   }
 
-  cardFor(block, index) {
-    const def = this.definitionFor(block.type) || { label: block.type, fields: [] }
+  card(block, index) {
+    const def = this.defsByType[block.type] || { label: block.type, fields: [] }
     const card = document.createElement("div")
-    card.className = "rounded-lg border border-gray-200 bg-gray-50 p-4 space-y-3"
+    card.className = "rounded-lg border border-gray-200 bg-white shadow-sm"
 
     const header = document.createElement("div")
-    header.className = "flex items-center justify-between"
-
+    header.className = "flex items-center justify-between border-b border-gray-100 px-4 py-2.5"
     const title = document.createElement("span")
-    title.className = "text-sm font-semibold text-gray-700"
+    title.className = "text-sm font-semibold text-gray-800"
     title.textContent = def.label || block.type
     header.appendChild(title)
 
     const controls = document.createElement("div")
-    controls.className = "flex items-center gap-3"
-    controls.appendChild(this.button("Up", { index, delta: -1 }, "move"))
-    controls.appendChild(this.button("Down", { index, delta: 1 }, "move"))
-    controls.appendChild(this.button("Remove", { index }, "remove", "text-red-600"))
+    controls.className = "flex items-center gap-1"
+    controls.appendChild(this.iconButton("↑", "move", { index, delta: -1 }, index === 0))
+    controls.appendChild(this.iconButton("↓", "move", { index, delta: 1 }, index === this.blocks.length - 1))
+    controls.appendChild(this.iconButton("Remove", "remove", { index }, false, "text-red-600 hover:text-red-700"))
     header.appendChild(controls)
     card.appendChild(header)
 
-    ;(def.fields || []).forEach((fieldDef) => {
-      card.appendChild(this.fieldFor(fieldDef, block, index))
-    })
-
+    const body = document.createElement("div")
+    body.className = "space-y-3 px-4 py-3"
+    if ((def.fields || []).length === 0) {
+      const none = document.createElement("p")
+      none.className = "text-sm text-gray-400"
+      none.textContent = "This block has no editable fields."
+      body.appendChild(none)
+    }
+    ;(def.fields || []).forEach((f) => body.appendChild(this.field(f, block, index)))
+    card.appendChild(body)
     return card
   }
 
-  fieldFor(fieldDef, block, index) {
-    const wrapper = document.createElement("div")
-    wrapper.className = "space-y-1"
-
-    const label = document.createElement("label")
+  field(fieldDef, block, index) {
+    const wrap = document.createElement("label")
+    wrap.className = "block space-y-1"
+    const label = document.createElement("span")
     label.className = "block text-xs font-medium text-gray-600"
     label.textContent = fieldDef.label || fieldDef.handle
-    wrapper.appendChild(label)
+    wrap.appendChild(label)
 
-    const stored = (block.fields && block.fields[fieldDef.handle])
+    const stored = block.fields ? block.fields[fieldDef.handle] : undefined
     const value = stored === undefined || stored === null ? "" : stored
-    const baseClass = "block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500"
+    const cls = "block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-purple-500 focus:outline-none focus:ring-purple-500"
 
     let input
     switch (fieldDef.type) {
@@ -122,7 +126,7 @@ export default class extends Controller {
       case "rich_text":
         input = document.createElement("textarea")
         input.rows = 4
-        input.className = baseClass
+        input.className = cls
         input.value = value
         break
       case "boolean":
@@ -132,50 +136,53 @@ export default class extends Controller {
         break
       case "select":
         input = document.createElement("select")
-        input.className = baseClass
-        ;(fieldDef.options || []).forEach((opt) => {
-          const option = document.createElement("option")
-          const optionValue = typeof opt === "object" ? opt.value : opt
-          option.value = optionValue
-          option.textContent = typeof opt === "object" ? opt.label : opt
-          if (String(optionValue) === String(value)) option.selected = true
-          input.appendChild(option)
+        input.className = cls
+        ;(fieldDef.options || []).forEach((o) => {
+          const opt = document.createElement("option")
+          const v = typeof o === "object" ? o.value : o
+          opt.value = v
+          opt.textContent = typeof o === "object" ? o.label : o
+          if (String(v) === String(value)) opt.selected = true
+          input.appendChild(opt)
         })
         break
       case "date":
         input = document.createElement("input")
         input.type = "date"
-        input.className = baseClass
+        input.className = cls
         input.value = value
         break
       default:
         input = document.createElement("input")
         input.type = "text"
-        input.className = baseClass
+        input.className = cls
         input.value = value
     }
 
     input.dataset.index = index
     input.dataset.field = fieldDef.handle
     input.dataset.action = "input->plum--blocks-editor#fieldChanged change->plum--blocks-editor#fieldChanged"
-    wrapper.appendChild(input)
 
     if (fieldDef.type === "image") {
-      const help = document.createElement("p")
-      help.className = "text-xs text-gray-400"
-      help.textContent = "Asset ID"
-      wrapper.appendChild(help)
+      const hint = document.createElement("span")
+      hint.className = "block text-xs text-gray-400"
+      hint.textContent = "Asset ID (a full image picker comes later)"
+      wrap.appendChild(input)
+      wrap.appendChild(hint)
+      return wrap
     }
 
-    return wrapper
+    wrap.appendChild(input)
+    return wrap
   }
 
-  button(text, data, action, extra = "") {
+  iconButton(text, action, data, disabled, extra = "") {
     const btn = document.createElement("button")
     btn.type = "button"
-    btn.className = `text-xs text-gray-600 hover:text-gray-900 ${extra}`.trim()
+    btn.disabled = disabled
+    btn.className = `rounded px-2 py-1 text-xs font-medium text-gray-500 hover:bg-gray-100 disabled:opacity-30 ${extra}`.trim()
     btn.textContent = text
-    Object.entries(data).forEach(([key, val]) => { btn.dataset[key] = val })
+    Object.entries(data).forEach(([k, v]) => { btn.dataset[k] = v })
     btn.dataset.action = `plum--blocks-editor#${action}`
     return btn
   }

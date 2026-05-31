@@ -108,31 +108,31 @@
                     id: field_id,
                     class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500" %>
               <% when "blocks" %>
-                <% all_block_defs = (@theme&.blocks || []) %>
-                <% allowed_handles = Array(field["blocks"]).map(&:to_s) %>
-                <% block_defs = allowed_handles.any? ? all_block_defs.select { |b| allowed_handles.include?(b["handle"]) } : all_block_defs %>
+                <% editor_config = Plum::BlockEditorConfig.new(@theme, allowed: field["blocks"]) %>
                 <% current_blocks = entry.data&.dig(field_handle) %>
                 <% current_blocks = [] unless current_blocks.is_a?(Array) %>
-                <div class="mt-1" data-controller="plum--blocks-editor"
-                     data-plum--blocks-editor-definitions-value="<%= block_defs.to_json %>">
-                  <%= hidden_field_tag "entry[data][#{field_handle}]", current_blocks.to_json,
-                      data: { "plum--blocks-editor-target": "input" } %>
-                  <div class="space-y-3" data-plum--blocks-editor-target="list"></div>
-                  <% if block_defs.empty? %>
-                    <p class="text-sm text-gray-500">This theme defines no blocks for this field.</p>
-                  <% else %>
-                    <div class="mt-3 flex items-center gap-2">
+                <% if editor_config.blocks.empty? %>
+                  <p class="mt-1 text-sm text-gray-500">This theme defines no blocks for this field.</p>
+                  <%= hidden_field_tag "entry[data][#{field_handle}]", current_blocks.to_json %>
+                <% else %>
+                  <div class="mt-1 space-y-3" data-controller="plum--blocks-editor"
+                       data-plum--blocks-editor-config-value="<%= editor_config.to_json %>">
+                    <%= hidden_field_tag "entry[data][#{field_handle}]", current_blocks.to_json,
+                        data: { "plum--blocks-editor-target": "input" } %>
+                    <p class="hidden text-sm text-gray-400" data-plum--blocks-editor-target="empty">No sections yet. Add one below.</p>
+                    <div class="space-y-3" data-plum--blocks-editor-target="list"></div>
+                    <div class="flex items-center gap-2 pt-1">
                       <select data-plum--blocks-editor-target="picker"
-                              class="px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500">
-                        <% block_defs.each do |b| %>
-                          <option value="<%= b["handle"] %>"><%= b["label"] %></option>
+                              class="rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-purple-500 focus:outline-none focus:ring-purple-500">
+                        <% editor_config.blocks.each do |b| %>
+                          <option value="<%= b["id"] %>"><%= b["label"] %></option>
                         <% end %>
                       </select>
                       <button type="button" data-action="plum--blocks-editor#add"
-                              class="px-3 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 cursor-pointer">Add block</button>
+                              class="rounded-md bg-purple-600 px-3 py-2 text-sm font-medium text-white hover:bg-purple-700">+ Add section</button>
                     </div>
-                  <% end %>
-                </div>
+                  </div>
+                <% end %>
               <% end %>
             </div>
           <% end %>
