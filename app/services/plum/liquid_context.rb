@@ -13,7 +13,7 @@ module Plum
     def to_h
       {
         "site" => site_context,
-        "entry" => entry ? entry_context(entry) : nil,
+        "entry" => entry ? entry_context(entry, expand_blocks: true) : nil,
         "entries" => entries_context,
         "forms" => forms_context,
         "globals" => globals_context,
@@ -45,17 +45,17 @@ module Plum
       }
     end
 
-    def entry_context(entry, relationship_depth: MAX_RELATIONSHIP_DEPTH)
+    def entry_context(entry, relationship_depth: MAX_RELATIONSHIP_DEPTH, expand_blocks: false)
       {
         "title" => entry.title,
         "slug" => entry.slug,
         "published_at" => entry.published_at,
         "url" => public_entry_path(entry),
-        "data" => entry_data_context(entry, relationship_depth: relationship_depth)
+        "data" => entry_data_context(entry, relationship_depth: relationship_depth, expand_blocks: expand_blocks)
       }
     end
 
-    def entry_data_context(entry, relationship_depth:)
+    def entry_data_context(entry, relationship_depth:, expand_blocks: false)
       data = (entry.data || {}).deep_dup
 
       entry.content_type.fields.each do |field|
@@ -68,7 +68,7 @@ module Plum
         when "relationship"
           data[handle] = relationship_entry_context(data[handle], relationship_depth: relationship_depth)
         when "blocks"
-          data[handle] = blocks_html(data[handle])
+          data[handle] = expand_blocks ? blocks_html(data[handle]) : "".html_safe
         end
       end
 
@@ -148,7 +148,6 @@ module Plum
     def blocks_html(value)
       return "".html_safe unless value.is_a?(Array) && value.any?
 
-      # theme may be nil (engine base blocks still render via BlockLibrary).
       BuilderRenderer.new(
         blocks: value,
         base_assigns: blocks_base_assigns,
