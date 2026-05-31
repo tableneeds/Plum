@@ -210,9 +210,38 @@ Supported field types are `text`, `email`, `textarea`, `select`, and
 `checkbox`. Public submissions post back to Plum, are scoped to the current
 site, and can be reviewed from the form detail screen in the control panel.
 
-The v1 form contract stores submissions in `plum_form_submissions.data`. The
-`notification_email` setting is captured on the form definition, but email
-delivery is intentionally left for a later mailer/queue pass.
+The v1 form contract stores submissions in `plum_form_submissions.data`.
+
+When a form has a `notification_email`, Plum emails that address on each new
+submission via `Plum::FormMailer`, enqueued with `deliver_later` (Active Job).
+The engine only composes and enqueues the message — the host application is
+responsible for configuring ActionMailer delivery (SMTP, `default_url_options`,
+a queue backend, etc.). Set the "from" address with:
+
+```ruby
+Plum.configure do |config|
+  config.mailer_sender = "no-reply@yourdomain.com"
+end
+```
+
+Forms without a `notification_email` are stored but send no email.
+
+## Database
+
+Plum is SQLite-first and ships with SQLite as the default, but the engine is
+database-agnostic: all JSON columns are read and filtered in Ruby (no
+database-specific JSON SQL), so it also runs on PostgreSQL — the database a host
+app such as Table Needs is likely to use. To run the test suite against
+PostgreSQL instead of SQLite:
+
+```bash
+PLUM_TEST_DB=postgres bin/rails db:test:prepare
+PLUM_TEST_DB=postgres bin/rails test
+```
+
+Connection details are read from the standard `PG*` environment variables
+(`PGHOST`, `PGUSER`, `PGPASSWORD`, and `PLUM_TEST_PG_DATABASE`, default
+`plum_test`). CI runs the suite on both SQLite and PostgreSQL.
 
 ## Theme Packages
 

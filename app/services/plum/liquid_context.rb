@@ -66,6 +66,8 @@ module Plum
           data[handle] = image_asset_context(data[handle])
         when "relationship"
           data[handle] = relationship_entry_context(data[handle], relationship_depth: relationship_depth)
+        when "blocks"
+          data[handle] = blocks_html(data[handle])
         end
       end
 
@@ -135,6 +137,51 @@ module Plum
       return unless related_entry
 
       entry_context(related_entry, relationship_depth: relationship_depth - 1)
+    end
+
+    # Renders a blocks field value (an array of block instances) into HTML using
+    # the active theme's Liquid block partials. The shared site context (site,
+    # globals, nav, forms, registered content sources) is exposed inside each
+    # block, but the global `entries` collection is intentionally excluded to
+    # avoid an infinite render loop, since every entry's blocks are expanded.
+    def blocks_html(value)
+      return "".html_safe unless value.is_a?(Array) && value.any?
+
+      theme = blocks_theme
+      return "".html_safe unless theme
+
+      BuilderRenderer.new(
+        blocks: value,
+        base_assigns: blocks_base_assigns,
+        site: site,
+        theme: theme,
+        registers: blocks_registers
+      ).render
+    end
+
+    def blocks_theme
+      @blocks_theme ||= ThemeRegistry.new.fetch(blocks_theme_name)
+    end
+
+    def blocks_theme_name
+      theme_name.presence || SiteSetting.instance(site).theme_name
+    end
+
+    def blocks_base_assigns
+      @blocks_base_assigns ||= {
+        "site" => site_context,
+        "globals" => globals_context,
+        "nav" => nav_context,
+        "forms" => forms_context
+      }.merge(Plum.content_sources_for(controller, site: site))
+    end
+
+    def blocks_registers
+      base_url = theme_asset_base_url
+      {
+        theme_asset_url_builder: ->(path) { ThemeAssetPath.url(base_url: base_url, path: path) },
+        form_renderer: ->(handle) { FormRenderer.new(forms_context[handle]).render }
+      }
     end
 
     def asset_cache

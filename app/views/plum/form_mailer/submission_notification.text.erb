@@ -1,0 +1,7 @@
+New <%= @form.name %> submission
+<%= "Received on #{@site_name}" if @site_name.present? %>
+
+<% @fields.each do |field| %>
+<% handle = field["handle"].to_s %>
+<%= field["label"].presence || handle.humanize %>: <%= @submission.value(handle) %>
+<% end %>

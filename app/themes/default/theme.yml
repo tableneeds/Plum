@@ -16,3 +16,22 @@ settings:
       type: boolean
       label: Show Powered By
       default: true
+blocks:
+  - handle: hero
+    label: Hero
+    fields:
+      - handle: heading
+        type: text
+        label: Heading
+      - handle: subheading
+        type: textarea
+        label: Subheading
+      - handle: image
+        type: image
+        label: Background Image
+  - handle: rich_text
+    label: Rich Text
+    fields:
+      - handle: body
+        type: rich_text
+        label: Body

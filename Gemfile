@@ -67,6 +67,11 @@ group :test do
   # Use system testing [https://guides.rubyonrails.org/testing.html#system-testing]
   gem "capybara"
   gem "selenium-webdriver"
+
+  # PostgreSQL is not a runtime dependency of the engine (hosts choose their DB).
+  # It is installed for the test suite so portability can be verified on Postgres
+  # via PLUM_TEST_DB=postgres. SQLite remains the default.
+  gem "pg", ">= 1.5"
 end
 
 gem "tailwindcss-rails", "~> 4.4"

@@ -28,11 +28,39 @@
       <dd class="mt-1 text-sm text-gray-900"><%= @entry.published_at&.strftime("%B %d, %Y at %I:%M %p") || "Not published" %></dd>
     </div>
     <% @content_type.fields.each do |field| %>
-      <div class="<%= %w[rich_text image].include?(field['type']) ? 'sm:col-span-2' : '' %>">
+      <div class="<%= %w[rich_text image blocks].include?(field['type']) ? 'sm:col-span-2' : '' %>">
         <dt class="text-sm font-medium text-gray-500"><%= field['label'] || field['handle'].titleize %></dt>
         <dd class="mt-1 text-sm text-gray-900">
           <% value = @entry.field_value(field['handle']) %>
-          <% if field['type'] == 'rich_text' %>
+          <% if field['type'] == 'blocks' %>
+            <% blocks = value.is_a?(Array) ? value : [] %>
+            <% if blocks.empty? %>
+              <span class="text-gray-400">No blocks</span>
+            <% else %>
+              <% block_defs = (@content_type.site.theme.blocks || []).index_by { |b| b['handle'] } %>
+              <ol class="space-y-3">
+                <% blocks.each_with_index do |block, index| %>
+                  <% next unless block.is_a?(Hash) %>
+                  <% definition = block_defs[block['type'].to_s] %>
+                  <li class="rounded-lg border border-gray-200 bg-gray-50 p-3">
+                    <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                      <%= index + 1 %>. <%= definition ? definition['label'] : block['type'] %>
+                      <% unless definition %><span class="text-red-500">(unknown block type)</span><% end %>
+                    </p>
+                    <dl class="mt-2 space-y-1">
+                      <% (block['fields'] || {}).each do |handle, field_value| %>
+                        <% next if field_value.blank? %>
+                        <div class="flex gap-2">
+                          <dt class="font-medium text-gray-500"><%= handle.to_s.titleize %>:</dt>
+                          <dd class="text-gray-800 truncate"><%= field_value.to_s.truncate(120) %></dd>
+                        </div>
+                      <% end %>
+                    </dl>
+                  </li>
+                <% end %>
+              </ol>
+            <% end %>
+          <% elsif field['type'] == 'rich_text' %>
             <div class="prose max-w-none"><%= raw value %></div>
           <% elsif field['type'] == 'boolean' %>
             <%= value ? 'Yes' : 'No' %>

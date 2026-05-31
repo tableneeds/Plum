@@ -2,6 +2,8 @@ module Plum
   class ContentType < ApplicationRecord
     include SiteScoped
 
+    FIELD_TYPES = %w[text textarea rich_text image boolean select date relationship blocks].freeze
+
     has_many :entries, dependent: :destroy
 
     validates :name, presence: true

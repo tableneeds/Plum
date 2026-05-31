@@ -1,0 +1,7 @@
+<section class="plum-block plum-block-hero">
+  {% if block.image.url %}
+    <img class="plum-block-hero-image" src="{{ block.image.url }}" alt="{{ block.image.alt_text | default: block.heading }}">
+  {% endif %}
+  {% if block.heading %}<h2>{{ block.heading }}</h2>{% endif %}
+  {% if block.subheading %}<p>{{ block.subheading }}</p>{% endif %}
+</section>

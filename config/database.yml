@@ -16,9 +16,23 @@ development:
 # Warning: The database defined as "test" will be erased and
 # re-generated from your development database when you run "rake".
 # Do not set this db to the same as development or production.
+#
+# Set PLUM_TEST_DB=postgres to run the suite against PostgreSQL instead of the
+# default SQLite, to verify the engine is database-agnostic. Connection details
+# come from standard PG* env vars (PGHOST, PGUSER, PGPASSWORD, ...).
+<% if ENV["PLUM_TEST_DB"] == "postgres" %>
+test:
+  adapter: postgresql
+  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+  database: <%= ENV.fetch("PLUM_TEST_PG_DATABASE", "plum_test") %>
+  host: <%= ENV.fetch("PGHOST", "localhost") %>
+  username: <%= ENV.fetch("PGUSER", ENV["USER"]) %>
+  password: <%= ENV.fetch("PGPASSWORD", "") %>
+<% else %>
 test:
   <<: *default
   database: storage/test.sqlite3
+<% end %>
 
 
 # Store production database in the storage/ directory, which by default

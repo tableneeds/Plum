@@ -63,6 +63,7 @@ module Plum
 
       def set_form_collections
         @assets = current_site.assets.with_attached_file.order(created_at: :desc)
+        @theme = current_site.theme
         @relationship_entries_by_field = relationship_fields.each_with_object({}) do |field, entries_by_field|
           entries_by_field[field["handle"].to_s] = relationship_entry_scope(@entry, field).order(:title)
         end
@@ -137,6 +138,8 @@ module Plum
           sanitized_rich_text(value)
         when "relationship"
           normalized_relationship_value(entry, field, value)
+        when "blocks"
+          normalized_blocks_value(value)
         else
           value
         end
@@ -150,6 +153,36 @@ module Plum
 
         entry.errors.add(:base, "#{field_label(field)} is not a valid entry")
         nil
+      end
+
+      # A blocks field is submitted as a JSON string from the block editor. We
+      # parse it and normalize each block instance to { id, type, fields }.
+      def normalized_blocks_value(value)
+        parsed = value.is_a?(String) ? safe_parse_blocks(value) : value
+        return [] unless parsed.is_a?(Array)
+
+        parsed.filter_map do |block|
+          block = block.to_h if block.respond_to?(:to_h)
+          next unless block.is_a?(Hash)
+
+          type = block["type"].to_s
+          next if type.blank?
+
+          fields = block["fields"]
+          fields = fields.to_h if fields.respond_to?(:to_h)
+
+          {
+            "id" => block["id"].presence || SecureRandom.uuid,
+            "type" => type,
+            "fields" => fields.is_a?(Hash) ? fields : {}
+          }
+        end
+      end
+
+      def safe_parse_blocks(value)
+        JSON.parse(value)
+      rescue JSON::ParserError
+        []
       end
 
       def sanitized_rich_text(value)

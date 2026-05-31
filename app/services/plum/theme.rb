@@ -47,6 +47,35 @@ module Plum
       end
     end
 
+    def blocks
+      Array(manifest["blocks"]).filter_map do |block|
+        normalize_block_definition(block)
+      end
+    end
+
+    def block_definition(handle)
+      handle = handle.to_s
+      return if handle.blank?
+
+      blocks.find { |block| block["handle"] == handle }
+    end
+
+    def block_template(handle, variant: :web)
+      path = block_template_path(handle, variant: variant)
+      return unless path&.file?
+
+      path.read
+    end
+
+    def block_template_path(handle, variant: :web)
+      return unless variant.to_sym == :web
+
+      normalized_handle = handle.to_s
+      return if normalized_handle.blank? || !normalized_handle.match?(/\A[a-z][a-z0-9_]*\z/)
+
+      root.join("blocks", "#{normalized_handle}.liquid")
+    end
+
     def asset_root
       root.join("assets")
     end
@@ -96,6 +125,34 @@ module Plum
       normalized.merge(
         "handle" => handle,
         "type" => type,
+        "label" => normalized["label"].presence || handle.humanize
+      )
+    end
+
+    def normalize_block_definition(block)
+      return unless block.respond_to?(:to_h)
+
+      normalized = block.to_h.deep_stringify_keys
+      handle = normalized["handle"].to_s
+      return if handle.blank?
+
+      normalized.merge(
+        "handle" => handle,
+        "label" => normalized["label"].presence || handle.humanize,
+        "fields" => Array(normalized["fields"]).filter_map { |field| normalize_block_field(field) }
+      )
+    end
+
+    def normalize_block_field(field)
+      return unless field.respond_to?(:to_h)
+
+      normalized = field.to_h.deep_stringify_keys
+      handle = normalized["handle"].to_s
+      return if handle.blank?
+
+      normalized.merge(
+        "handle" => handle,
+        "type" => normalized["type"].presence || "text",
         "label" => normalized["label"].presence || handle.humanize
       )
     end

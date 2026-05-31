@@ -85,6 +85,36 @@ Plum uses **Liquid templates** to render your content, giving you full control o
 end
 puts "Created sample entry: /hello-world"
 
+# Create a Landing Pages content type that uses the blocks (page builder) field
+landing = plum_site.content_types.find_or_create_by!(handle: "landing") do |ct|
+  ct.name = "Landing Pages"
+  ct.blueprint = {
+    "fields" => [
+      { "handle" => "sections", "type" => "blocks", "label" => "Sections",
+        "blocks" => [ "hero", "rich_text" ] }
+    ]
+  }
+  ct.icon = "layout"
+end
+puts "Created 'Landing Pages' content type"
+
+plum_site.entries.find_or_create_by!(slug: "welcome") do |e|
+  e.content_type = landing
+  e.author = admin
+  e.title = "Welcome"
+  e.status = :published
+  e.published_at = Time.current
+  e.data = {
+    "sections" => [
+      { "id" => SecureRandom.uuid, "type" => "hero",
+        "fields" => { "heading" => "Welcome to Plum", "subheading" => "This page is built from blocks." } },
+      { "id" => SecureRandom.uuid, "type" => "rich_text",
+        "fields" => { "body" => "Blocks are defined by the **theme** and arranged in the control panel." } }
+    ]
+  }
+end
+puts "Created landing page: /welcome"
+
 company = plum_site.globals.find_or_create_by!(handle: "company") do |global|
   global.name = "Company Info"
 end

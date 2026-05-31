@@ -32,7 +32,10 @@ f8f1c22 Prove embedded host site integration
 
 ## Architecture
 
-- Rails 8, SQLite-first.
+- Rails 8, SQLite-first but database-agnostic (all JSON is filtered in Ruby, no
+  DB-specific JSON SQL). Verified green on both SQLite and PostgreSQL; run the
+  suite on Postgres with `PLUM_TEST_DB=postgres bin/rails db:test:prepare test`.
+  CI runs both. This matters because an embedding host (Table Needs) uses Postgres.
 - `Plum::Engine` is isolated and intended to be gem-installable/mountable.
 - All CMS data is site-scoped through `Plum::Site`.
 - Standalone mode uses one implicit site via `Plum::Site.first_or_create_standalone!`.
@@ -202,7 +205,9 @@ before assuming the app is broken.
 - Plum is not registered on RubyGems.
 - Embedded install is proven by generator and test coverage, not by a live Table
   Needs mount in this repo.
-- Forms store submissions; email notification delivery is not implemented yet.
+- Forms store submissions and now email the form's `notification_email` on each
+  new submission via `Plum::FormMailer` + `deliver_later` (Active Job). The host
+  configures actual delivery; set the from address with `config.mailer_sender`.
 - Relationship fields are single-entry relationships only.
 - Theme marketplace/premium purchase flow does not exist yet.
 - No first-class page builder/block editor exists yet.

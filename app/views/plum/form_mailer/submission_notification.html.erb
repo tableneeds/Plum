@@ -1,0 +1,13 @@
+<h1>New <%= @form.name %> submission</h1>
+
+<p>A new submission was received<%= " on #{@site_name}" if @site_name.present? %>.</p>
+
+<table cellpadding="6" cellspacing="0" border="0">
+  <% @fields.each do |field| %>
+    <% handle = field["handle"].to_s %>
+    <tr>
+      <th align="left" valign="top"><%= field["label"].presence || handle.humanize %></th>
+      <td><%= @submission.value(handle) %></td>
+    </tr>
+  <% end %>
+</table>

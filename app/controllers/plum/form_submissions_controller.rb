@@ -8,6 +8,7 @@ module Plum
       )
 
       if submission.save
+        deliver_submission_notification(submission)
         redirect_to safe_return_path, notice: "Form submitted"
       else
         redirect_to safe_return_path, alert: submission.errors.full_messages.to_sentence
@@ -15,6 +16,14 @@ module Plum
     end
 
     private
+
+    def deliver_submission_notification(submission)
+      return if submission.form_definition.notification_email.blank?
+
+      Plum::FormMailer.submission_notification(submission).deliver_later
+    rescue StandardError => e
+      Rails.logger.error("[Plum] form notification could not be enqueued: #{e.message}")
+    end
 
     def submission_data(form_definition)
       raw_data = params.dig(:form_submission, :data)

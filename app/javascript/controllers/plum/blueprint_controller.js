@@ -26,6 +26,7 @@ export default class extends Controller {
           <option value="date">Date</option>
           <option value="image">Image</option>
           <option value="relationship">Relationship</option>
+          <option value="blocks">Blocks</option>
         </select>
         <input type="text" placeholder="Label" data-field="label"
                data-action="input->plum--blueprint#inputChanged"
