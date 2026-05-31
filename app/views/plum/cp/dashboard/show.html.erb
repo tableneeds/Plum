@@ -32,7 +32,7 @@
     <ul class="divide-y divide-gray-200">
       <% @recent_entries.each do |entry| %>
         <li>
-          <%= link_to cp_content_type_entry_path(entry.content_type, entry), class: "block px-6 py-4 hover:bg-gray-50" do %>
+          <%= link_to edit_cp_content_type_entry_path(entry.content_type, entry), class: "block px-6 py-4 hover:bg-gray-50" do %>
             <div class="flex items-center justify-between">
               <div>
                 <p class="text-sm font-medium text-gray-900"><%= entry.title %></p>

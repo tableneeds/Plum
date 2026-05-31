@@ -7,14 +7,11 @@ module Plum
       ALLOWED_RICH_TEXT_ATTRIBUTES = %w[href rel target title].freeze
 
       before_action :set_content_type
-      before_action :set_entry, only: [ :show, :edit, :update, :destroy ]
+      before_action :set_entry, only: [ :edit, :update, :destroy ]
       before_action :set_form_collections, only: [ :new, :create, :edit, :update ]
 
       def index
         @entries = @content_type.entries.order(updated_at: :desc)
-      end
-
-      def show
       end
 
       def new
@@ -27,7 +24,7 @@ module Plum
         @entry.author = current_user if current_user.is_a?(Plum::User)
 
         if save_entry(@entry)
-          redirect_to cp_content_type_entry_path(@content_type, @entry), notice: "Entry created"
+          redirect_to edit_cp_content_type_entry_path(@content_type, @entry), notice: "Entry created"
         else
           render :new, status: :unprocessable_entity
         end
@@ -40,7 +37,7 @@ module Plum
         @entry.assign_attributes(entry_params)
 
         if save_entry(@entry)
-          redirect_to cp_content_type_entry_path(@content_type, @entry), notice: "Entry updated"
+          redirect_to edit_cp_content_type_entry_path(@content_type, @entry), notice: "Entry updated"
         else
           render :edit, status: :unprocessable_entity
         end
