@@ -4,19 +4,31 @@ require "yaml"
 
 module Plum
   class BlockEditorConfigTest < ActiveSupport::TestCase
-    test "turns theme blocks into block editor configs" do
+    test "merges theme blocks with the engine base blocks" do
       with_theme do |theme|
         config = BlockEditorConfig.new(theme).to_h
-
         handles = config["blocks"].map { |b| b["id"] }
-        assert_equal %w[hero rich_text], handles
 
-        hero = config["blocks"].find { |b| b["id"] == "hero" }
-        assert_equal "Hero", hero["label"]
-        assert_equal "Blocks", hero["category"]
-        assert_equal %w[heading image], hero["fields"].map { |f| f["handle"] }
-        assert_equal "text", hero["fields"].first["type"]
-        assert_equal "Heading", hero["fields"].first["label"]
+        # base blocks are present...
+        assert_includes handles, "gallery"
+        assert_includes handles, "cta"
+        # ...and the theme's own block is too.
+        assert_includes handles, "menu_section"
+
+        menu = config["blocks"].find { |b| b["id"] == "menu_section" }
+        assert_equal "Menu Section", menu["label"]
+        assert_equal "Blocks", menu["category"]
+        assert_equal %w[heading], menu["fields"].map { |f| f["handle"] }
+      end
+    end
+
+    test "a theme block overrides the base block with the same handle" do
+      with_theme do |theme|
+        config = BlockEditorConfig.new(theme).to_h
+        heroes = config["blocks"].select { |b| b["id"] == "hero" }
+
+        assert_equal 1, heroes.size
+        assert_equal "Fancy Hero", heroes.first["label"]
       end
     end
 
@@ -32,19 +44,15 @@ module Plum
       with_theme do |theme|
         parsed = JSON.parse(BlockEditorConfig.new(theme).to_json)
 
-        assert_equal "hero", parsed.dig("blocks", 0, "id")
+        assert parsed["blocks"].any?
       end
     end
 
-    test "is empty for a theme with no blocks" do
-      Dir.mktmpdir do |dir|
-        root = Pathname(dir).join("plain")
-        FileUtils.mkdir_p(root)
-        root.join("theme.yml").write("name: Plain\nhandle: plain\n")
-        theme = Theme.new(root: root, manifest: YAML.safe_load(root.join("theme.yml").read))
+    test "with no theme still offers the base blocks" do
+      handles = BlockEditorConfig.new(nil).blocks.map { |b| b["id"] }
 
-        assert_equal [], BlockEditorConfig.new(theme).blocks
-      end
+      assert_includes handles, "hero"
+      assert_includes handles, "rich_text"
     end
 
     private
@@ -58,20 +66,17 @@ module Plum
           handle: blocky
           blocks:
             - handle: hero
-              label: Hero
+              label: Fancy Hero
               fields:
                 - handle: heading
                   type: text
                   label: Heading
-                - handle: image
-                  type: image
-                  label: Background Image
-            - handle: rich_text
-              label: Rich Text
+            - handle: menu_section
+              label: Menu Section
               fields:
-                - handle: body
-                  type: rich_text
-                  label: Body
+                - handle: heading
+                  type: text
+                  label: Heading
         YAML
         theme = Theme.new(root: root, manifest: YAML.safe_load(root.join("theme.yml").read))
         yield theme

@@ -37,7 +37,7 @@
             <% if blocks.empty? %>
               <span class="text-gray-400">No blocks</span>
             <% else %>
-              <% block_defs = (@content_type.site.theme.blocks || []).index_by { |b| b['handle'] } %>
+              <% block_defs = Plum::BlockLibrary.new(@content_type.site.theme).definitions.index_by { |b| b['handle'] } %>
               <ol class="space-y-3">
                 <% blocks.each_with_index do |block, index| %>
                   <% next unless block.is_a?(Hash) %>

@@ -19,12 +19,13 @@ module Plum
       @base_assigns = base_assigns || {}
       @site = site
       @theme = theme
+      @library = BlockLibrary.new(theme)
       @field_expander = field_expander || FieldExpander.new(site: site)
       @registers = registers
     end
 
     def render
-      return "".html_safe if blocks.empty? || theme.nil?
+      return "".html_safe if blocks.empty?
 
       rendered = blocks.filter_map { |block| render_block(block) }
       rendered.join("\n").html_safe
@@ -32,16 +33,16 @@ module Plum
 
     private
 
-    attr_reader :blocks, :base_assigns, :site, :theme, :field_expander, :registers
+    attr_reader :blocks, :base_assigns, :site, :theme, :library, :field_expander, :registers
 
     def render_block(block)
       return unless block.is_a?(Hash)
 
       handle = block["type"].to_s
-      definition = theme.block_definition(handle)
+      definition = library.definition(handle)
       return debug_comment("unknown block type: #{handle}") if definition.nil?
 
-      template_source = theme.block_template(handle)
+      template_source = library.template(handle)
       return debug_comment("missing block template: #{handle}") if template_source.nil?
 
       template = Liquid::Template.parse(template_source)

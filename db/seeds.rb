@@ -90,8 +90,7 @@ landing = plum_site.content_types.find_or_create_by!(handle: "landing") do |ct|
   ct.name = "Landing Pages"
   ct.blueprint = {
     "fields" => [
-      { "handle" => "sections", "type" => "blocks", "label" => "Sections",
-        "blocks" => [ "hero", "rich_text" ] }
+      { "handle" => "sections", "type" => "blocks", "label" => "Sections" }
     ]
   }
   ct.icon = "layout"

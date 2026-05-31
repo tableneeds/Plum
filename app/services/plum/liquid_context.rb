@@ -147,14 +147,12 @@ module Plum
     def blocks_html(value)
       return "".html_safe unless value.is_a?(Array) && value.any?
 
-      theme = blocks_theme
-      return "".html_safe unless theme
-
+      # theme may be nil (engine base blocks still render via BlockLibrary).
       BuilderRenderer.new(
         blocks: value,
         base_assigns: blocks_base_assigns,
         site: site,
-        theme: theme,
+        theme: blocks_theme,
         registers: blocks_registers
       ).render
     end

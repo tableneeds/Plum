@@ -47,7 +47,7 @@ module Plum
     attr_reader :theme, :allowed
 
     def definitions
-      list = theme ? theme.blocks : []
+      list = BlockLibrary.new(theme).definitions
       return list if allowed.nil?
 
       list.select { |definition| allowed.include?(definition["handle"]) }
