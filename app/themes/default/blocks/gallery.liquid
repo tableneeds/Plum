@@ -1,0 +1,8 @@
+<section class="plum-block plum-block-gallery">
+  {% if block.heading %}<h2>{{ block.heading }}</h2>{% endif %}
+  <div class="plum-block-gallery-grid">
+    {% if block.image_one.url %}<img src="{{ block.image_one.url }}" alt="{{ block.image_one.alt_text }}">{% endif %}
+    {% if block.image_two.url %}<img src="{{ block.image_two.url }}" alt="{{ block.image_two.alt_text }}">{% endif %}
+    {% if block.image_three.url %}<img src="{{ block.image_three.url }}" alt="{{ block.image_three.alt_text }}">{% endif %}
+  </div>
+</section>

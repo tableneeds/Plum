@@ -35,3 +35,53 @@ blocks:
       - handle: body
         type: rich_text
         label: Body
+  - handle: image_text
+    label: Image + Text
+    fields:
+      - handle: heading
+        type: text
+        label: Heading
+      - handle: body
+        type: rich_text
+        label: Body
+      - handle: image
+        type: image
+        label: Image
+      - handle: image_position
+        type: select
+        label: Image Position
+        options:
+          - label: Left
+            value: left
+          - label: Right
+            value: right
+  - handle: cta
+    label: Call to Action
+    fields:
+      - handle: heading
+        type: text
+        label: Heading
+      - handle: text
+        type: textarea
+        label: Text
+      - handle: button_label
+        type: text
+        label: Button Label
+      - handle: button_url
+        type: text
+        label: Button URL
+  - handle: gallery
+    label: Gallery
+    fields:
+      - handle: heading
+        type: text
+        label: Heading
+      - handle: image_one
+        type: image
+        label: Image One
+      - handle: image_two
+        type: image
+        label: Image Two
+      - handle: image_three
+        type: image
+        label: Image Three

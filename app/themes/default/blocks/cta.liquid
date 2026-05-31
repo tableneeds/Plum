@@ -1,0 +1,7 @@
+<section class="plum-block plum-block-cta">
+  {% if block.heading %}<h2>{{ block.heading }}</h2>{% endif %}
+  {% if block.text %}<p>{{ block.text }}</p>{% endif %}
+  {% if block.button_label and block.button_url %}
+    <a class="plum-block-cta-button" href="{{ block.button_url }}">{{ block.button_label }}</a>
+  {% endif %}
+</section>
