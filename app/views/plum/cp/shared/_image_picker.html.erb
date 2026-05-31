@@ -1,0 +1,38 @@
+<%#
+  Reusable image picker.
+  locals:
+    input_name - the form field name (stores the selected asset id)
+    value      - currently selected asset id (optional)
+    field_id   - dom id for the hidden input (optional)
+%>
+<div class="mt-1 space-y-2"
+     data-controller="plum--image-picker"
+     data-plum--image-picker-assets-url-value="<%= cp_assets_path(format: :json) %>"
+     data-plum--image-picker-upload-url-value="<%= cp_assets_path %>">
+  <%= hidden_field_tag input_name, value, id: field_id,
+      data: { "plum--image-picker-target": "input" } %>
+
+  <div data-plum--image-picker-target="preview"></div>
+
+  <div class="flex items-center gap-2">
+    <button type="button" data-action="plum--image-picker#toggle"
+            class="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50">Choose image</button>
+    <button type="button" data-action="plum--image-picker#clear"
+            class="text-sm text-gray-500 hover:text-gray-700">Remove</button>
+  </div>
+
+  <div class="hidden rounded-lg border border-gray-200 bg-gray-50 p-3" data-plum--image-picker-target="panel">
+    <div class="mb-2 flex items-center justify-between">
+      <span class="text-xs font-medium text-gray-500" data-plum--image-picker-target="status"></span>
+      <button type="button" data-action="plum--image-picker#close" class="text-xs text-gray-500 hover:text-gray-700">Close</button>
+    </div>
+    <div class="grid grid-cols-3 gap-2 sm:grid-cols-4" data-plum--image-picker-target="grid"></div>
+    <div class="mt-3 border-t border-gray-200 pt-3">
+      <label class="block text-xs font-medium text-gray-500">Upload a new image</label>
+      <input type="file" accept="image/*"
+             data-plum--image-picker-target="file"
+             data-action="change->plum--image-picker#upload"
+             class="mt-1 block w-full text-sm text-gray-700">
+    </div>
+  </div>
+</div>

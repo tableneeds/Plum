@@ -9,7 +9,7 @@ import { Controller } from "@hotwired/stimulus"
 // { id, type, fields }, persisted as JSON in the hidden input.
 export default class extends Controller {
   static targets = ["input", "list", "picker", "empty"]
-  static values = { config: Object }
+  static values = { config: Object, assetsUrl: String, uploadUrl: String }
 
   connect() {
     this.defs = this.configValue.blocks || []
@@ -109,6 +109,13 @@ export default class extends Controller {
   }
 
   field(fieldDef, block, index) {
+    const stored = block.fields ? block.fields[fieldDef.handle] : undefined
+    const value = stored === undefined || stored === null ? "" : stored
+
+    if (fieldDef.type === "image" && this.hasAssetsUrlValue) {
+      return this.imagePickerField(fieldDef, index, value)
+    }
+
     const wrap = document.createElement("label")
     wrap.className = "block space-y-1"
     const label = document.createElement("span")
@@ -116,8 +123,6 @@ export default class extends Controller {
     label.textContent = fieldDef.label || fieldDef.handle
     wrap.appendChild(label)
 
-    const stored = block.fields ? block.fields[fieldDef.handle] : undefined
-    const value = stored === undefined || stored === null ? "" : stored
     const cls = "block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-purple-500 focus:outline-none focus:ring-purple-500"
 
     let input
@@ -163,17 +168,83 @@ export default class extends Controller {
     input.dataset.field = fieldDef.handle
     input.dataset.action = "input->plum--blocks-editor#fieldChanged change->plum--blocks-editor#fieldChanged"
 
-    if (fieldDef.type === "image") {
-      const hint = document.createElement("span")
-      hint.className = "block text-xs text-gray-400"
-      hint.textContent = "Asset ID (a full image picker comes later)"
-      wrap.appendChild(input)
-      wrap.appendChild(hint)
-      return wrap
-    }
-
     wrap.appendChild(input)
     return wrap
+  }
+
+  // Builds a nested plum--image-picker for an image block field. The picker's
+  // hidden input doubles as this block editor's field input (it carries the
+  // data-index/data-field/data-action so selecting an asset updates the block).
+  imagePickerField(fieldDef, index, value) {
+    // NOTE: data-* attributes with dashes/colons (Stimulus target/value names)
+    // must be set via setAttribute — assigning through element.dataset[...] with
+    // such keys throws a SyntaxError.
+    const wrap = document.createElement("div")
+    wrap.className = "space-y-1"
+    wrap.setAttribute("data-controller", "plum--image-picker")
+    wrap.setAttribute("data-plum--image-picker-assets-url-value", this.assetsUrlValue)
+    wrap.setAttribute("data-plum--image-picker-upload-url-value", this.uploadUrlValue)
+
+    const label = document.createElement("span")
+    label.className = "block text-xs font-medium text-gray-600"
+    label.textContent = fieldDef.label || fieldDef.handle
+    wrap.appendChild(label)
+
+    const input = document.createElement("input")
+    input.type = "hidden"
+    input.value = value
+    input.setAttribute("data-plum--image-picker-target", "input")
+    input.setAttribute("data-index", index)
+    input.setAttribute("data-field", fieldDef.handle)
+    input.setAttribute("data-action", "input->plum--blocks-editor#fieldChanged change->plum--blocks-editor#fieldChanged")
+    wrap.appendChild(input)
+
+    const preview = document.createElement("div")
+    preview.setAttribute("data-plum--image-picker-target", "preview")
+    wrap.appendChild(preview)
+
+    const controls = document.createElement("div")
+    controls.className = "flex items-center gap-2"
+    controls.appendChild(this.pickerButton("Choose image", "toggle", "rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"))
+    controls.appendChild(this.pickerButton("Remove", "clear", "text-sm text-gray-500 hover:text-gray-700"))
+    wrap.appendChild(controls)
+
+    const panel = document.createElement("div")
+    panel.className = "hidden rounded-lg border border-gray-200 bg-gray-50 p-3"
+    panel.setAttribute("data-plum--image-picker-target", "panel")
+
+    const status = document.createElement("p")
+    status.className = "mb-2 text-xs font-medium text-gray-500"
+    status.setAttribute("data-plum--image-picker-target", "status")
+    panel.appendChild(status)
+
+    const grid = document.createElement("div")
+    grid.className = "grid grid-cols-3 gap-2 sm:grid-cols-4"
+    grid.setAttribute("data-plum--image-picker-target", "grid")
+    panel.appendChild(grid)
+
+    const uploadWrap = document.createElement("div")
+    uploadWrap.className = "mt-3 border-t border-gray-200 pt-3"
+    const file = document.createElement("input")
+    file.type = "file"
+    file.accept = "image/*"
+    file.className = "block w-full text-sm text-gray-700"
+    file.setAttribute("data-plum--image-picker-target", "file")
+    file.setAttribute("data-action", "change->plum--image-picker#upload")
+    uploadWrap.appendChild(file)
+    panel.appendChild(uploadWrap)
+
+    wrap.appendChild(panel)
+    return wrap
+  }
+
+  pickerButton(text, action, className) {
+    const btn = document.createElement("button")
+    btn.type = "button"
+    btn.className = className
+    btn.textContent = text
+    btn.dataset.action = `plum--image-picker#${action}`
+    return btn
   }
 
   iconButton(text, action, data, disabled, extra = "") {
