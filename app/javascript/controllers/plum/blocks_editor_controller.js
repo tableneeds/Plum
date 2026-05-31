@@ -194,9 +194,19 @@ export default class extends Controller {
     input.type = "hidden"
     input.value = value
     input.setAttribute("data-plum--image-picker-target", "input")
-    input.setAttribute("data-index", index)
-    input.setAttribute("data-field", fieldDef.handle)
-    input.setAttribute("data-action", "input->plum--blocks-editor#fieldChanged change->plum--blocks-editor#fieldChanged")
+    // The image picker (a separate, nested controller) updates this hidden input
+    // and dispatches input/change. We listen DIRECTLY rather than via a Stimulus
+    // data-action so the update is captured reliably regardless of cross-controller
+    // routing. The closure captures the current index/handle (recreated on render).
+    const persist = () => {
+      const block = this.blocks[index]
+      if (!block) return
+      block.fields = block.fields || {}
+      block.fields[fieldDef.handle] = input.value
+      this.serialize()
+    }
+    input.addEventListener("input", persist)
+    input.addEventListener("change", persist)
     wrap.appendChild(input)
 
     const preview = document.createElement("div")
