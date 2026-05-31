@@ -28,6 +28,14 @@
     </div>
 
     <div>
+      <label class="block text-sm font-medium text-gray-700">Logo</label>
+      <%= render "plum/cp/shared/image_picker",
+          input_name: "site_setting[logo]",
+          value: @site_settings.logo.to_s,
+          field_id: "site_setting_logo" %>
+    </div>
+
+    <div>
       <%= f.label :theme_name, "Theme", class: "block text-sm font-medium text-gray-700" %>
       <%= f.select :theme_name,
           @themes.map { |theme| ["#{theme.name} (#{theme.handle})", theme.handle] },

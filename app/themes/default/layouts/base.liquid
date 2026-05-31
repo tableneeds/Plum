@@ -21,6 +21,7 @@
     .site-header-main { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; }
     header h1 { font-size: 1.5rem; }
     header h1 a { color: inherit; text-decoration: none; }
+    header .site-logo { max-height: 48px; width: auto; display: block; }
     header p { color: #666; font-size: 0.9rem; }
     .site-nav { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 0.35rem 0.8rem; padding-top: 0.15rem; }
     .site-nav a { color: #4a3d45; font-size: 0.9rem; font-weight: 600; text-decoration: none; }
@@ -80,7 +81,15 @@
     <header>
       <div class="site-header-main">
         <div>
-          <h1><a href="{{ site.url }}">{{ site.name }}</a></h1>
+          <h1>
+            <a href="{{ site.url }}">
+              {% if site.logo.url %}
+                <img class="site-logo" src="{{ site.logo.url }}" alt="{{ site.logo.alt_text | default: site.name }}">
+              {% else %}
+                {{ site.name }}
+              {% endif %}
+            </a>
+          </h1>
           {% if site.tagline %}<p>{{ site.tagline }}</p>{% endif %}
         </div>
 

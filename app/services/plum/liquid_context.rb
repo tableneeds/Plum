@@ -34,6 +34,7 @@ module Plum
         "seo_description" => settings.seo_description,
         "primary_color" => settings.primary_color,
         "support_email" => settings.support_email,
+        "logo" => image_asset_context(settings.logo),
         "theme_name" => theme_name.presence || settings.theme_name,
         "theme_settings" => theme_settings || site.theme_settings,
         "theme_asset_base_url" => theme_asset_base_url,
