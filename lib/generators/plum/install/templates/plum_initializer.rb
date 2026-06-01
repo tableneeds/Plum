@@ -22,6 +22,8 @@ Plum.configure do |config|
   # config.cp_sidebar_header_bg = "#1E1621"
   # config.cp_sidebar_text = "#D9CBD4"
   # config.cp_sidebar_muted = "#A8929F"
+  # config.cp_back_url = "/dashboard"
+  # config.cp_back_label = "← Table Needs"
 
   # Embedded host example:
   #

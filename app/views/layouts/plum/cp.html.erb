@@ -43,6 +43,11 @@
     <!-- Sidebar -->
     <div class="fixed inset-y-0 left-0 w-64 plum-sidebar">
       <div class="flex flex-col h-full">
+        <% if Plum.configuration.cp_back_url %>
+          <a href="<%= Plum.configuration.cp_back_url %>" class="flex items-center px-5 py-2 text-xs font-medium plum-sidebar-link border-b border-white/10" style="background: rgba(0,0,0,0.15);">
+            <%= Plum.configuration.cp_back_label %>
+          </a>
+        <% end %>
         <!-- Logo -->
         <div class="flex items-center h-16 px-5 border-b border-white/10 plum-sidebar-header">
           <%= link_to cp_root_path, class: "flex items-center gap-3 text-white" do %>

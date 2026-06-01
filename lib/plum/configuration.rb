@@ -4,7 +4,8 @@ module Plum
   class Configuration
     attr_accessor :authorize_with, :current_site_resolver, :current_user_resolver, :host_authorization_resolver,
                   :mailer_sender, :cp_name, :cp_subtitle, :cp_logo_path,
-                  :cp_accent_color, :cp_sidebar_bg, :cp_sidebar_header_bg, :cp_sidebar_text, :cp_sidebar_muted
+                  :cp_accent_color, :cp_sidebar_bg, :cp_sidebar_header_bg, :cp_sidebar_text, :cp_sidebar_muted,
+                  :cp_back_url, :cp_back_label
     attr_writer :theme_paths
     attr_reader :content_sources
 
@@ -19,6 +20,8 @@ module Plum
       @cp_sidebar_header_bg = "#1E1621"
       @cp_sidebar_text = "#D9CBD4"
       @cp_sidebar_muted = "#A8929F"
+      @cp_back_url = nil
+      @cp_back_label = "← Back"
       @content_sources = ContentSourceRegistry.new
       @current_site_resolver = ->(_controller) { Plum::Site.first_or_create_standalone! }
       @current_user_resolver = lambda { |controller|
