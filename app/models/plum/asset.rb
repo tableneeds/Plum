@@ -27,10 +27,23 @@ module Plum
       Rails.application.routes.url_helpers.rails_blob_path(file, only_path: true)
     end
 
+    def variant_url(transformations)
+      return url unless file.attached? && file.variable?
+
+      variant = file.variant(transformations)
+      Rails.application.routes.url_helpers.rails_blob_path(variant.processed, only_path: true)
+    rescue StandardError, LoadError
+      url
+    end
+
     def to_liquid
       {
         "id" => id,
         "url" => url,
+        "thumb" => variant_url(resize_to_fill: [ 300, 300 ]),
+        "small" => variant_url(resize_to_limit: [ 640, 640 ]),
+        "medium" => variant_url(resize_to_limit: [ 1200, 1200 ]),
+        "large" => variant_url(resize_to_limit: [ 2000, 2000 ]),
         "alt_text" => alt_text.to_s,
         "caption" => caption.to_s,
         "filename" => filename,

@@ -133,6 +133,8 @@ module Plum
         case field["type"]
         when "boolean"
           ActiveModel::Type::Boolean.new.cast(value)
+        when "checkboxes"
+          Array(value).select(&:present?)
         when "image"
           value.present? ? value.to_i : nil
         when "rich_text"

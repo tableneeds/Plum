@@ -25,6 +25,13 @@ module Plum
       md.render(text)
     end
 
+    def image_url(input, size = nil)
+      return "" if input.blank?
+      return input["url"].to_s unless size && input.is_a?(Hash)
+
+      input[size].presence || input["url"].to_s
+    end
+
     def theme_asset_url(input)
       builder = @context.registers[:theme_asset_url_builder]
       return "" unless builder

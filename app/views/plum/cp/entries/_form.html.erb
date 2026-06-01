@@ -64,6 +64,34 @@
               <% when "date" %>
                 <%= date_field_tag "entry[data][#{field_handle}]", entry.data&.dig(field_handle), id: field_id,
                     class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500" %>
+              <% when "select" %>
+                <% options = Array(field["options"]) %>
+                <%= select_tag "entry[data][#{field_handle}]",
+                    options_for_select([["— Select —", ""]] + options.map { |o| [o, o] }, entry.data&.dig(field_handle)),
+                    id: field_id,
+                    class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500" %>
+              <% when "checkboxes" %>
+                <% options = Array(field["options"]) %>
+                <% selected = Array(entry.data&.dig(field_handle)) %>
+                <div class="mt-1 space-y-2">
+                  <% options.each do |option| %>
+                    <label class="flex items-center gap-2 text-sm text-gray-700">
+                      <%= check_box_tag "entry[data][#{field_handle}][]", option, selected.include?(option),
+                          class: "h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded" %>
+                      <%= option %>
+                    </label>
+                  <% end %>
+                </div>
+              <% when "color" %>
+                <div class="mt-1 flex items-center gap-3">
+                  <%= color_field_tag "entry[data][#{field_handle}]", entry.data&.dig(field_handle) || "#000000", id: field_id,
+                      class: "h-10 w-14 p-0 border border-gray-300 rounded-md cursor-pointer" %>
+                  <span class="text-sm text-gray-500 font-mono"><%= entry.data&.dig(field_handle) %></span>
+                </div>
+              <% when "url" %>
+                <%= url_field_tag "entry[data][#{field_handle}]", entry.data&.dig(field_handle), id: field_id,
+                    placeholder: "https://",
+                    class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500" %>
               <% when "image" %>
                 <%= render "plum/cp/shared/image_picker",
                     input_name: "entry[data][#{field_handle}]",

@@ -21,4 +21,12 @@
   {% if collection.entries.size == 0 %}
     <p>No posts yet.</p>
   {% endif %}
+
+  {% if pagination.total_pages > 1 %}
+    <nav class="bb-pagination">
+      {% if pagination.previous_url %}<a href="{{ pagination.previous_url }}">&larr; Previous</a>{% endif %}
+      <span>Page {{ pagination.current_page }} of {{ pagination.total_pages }}</span>
+      {% if pagination.next_url %}<a href="{{ pagination.next_url }}">Next &rarr;</a>{% endif %}
+    </nav>
+  {% endif %}
 </div>
