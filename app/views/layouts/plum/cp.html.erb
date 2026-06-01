@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" class="h-full bg-gray-50">
 <head>
-  <title>Plum CMS</title>
+  <title><%= Plum.configuration.cp_name %> <%= Plum.configuration.cp_subtitle %></title>
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <%= csrf_meta_tags %>
   <%= csp_meta_tag %>
@@ -18,10 +18,10 @@
         <!-- Logo -->
         <div class="flex items-center h-16 px-5 border-b border-white/10 bg-[#1E1621]">
           <%= link_to cp_root_path, class: "flex items-center gap-3 text-white" do %>
-            <%= image_tag "plum-mark.svg", alt: "", class: "h-9 w-9 shrink-0" %>
+            <%= image_tag Plum.configuration.cp_logo_path, alt: "", class: "h-9 w-9 shrink-0" %>
             <span class="leading-tight">
-              <span class="block text-lg font-semibold tracking-normal">Plum</span>
-              <span class="block text-xs font-medium text-[#C9B7C2]">CMS</span>
+              <span class="block text-lg font-semibold tracking-normal"><%= Plum.configuration.cp_name %></span>
+              <span class="block text-xs font-medium text-[#C9B7C2]"><%= Plum.configuration.cp_subtitle %></span>
             </span>
           <% end %>
         </div>

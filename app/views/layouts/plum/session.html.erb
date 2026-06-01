@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" class="h-full bg-gray-100">
 <head>
-  <title>Login - Plum CMS</title>
+  <title>Login - <%= Plum.configuration.cp_name %></title>
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <%= csrf_meta_tags %>
   <%= csp_meta_tag %>
@@ -14,9 +14,9 @@
     <div class="max-w-md w-full space-y-8">
       <div>
         <div class="flex justify-center">
-          <%= image_tag "plum-mark.svg", alt: "Plum CMS", class: "h-16 w-16" %>
+          <%= image_tag Plum.configuration.cp_logo_path, alt: Plum.configuration.cp_name, class: "h-16 w-16" %>
         </div>
-        <h1 class="mt-4 text-center text-3xl font-bold text-[#241B27]">Plum</h1>
+        <h1 class="mt-4 text-center text-3xl font-bold text-[#241B27]"><%= Plum.configuration.cp_name %></h1>
         <h2 class="mt-2 text-center text-xl text-gray-600">Sign in to your account</h2>
       </div>
       <% if flash[:alert] %>

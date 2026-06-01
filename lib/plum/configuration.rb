@@ -3,13 +3,17 @@ require_relative "content_source_registry"
 module Plum
   class Configuration
     attr_accessor :authorize_with, :current_site_resolver, :current_user_resolver, :host_authorization_resolver,
-                  :mailer_sender
+                  :mailer_sender, :cp_name, :cp_subtitle, :cp_logo_path, :cp_accent_color
     attr_writer :theme_paths
     attr_reader :content_sources
 
     def initialize
       @authorize_with = :plum
       @mailer_sender = "no-reply@example.com"
+      @cp_name = "Plum"
+      @cp_subtitle = "CMS"
+      @cp_logo_path = "plum-mark.svg"
+      @cp_accent_color = nil
       @content_sources = ContentSourceRegistry.new
       @current_site_resolver = ->(_controller) { Plum::Site.first_or_create_standalone! }
       @current_user_resolver = lambda { |controller|

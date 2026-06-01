@@ -12,6 +12,12 @@ Plum.configure do |config|
     Plum::Engine.root.join("app/themes")
   ]
 
+  # White-label the control panel:
+  #
+  # config.cp_name = "My Brand"
+  # config.cp_subtitle = "Website"
+  # config.cp_logo_path = "my-logo.svg"
+
   # Embedded host example:
   #
   # config.current_site_resolver = ->(_controller) { Current.restaurant.plum_site }
