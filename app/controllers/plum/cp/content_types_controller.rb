@@ -2,6 +2,7 @@ module Plum
   module Cp
     class ContentTypesController < BaseController
       before_action :set_content_type, only: [ :show, :edit, :update, :destroy ]
+      before_action :require_admin, only: [ :new, :create, :edit, :update, :destroy ]
 
       def index
         @content_types = ContentType.for_site(current_site)

@@ -18,6 +18,21 @@ module Plum
           head :forbidden
         end
       end
+
+      def require_role(*roles)
+        user = Plum.current_user(self)
+        return if user&.respond_to?(:role) && roles.map(&:to_s).include?(user.role.to_s)
+
+        redirect_to cp_root_path, alert: "You don't have permission to do that"
+      end
+
+      def require_editor
+        require_role(:editor, :admin)
+      end
+
+      def require_admin
+        require_role(:admin)
+      end
     end
   end
 end

@@ -8,6 +8,7 @@ module Plum
 
       before_action :set_site_settings
       before_action :set_theme_options
+      before_action :require_admin, only: [ :edit, :update ]
 
       def show
       end

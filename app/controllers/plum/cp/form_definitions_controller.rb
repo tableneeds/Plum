@@ -4,6 +4,7 @@ module Plum
       helper_method :form_fields_json
 
       before_action :set_form_definition, only: [ :show, :edit, :update, :destroy ]
+      before_action :require_editor, only: [ :new, :create, :edit, :update, :destroy ]
 
       def index
         @form_definitions = current_site.form_definitions.includes(:form_submissions).order(:name)

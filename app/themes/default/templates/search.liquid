@@ -1,0 +1,28 @@
+<div class="plum-powered" style="max-width: 48rem; margin: 0 auto; padding: 2rem;">
+  <h1>Search</h1>
+
+  <form action="/search" method="get" style="margin-bottom: 2rem;">
+    <div style="display: flex; gap: 0.5rem;">
+      <input type="text" name="q" value="{{ search.query }}" placeholder="Search…"
+             style="flex: 1; padding: 0.5rem 0.75rem; border: 1px solid #ccc; border-radius: 0.375rem;">
+      <button type="submit" style="padding: 0.5rem 1rem; background: #7c3aed; color: white; border: none; border-radius: 0.375rem; cursor: pointer;">Search</button>
+    </div>
+  </form>
+
+  {% if search.query != "" %}
+    <p style="color: #666; margin-bottom: 1.5rem;">{{ search.total }} result{% if search.total != 1 %}s{% endif %} for "{{ search.query }}"</p>
+
+    {% for entry in search.results %}
+      <article style="margin-bottom: 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid #eee;">
+        <h2 style="margin: 0;"><a href="{{ entry.url }}">{{ entry.title }}</a></h2>
+        {% if entry.published_at %}
+          <p style="color: #666; font-size: 0.875rem; margin: 0.25rem 0;">{{ entry.published_at | date: "%B %d, %Y" }}</p>
+        {% endif %}
+      </article>
+    {% endfor %}
+
+    {% if search.total == 0 %}
+      <p>No results found.</p>
+    {% endif %}
+  {% endif %}
+</div>

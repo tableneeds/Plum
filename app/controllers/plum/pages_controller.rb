@@ -11,6 +11,25 @@ module Plum
       render html: html.html_safe, layout: false
     end
 
+    def search
+      query = params[:q].to_s.strip
+      context = build_context
+      results = Entry.for_site(current_site).live.search(query)
+                     .includes(:content_type)
+                     .order(published_at: :desc)
+                     .limit(50)
+
+      context_hash = context.to_h.merge(
+        "search" => {
+          "query" => query,
+          "results" => results.map { |e| context.send(:entry_context, e) },
+          "total" => results.size
+        }
+      )
+      html = Plum::LiquidRenderer.render_template("search", context_hash)
+      render html: html.html_safe, layout: false
+    end
+
     def show
       slug = params[:slug]
 

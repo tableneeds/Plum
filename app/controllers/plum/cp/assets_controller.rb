@@ -4,6 +4,7 @@ module Plum
       include Plum::Cp::AssetsHelper
 
       before_action :set_asset, only: [ :edit, :update, :destroy ]
+      before_action :require_editor, only: [ :new, :create, :edit, :update, :destroy ]
 
       def index
         @assets = asset_scope.order(created_at: :desc)

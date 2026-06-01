@@ -4,6 +4,7 @@ module Plum
       before_action :set_nav_menu
       before_action :set_nav_item, only: [ :edit, :update, :destroy ]
       before_action :set_form_options, only: [ :new, :create, :edit, :update ]
+      before_action :require_editor, only: [ :new, :create, :edit, :update, :destroy ]
 
       def new
         @nav_item = @nav_menu.nav_items.build(site: current_site, position: next_position)

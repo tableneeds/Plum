@@ -2,6 +2,7 @@ module Plum
   module Cp
     class NavMenusController < BaseController
       before_action :set_nav_menu, only: [ :show, :edit, :update, :destroy ]
+      before_action :require_editor, only: [ :new, :create, :edit, :update, :destroy ]
 
       def index
         @nav_menus = current_site.nav_menus.includes(:nav_items).order(:name)

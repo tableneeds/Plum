@@ -4,6 +4,7 @@ module Plum
       helper_method :global_data_json
 
       before_action :set_global, only: [ :show, :edit, :update, :destroy ]
+      before_action :require_editor, only: [ :new, :create, :edit, :update, :destroy ]
 
       def index
         @globals = current_site.globals.order(:name)

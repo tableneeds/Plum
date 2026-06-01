@@ -9,6 +9,7 @@ module Plum
         :theme_setting_checked?
 
       before_action :set_themes
+      before_action :require_admin, only: [ :create, :update ]
 
       def index
       end

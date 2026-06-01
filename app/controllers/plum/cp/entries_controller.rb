@@ -13,6 +13,7 @@ module Plum
       before_action :set_content_type
       before_action :set_entry, only: [ :edit, :update, :destroy ]
       before_action :set_form_collections, only: [ :new, :create, :edit, :update ]
+      before_action :require_editor, only: [ :new, :create, :edit, :update, :destroy ]
 
       def index
         @entries = @content_type.entries.order(updated_at: :desc)

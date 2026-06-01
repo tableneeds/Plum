@@ -23,6 +23,12 @@ module Plum
     before_destroy :prevent_homepage_destroy
 
     scope :live, -> { published.where("published_at <= ?", Time.current) }
+    scope :search, ->(query) {
+      return none if query.blank?
+
+      term = "%#{query}%"
+      where("title LIKE ? OR slug LIKE ?", term, term)
+    }
 
     def field_value(handle)
       data&.dig(handle)

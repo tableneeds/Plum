@@ -29,6 +29,8 @@ Rails.application.routes.draw do
     post "forms/:handle", to: "form_submissions#create", as: :form
     get "theme_assets/:theme_handle/*path", to: "theme_assets#show", as: :theme_asset, format: false
 
+    get "search", to: "pages#search", as: :search
+
     root "pages#home"
     get "*slug", to: "pages#show", constraints: ->(req) { !req.path.start_with?("/rails/") }
   end
