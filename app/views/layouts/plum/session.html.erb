@@ -8,6 +8,13 @@
   <%= favicon_link_tag "plum-mark.svg", type: "image/svg+xml" %>
   <%= stylesheet_link_tag "plum/control_panel", "data-turbo-track": "reload" %>
   <%= javascript_importmap_tags %>
+  <style>
+    :root { --plum-accent: <%= Plum.configuration.cp_accent_color %>; }
+    .bg-purple-600 { background-color: var(--plum-accent) !important; }
+    .hover\:bg-purple-700:hover { background-color: var(--plum-accent) !important; filter: brightness(0.9); }
+    .focus\:ring-purple-500:focus { --tw-ring-color: var(--plum-accent) !important; }
+    .focus\:border-purple-500:focus { border-color: var(--plum-accent) !important; }
+  </style>
 </head>
 <body class="h-full bg-[#F6F3EF]">
   <div class="min-h-full flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
