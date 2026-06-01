@@ -15,6 +15,7 @@ module Plum
         "site" => site_context,
         "entry" => entry ? entry_context(entry, expand_blocks: true) : nil,
         "entries" => entries_context,
+        "taxonomies" => taxonomies_context,
         "forms" => forms_context,
         "globals" => globals_context,
         "nav" => nav_context
@@ -46,13 +47,19 @@ module Plum
     end
 
     def entry_context(entry, relationship_depth: MAX_RELATIONSHIP_DEPTH, expand_blocks: false)
-      {
+      ctx = {
         "title" => entry.title,
         "slug" => entry.slug,
         "published_at" => entry.published_at,
         "url" => public_entry_path(entry),
         "data" => entry_data_context(entry, relationship_depth: relationship_depth, expand_blocks: expand_blocks)
       }
+      if entry.association(:terms).loaded? || entry.terms.any?
+        ctx["terms"] = entry.terms.includes(:taxonomy).group_by { |t| t.taxonomy.handle }.transform_values do |terms|
+          terms.map { |t| { "name" => t.name, "slug" => t.slug, "url" => "/#{t.taxonomy.slug}/#{t.slug}" } }
+        end
+      end
+      ctx
     end
 
     def entry_data_context(entry, relationship_depth:, expand_blocks: false)
@@ -75,6 +82,19 @@ module Plum
       end
 
       data
+    end
+
+    def taxonomies_context
+      Taxonomy.for_site(site).includes(:terms).each_with_object({}) do |taxonomy, hash|
+        hash[taxonomy.handle] = {
+          "name" => taxonomy.name,
+          "handle" => taxonomy.handle,
+          "slug" => taxonomy.slug,
+          "terms" => taxonomy.terms.ordered.map { |t|
+            { "name" => t.name, "slug" => t.slug, "url" => "/#{taxonomy.slug}/#{t.slug}" }
+          }
+        }
+      end
     end
 
     def entries_context

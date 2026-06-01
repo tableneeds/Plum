@@ -11,6 +11,8 @@ module Plum
     has_many :assets, dependent: :destroy
     has_many :form_definitions, dependent: :destroy
     has_many :form_submissions, dependent: :destroy
+    has_many :taxonomies, dependent: :destroy
+    has_many :terms, dependent: :destroy
 
     before_validation :set_theme_defaults
 

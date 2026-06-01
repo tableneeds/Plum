@@ -45,6 +45,10 @@
                 class: "flex items-center px-4 py-2 mt-2 text-sm font-medium rounded-md #{request.path.include?('/cp/globals') ? 'bg-white/10 text-white' : 'text-[#D9CBD4] hover:bg-white/10 hover:text-white'}" %>
             <%= link_to "Navigation", cp_nav_menus_path,
                 class: "flex items-center px-4 py-2 mt-2 text-sm font-medium rounded-md #{request.path.include?('/cp/nav_menus') ? 'bg-white/10 text-white' : 'text-[#D9CBD4] hover:bg-white/10 hover:text-white'}" %>
+            <% if respond_to?(:cp_taxonomies_path) %>
+              <%= link_to "Taxonomies", cp_taxonomies_path,
+                  class: "flex items-center px-4 py-2 mt-2 text-sm font-medium rounded-md #{request.path.include?('/cp/taxonomies') ? 'bg-white/10 text-white' : 'text-[#D9CBD4] hover:bg-white/10 hover:text-white'}" %>
+            <% end %>
             <%= link_to "Forms", cp_form_definitions_path,
                 class: "flex items-center px-4 py-2 mt-2 text-sm font-medium rounded-md #{request.path.include?('/cp/forms') ? 'bg-white/10 text-white' : 'text-[#D9CBD4] hover:bg-white/10 hover:text-white'}" %>
           </div>

@@ -38,6 +38,18 @@ module Plum
         return render_collection(@content_type)
       end
 
+      if slug.include?("/")
+        parts = slug.split("/", 2)
+        taxonomy = Taxonomy.for_site(current_site).find_by(slug: parts[0])
+        if taxonomy
+          term = taxonomy.terms.find_by!(slug: parts[1])
+          return render_term_page(taxonomy, term)
+        end
+      else
+        taxonomy = Taxonomy.for_site(current_site).find_by(slug: slug)
+        return render_taxonomy_index(taxonomy) if taxonomy
+      end
+
       @entry = Entry.for_site(current_site).live.find_by!(slug: slug)
       template = "entries/#{@entry.content_type.handle}"
       html = Plum::LiquidRenderer.render_template(template, build_context(@entry).to_h)
@@ -77,6 +89,52 @@ module Plum
         }
       )
       template = "collections/#{content_type.handle}"
+      html = Plum::LiquidRenderer.render_template(template, context_hash)
+      render html: html.html_safe, layout: false
+    end
+
+    def render_term_page(taxonomy, term)
+      context = build_context
+      page = [ params.fetch(:page, 1).to_i, 1 ].max
+      all_entries = Entry.for_site(current_site).live
+                        .joins(:entry_terms)
+                        .where(plum_entry_terms: { term_id: term.id })
+                        .order(published_at: :desc)
+      total = all_entries.count
+      total_pages = [ (total / PER_PAGE.to_f).ceil, 1 ].max
+      page = [ page, total_pages ].min
+      entries = all_entries.offset((page - 1) * PER_PAGE).limit(PER_PAGE)
+
+      context_hash = context.to_h.merge(
+        "taxonomy" => { "name" => taxonomy.name, "handle" => taxonomy.handle, "slug" => taxonomy.slug },
+        "term" => { "name" => term.name, "slug" => term.slug },
+        "collection" => {
+          "title" => "#{taxonomy.name}: #{term.name}",
+          "entries" => entries.map { |e| context.send(:entry_context, e) }
+        },
+        "pagination" => {
+          "current_page" => page, "total_pages" => total_pages, "total_entries" => total, "per_page" => PER_PAGE,
+          "previous_url" => page > 1 ? "#{request.path}?page=#{page - 1}" : nil,
+          "next_url" => page < total_pages ? "#{request.path}?page=#{page + 1}" : nil
+        }
+      )
+      template = "taxonomies/#{taxonomy.handle}"
+      html = Plum::LiquidRenderer.render_template(template, context_hash)
+      render html: html.html_safe, layout: false
+    end
+
+    def render_taxonomy_index(taxonomy)
+      context = build_context
+      terms = taxonomy.terms.ordered
+      context_hash = context.to_h.merge(
+        "taxonomy" => {
+          "name" => taxonomy.name,
+          "handle" => taxonomy.handle,
+          "slug" => taxonomy.slug,
+          "terms" => terms.map { |t| { "name" => t.name, "slug" => t.slug, "url" => "/#{taxonomy.slug}/#{t.slug}", "entries_count" => t.entries.live.count } }
+        }
+      )
+      template = "taxonomies/#{taxonomy.handle}_index"
       html = Plum::LiquidRenderer.render_template(template, context_hash)
       render html: html.html_safe, layout: false
     end

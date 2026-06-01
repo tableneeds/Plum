@@ -23,6 +23,9 @@ Rails.application.routes.draw do
       end
       resource :site_settings, only: [ :show, :edit, :update ]
       resources :themes, only: [ :index, :create, :update ]
+      resources :taxonomies do
+        resources :terms, except: [ :index, :show ]
+      end
       get "theme_previews/:handle", to: "theme_previews#show", as: :theme_preview
     end
 

@@ -58,6 +58,7 @@
             <option value="checkboxes" <%= 'selected' if field['type'] == 'checkboxes' %>>Checkboxes</option>
             <option value="color" <%= 'selected' if field['type'] == 'color' %>>Color</option>
             <option value="url" <%= 'selected' if field['type'] == 'url' %>>URL</option>
+            <option value="taxonomy" <%= 'selected' if field['type'] == 'taxonomy' %>>Taxonomy</option>
             <option value="image" <%= 'selected' if field['type'] == 'image' %>>Image</option>
             <option value="relationship" <%= 'selected' if field['type'] == 'relationship' %>>Relationship</option>
             <option value="blocks" <%= 'selected' if field['type'] == 'blocks' %>>Blocks</option>
@@ -68,6 +69,9 @@
           <input type="text" value="<%= field['content_type'] %>" placeholder="Related type handle" data-field="content_type" data-field-config="relationship"
                  data-action="input->plum--blueprint#inputChanged"
                  class="<%= 'hidden' unless field['type'] == 'relationship' %> px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 font-mono text-sm">
+          <input type="text" value="<%= field['taxonomy'] %>" placeholder="Taxonomy handle" data-field="taxonomy" data-field-config="taxonomy"
+                 data-action="input->plum--blueprint#inputChanged"
+                 class="<%= 'hidden' unless field['type'] == 'taxonomy' %> px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 font-mono text-sm">
           <input type="text" value="<%= Array(field['options']).join(', ') %>" placeholder="Option 1, Option 2, Option 3" data-field="options" data-field-config="select checkboxes"
                  data-action="input->plum--blueprint#inputChanged"
                  class="<%= 'hidden' unless %w[select checkboxes].include?(field['type']) %> px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 text-sm">

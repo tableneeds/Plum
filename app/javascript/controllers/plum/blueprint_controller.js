@@ -28,6 +28,7 @@ export default class extends Controller {
           <option value="checkboxes">Checkboxes</option>
           <option value="color">Color</option>
           <option value="url">URL</option>
+          <option value="taxonomy">Taxonomy</option>
           <option value="image">Image</option>
           <option value="relationship">Relationship</option>
           <option value="blocks">Blocks</option>
@@ -36,6 +37,9 @@ export default class extends Controller {
                data-action="input->plum--blueprint#inputChanged"
                class="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 text-sm">
         <input type="text" placeholder="Related type handle" data-field="content_type" data-field-config="relationship"
+               data-action="input->plum--blueprint#inputChanged"
+               class="hidden px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 font-mono text-sm">
+        <input type="text" placeholder="Taxonomy handle" data-field="taxonomy" data-field-config="taxonomy"
                data-action="input->plum--blueprint#inputChanged"
                class="hidden px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 font-mono text-sm">
         <input type="text" placeholder="Option 1, Option 2, Option 3" data-field="options" data-field-config="select checkboxes"
@@ -76,6 +80,11 @@ export default class extends Controller {
 
         if (type === "relationship" && contentType) {
           field.content_type = contentType
+        }
+
+        const taxonomyVal = fieldEl.querySelector('[data-field="taxonomy"]')?.value?.trim()
+        if (type === "taxonomy" && taxonomyVal) {
+          field.taxonomy = taxonomyVal
         }
 
         const optionsVal = fieldEl.querySelector('[data-field="options"]')?.value?.trim()

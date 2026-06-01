@@ -30,6 +30,7 @@ module Plum
         paths = [ theme.template_path(template_name) ]
         paths << theme.template_path("entries/_default") if template_name.to_s.start_with?("entries/")
         paths << theme.template_path("collections/_default") if template_name.to_s.start_with?("collections/")
+        paths << theme.template_path("taxonomies/_default") if template_name.to_s.start_with?("taxonomies/")
         paths
       end
     end

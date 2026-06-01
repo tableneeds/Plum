@@ -69,6 +69,10 @@ module Plum
         @relationship_entries_by_field = relationship_fields.each_with_object({}) do |field, entries_by_field|
           entries_by_field[field["handle"].to_s] = relationship_entry_scope(@entry, field).order(:title)
         end
+        @taxonomy_terms_by_field = taxonomy_fields.each_with_object({}) do |field, terms_by_field|
+          taxonomy = current_site.taxonomies.find_by(handle: field["taxonomy"].to_s)
+          terms_by_field[field["handle"].to_s] = taxonomy ? taxonomy.terms.ordered : []
+        end
       end
 
       def entry_params
@@ -83,7 +87,13 @@ module Plum
         return false unless entry.valid?
         return false unless attach_uploaded_image_fields(entry)
 
-        entry.save
+        entry.save.tap { |saved| sync_entry_terms(entry) if saved }
+      end
+
+      def sync_entry_terms(entry)
+        submitted_ids = Array(params.dig(:entry, :term_ids)).map(&:to_i).select(&:positive?)
+        valid_ids = Plum::Term.where(id: submitted_ids, site: current_site).pluck(:id)
+        entry.term_ids = valid_ids
       end
 
       def attach_uploaded_image_fields(entry)
@@ -203,6 +213,10 @@ module Plum
 
       def relationship_fields
         @content_type.fields.select { |field| field["type"] == "relationship" && field["handle"].present? }
+      end
+
+      def taxonomy_fields
+        @content_type.fields.select { |field| field["type"] == "taxonomy" && field["handle"].present? }
       end
 
       def relationship_entry_scope(entry, field)

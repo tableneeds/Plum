@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_05_30_023000) do
+ActiveRecord::Schema[8.0].define(version: 2026_05_31_200000) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
@@ -80,6 +80,14 @@ ActiveRecord::Schema[8.0].define(version: 2026_05_30_023000) do
     t.index ["content_type_id"], name: "index_plum_entries_on_content_type_id"
     t.index ["site_id", "slug"], name: "index_plum_entries_on_site_id_and_slug", unique: true
     t.index ["site_id"], name: "index_plum_entries_on_site_id"
+  end
+
+  create_table "plum_entry_terms", force: :cascade do |t|
+    t.integer "entry_id", null: false
+    t.integer "term_id", null: false
+    t.index ["entry_id", "term_id"], name: "index_plum_entry_terms_on_entry_id_and_term_id", unique: true
+    t.index ["entry_id"], name: "index_plum_entry_terms_on_entry_id"
+    t.index ["term_id"], name: "index_plum_entry_terms_on_term_id"
   end
 
   create_table "plum_form_definitions", force: :cascade do |t|
@@ -171,6 +179,31 @@ ActiveRecord::Schema[8.0].define(version: 2026_05_30_023000) do
     t.index ["owner_type", "owner_id"], name: "index_plum_sites_on_owner", unique: true
   end
 
+  create_table "plum_taxonomies", force: :cascade do |t|
+    t.integer "site_id", null: false
+    t.string "name", null: false
+    t.string "handle", null: false
+    t.string "slug", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["site_id", "handle"], name: "index_plum_taxonomies_on_site_id_and_handle", unique: true
+    t.index ["site_id", "slug"], name: "index_plum_taxonomies_on_site_id_and_slug", unique: true
+    t.index ["site_id"], name: "index_plum_taxonomies_on_site_id"
+  end
+
+  create_table "plum_terms", force: :cascade do |t|
+    t.integer "site_id", null: false
+    t.integer "taxonomy_id", null: false
+    t.string "name", null: false
+    t.string "slug", null: false
+    t.integer "position", default: 0
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["site_id"], name: "index_plum_terms_on_site_id"
+    t.index ["taxonomy_id", "slug"], name: "index_plum_terms_on_taxonomy_id_and_slug", unique: true
+    t.index ["taxonomy_id"], name: "index_plum_terms_on_taxonomy_id"
+  end
+
   create_table "plum_users", force: :cascade do |t|
     t.string "email"
     t.string "password_digest"
@@ -187,6 +220,8 @@ ActiveRecord::Schema[8.0].define(version: 2026_05_30_023000) do
   add_foreign_key "plum_entries", "plum_content_types", column: "content_type_id"
   add_foreign_key "plum_entries", "plum_sites", column: "site_id"
   add_foreign_key "plum_entries", "plum_users", column: "author_id"
+  add_foreign_key "plum_entry_terms", "plum_entries", column: "entry_id"
+  add_foreign_key "plum_entry_terms", "plum_terms", column: "term_id"
   add_foreign_key "plum_form_definitions", "plum_sites", column: "site_id"
   add_foreign_key "plum_form_submissions", "plum_form_definitions", column: "form_definition_id"
   add_foreign_key "plum_form_submissions", "plum_sites", column: "site_id"
@@ -197,4 +232,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_05_30_023000) do
   add_foreign_key "plum_nav_items", "plum_sites", column: "site_id"
   add_foreign_key "plum_nav_menus", "plum_sites", column: "site_id"
   add_foreign_key "plum_site_settings", "plum_sites", column: "site_id"
+  add_foreign_key "plum_taxonomies", "plum_sites", column: "site_id"
+  add_foreign_key "plum_terms", "plum_sites", column: "site_id"
+  add_foreign_key "plum_terms", "plum_taxonomies", column: "taxonomy_id"
 end

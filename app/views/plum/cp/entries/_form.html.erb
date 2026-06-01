@@ -88,6 +88,22 @@
                       class: "h-10 w-14 p-0 border border-gray-300 rounded-md cursor-pointer" %>
                   <span class="text-sm text-gray-500 font-mono"><%= entry.data&.dig(field_handle) %></span>
                 </div>
+              <% when "taxonomy" %>
+                <% taxonomy_handle = field["taxonomy"].to_s %>
+                <% terms = (@taxonomy_terms_by_field || {}).fetch(field_handle, []) %>
+                <% selected_ids = entry.terms.where(taxonomy: { handle: taxonomy_handle }).pluck(:id) rescue [] %>
+                <div class="mt-1 space-y-2">
+                  <% terms.each do |term| %>
+                    <label class="flex items-center gap-2 text-sm text-gray-700">
+                      <%= check_box_tag "entry[term_ids][]", term.id, selected_ids.include?(term.id),
+                          class: "h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded" %>
+                      <%= term.name %>
+                    </label>
+                  <% end %>
+                  <% if terms.empty? %>
+                    <p class="text-sm text-gray-500">No terms in "<%= taxonomy_handle %>". <%= link_to "Add terms", cp_taxonomies_path, class: "text-purple-600" %>.</p>
+                  <% end %>
+                </div>
               <% when "url" %>
                 <%= url_field_tag "entry[data][#{field_handle}]", entry.data&.dig(field_handle), id: field_id,
                     placeholder: "https://",

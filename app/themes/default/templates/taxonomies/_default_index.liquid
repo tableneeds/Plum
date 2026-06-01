@@ -1,0 +1,14 @@
+<div class="plum-powered" style="max-width: 48rem; margin: 0 auto; padding: 2rem;">
+  <h1>{{ taxonomy.name }}</h1>
+
+  {% for term in taxonomy.terms %}
+    <div style="margin-bottom: 1rem;">
+      <a href="{{ term.url }}" style="font-size: 1.125rem;">{{ term.name }}</a>
+      <span style="color: #999; font-size: 0.875rem;">({{ term.entries_count }})</span>
+    </div>
+  {% endfor %}
+
+  {% if taxonomy.terms.size == 0 %}
+    <p>No terms yet.</p>
+  {% endif %}
+</div>

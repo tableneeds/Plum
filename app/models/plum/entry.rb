@@ -5,6 +5,9 @@ module Plum
     belongs_to :content_type
     belongs_to :author, class_name: "Plum::User", optional: true
 
+    has_many :entry_terms, dependent: :destroy
+    has_many :terms, through: :entry_terms
+
     # The page served at "/" — Plum resolves the homepage by this slug
     # (convention over configuration). Its slug is locked and it can't be
     # deleted while published, so a non-technical editor can't orphan the home
