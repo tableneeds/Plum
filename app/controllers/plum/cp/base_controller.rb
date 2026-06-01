@@ -20,6 +20,8 @@ module Plum
       end
 
       def require_role(*roles)
+        return unless Plum.configuration.authorize_with == :plum
+
         user = Plum.current_user(self)
         return if user&.respond_to?(:role) && roles.map(&:to_s).include?(user.role.to_s)
 
