@@ -11,6 +11,7 @@ module Plum
       before_action :require_admin, only: [ :edit, :update ]
 
       def show
+        redirect_to edit_cp_site_settings_path
       end
 
       def edit
@@ -23,7 +24,7 @@ module Plum
 
         if @site_settings.save
           current_site.update!(theme_settings: theme_settings_for(@site_settings.theme_name, theme_settings_by_theme))
-          redirect_to cp_site_settings_path, notice: "Site settings updated"
+          redirect_to edit_cp_site_settings_path, notice: "Site settings updated"
         else
           set_theme_options
           render :edit, status: :unprocessable_entity
