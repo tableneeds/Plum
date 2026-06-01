@@ -15,7 +15,7 @@ module Plum
         @term.position = @taxonomy.terms.maximum(:position).to_i + 1
 
         if @term.save
-          redirect_to cp_taxonomy_path(@taxonomy), notice: "Term created"
+          redirect_to "/cp/taxonomies/#{@taxonomy.id}", notice: "Term created"
         else
           render :new, status: :unprocessable_entity
         end
@@ -26,7 +26,7 @@ module Plum
 
       def update
         if @term.update(term_params)
-          redirect_to cp_taxonomy_path(@taxonomy), notice: "Term updated"
+          redirect_to "/cp/taxonomies/#{@taxonomy.id}", notice: "Term updated"
         else
           render :edit, status: :unprocessable_entity
         end
@@ -34,7 +34,7 @@ module Plum
 
       def destroy
         @term.destroy
-        redirect_to cp_taxonomy_path(@taxonomy), notice: "Term deleted"
+        redirect_to "/cp/taxonomies/#{@taxonomy.id}", notice: "Term deleted"
       end
 
       private

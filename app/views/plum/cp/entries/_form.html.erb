@@ -101,7 +101,7 @@
                     </label>
                   <% end %>
                   <% if terms.empty? %>
-                    <p class="text-sm text-gray-500">No terms in "<%= taxonomy_handle %>". <%= link_to "Add terms", cp_taxonomies_path, class: "text-purple-600" %>.</p>
+                    <p class="text-sm text-gray-500">No terms in "<%= taxonomy_handle %>". <%= link_to "Add terms", "/cp/taxonomies", class: "text-purple-600" %>.</p>
                   <% end %>
                 </div>
               <% when "url" %>
