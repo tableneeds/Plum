@@ -4,4 +4,7 @@ Plum.configure do |config|
     Plum::User.find_by(id: controller.session[:plum_user_id]) if controller.session[:plum_user_id]
   }
   config.authorize_with = :plum
+  config.cp_name = "Table Needs"
+  config.cp_subtitle = "Website"
+  config.cp_logo_path = "table-needs-logo.svg"
 end

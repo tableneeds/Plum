@@ -17,6 +17,11 @@ Plum.configure do |config|
   # config.cp_name = "My Brand"
   # config.cp_subtitle = "Website"
   # config.cp_logo_path = "my-logo.svg"
+  # config.cp_accent_color = "#7c3aed"
+  # config.cp_sidebar_bg = "#241B27"
+  # config.cp_sidebar_header_bg = "#1E1621"
+  # config.cp_sidebar_text = "#D9CBD4"
+  # config.cp_sidebar_muted = "#A8929F"
 
   # Embedded host example:
   #

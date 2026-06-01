@@ -9,19 +9,38 @@
   <%= stylesheet_link_tag "plum/control_panel", "data-turbo-track": "reload" %>
   <%= stylesheet_link_tag "lexxy", "data-turbo-track": "reload" %>
   <%= javascript_importmap_tags %>
+  <style>
+    :root {
+      --plum-accent: <%= Plum.configuration.cp_accent_color %>;
+      --plum-sidebar-bg: <%= Plum.configuration.cp_sidebar_bg %>;
+      --plum-sidebar-header: <%= Plum.configuration.cp_sidebar_header_bg %>;
+      --plum-sidebar-text: <%= Plum.configuration.cp_sidebar_text %>;
+      --plum-sidebar-muted: <%= Plum.configuration.cp_sidebar_muted %>;
+    }
+    .plum-sidebar { background: var(--plum-sidebar-bg); }
+    .plum-sidebar-header { background: var(--plum-sidebar-header); }
+    .plum-sidebar-link { color: var(--plum-sidebar-text); }
+    .plum-sidebar-link:hover, .plum-sidebar-link.active { background: rgba(255,255,255,0.1); color: #fff; }
+    .plum-sidebar-section { color: var(--plum-sidebar-muted); }
+    .plum-sidebar-subtitle { color: var(--plum-sidebar-text); }
+    .plum-btn-primary { background: var(--plum-accent); }
+    .plum-btn-primary:hover { filter: brightness(0.9); }
+    .plum-link { color: var(--plum-accent); }
+    .plum-link:hover { filter: brightness(0.75); }
+  </style>
 </head>
 <body class="h-full">
   <div class="min-h-full">
     <!-- Sidebar -->
-    <div class="fixed inset-y-0 left-0 w-64 bg-[#241B27]">
+    <div class="fixed inset-y-0 left-0 w-64 plum-sidebar">
       <div class="flex flex-col h-full">
         <!-- Logo -->
-        <div class="flex items-center h-16 px-5 border-b border-white/10 bg-[#1E1621]">
+        <div class="flex items-center h-16 px-5 border-b border-white/10 plum-sidebar-header">
           <%= link_to cp_root_path, class: "flex items-center gap-3 text-white" do %>
             <%= image_tag Plum.configuration.cp_logo_path, alt: "", class: "h-9 w-9 shrink-0" %>
             <span class="leading-tight">
               <span class="block text-lg font-semibold tracking-normal"><%= Plum.configuration.cp_name %></span>
-              <span class="block text-xs font-medium text-[#C9B7C2]"><%= Plum.configuration.cp_subtitle %></span>
+              <span class="block text-xs font-medium plum-sidebar-subtitle"><%= Plum.configuration.cp_subtitle %></span>
             </span>
           <% end %>
         </div>
@@ -29,34 +48,34 @@
         <!-- Navigation -->
         <nav class="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
           <%= link_to "Dashboard", cp_root_path,
-              class: "flex items-center px-4 py-2 text-sm font-medium rounded-md #{request.path == cp_root_path ? 'bg-white/10 text-white' : 'text-[#D9CBD4] hover:bg-white/10 hover:text-white'}" %>
+              class: "flex items-center px-4 py-2 text-sm font-medium rounded-md plum-sidebar-link #{request.path == cp_root_path ? 'active' : ''}" %>
 
           <div class="pt-4">
-            <p class="px-4 text-xs font-semibold text-[#A8929F] uppercase tracking-wider">Content</p>
+            <p class="px-4 text-xs font-semibold plum-sidebar-section uppercase tracking-wider">Content</p>
             <% Plum::ContentType.for_site(current_site).each do |ct| %>
               <%= link_to ct.name, cp_content_type_path(ct),
-                  class: "flex items-center px-4 py-2 mt-2 text-sm font-medium rounded-md #{request.path.include?("/cp/content_types/#{ct.id}") ? 'bg-white/10 text-white' : 'text-[#D9CBD4] hover:bg-white/10 hover:text-white'}" %>
+                  class: "flex items-center px-4 py-2 mt-2 text-sm font-medium rounded-md plum-sidebar-link #{request.path.include?("/cp/content_types/#{ct.id}") ? 'active' : ''}" %>
             <% end %>
             <%= link_to "+ New Type", new_cp_content_type_path,
-                class: "flex items-center px-4 py-2 mt-2 text-sm font-medium text-[#E6B3CB] hover:text-white" %>
+                class: "flex items-center px-4 py-2 mt-2 text-sm font-medium plum-sidebar-link" %>
             <%= link_to "Assets", cp_assets_path,
-                class: "flex items-center px-4 py-2 mt-2 text-sm font-medium rounded-md #{request.path.include?('/cp/assets') ? 'bg-white/10 text-white' : 'text-[#D9CBD4] hover:bg-white/10 hover:text-white'}" %>
+                class: "flex items-center px-4 py-2 mt-2 text-sm font-medium rounded-md plum-sidebar-link #{request.path.include?('/cp/assets') ? 'active' : ''}" %>
             <%= link_to "Globals", cp_globals_path,
-                class: "flex items-center px-4 py-2 mt-2 text-sm font-medium rounded-md #{request.path.include?('/cp/globals') ? 'bg-white/10 text-white' : 'text-[#D9CBD4] hover:bg-white/10 hover:text-white'}" %>
+                class: "flex items-center px-4 py-2 mt-2 text-sm font-medium rounded-md plum-sidebar-link #{request.path.include?('/cp/globals') ? 'active' : ''}" %>
             <%= link_to "Navigation", cp_nav_menus_path,
-                class: "flex items-center px-4 py-2 mt-2 text-sm font-medium rounded-md #{request.path.include?('/cp/nav_menus') ? 'bg-white/10 text-white' : 'text-[#D9CBD4] hover:bg-white/10 hover:text-white'}" %>
+                class: "flex items-center px-4 py-2 mt-2 text-sm font-medium rounded-md plum-sidebar-link #{request.path.include?('/cp/nav_menus') ? 'active' : ''}" %>
             <%= link_to "Taxonomies", "/cp/taxonomies",
-                class: "flex items-center px-4 py-2 mt-2 text-sm font-medium rounded-md #{request.path.include?('/cp/taxonomies') ? 'bg-white/10 text-white' : 'text-[#D9CBD4] hover:bg-white/10 hover:text-white'}" %>
+                class: "flex items-center px-4 py-2 mt-2 text-sm font-medium rounded-md plum-sidebar-link #{request.path.include?('/cp/taxonomies') ? 'active' : ''}" %>
             <%= link_to "Forms", cp_form_definitions_path,
-                class: "flex items-center px-4 py-2 mt-2 text-sm font-medium rounded-md #{request.path.include?('/cp/forms') ? 'bg-white/10 text-white' : 'text-[#D9CBD4] hover:bg-white/10 hover:text-white'}" %>
+                class: "flex items-center px-4 py-2 mt-2 text-sm font-medium rounded-md plum-sidebar-link #{request.path.include?('/cp/forms') ? 'active' : ''}" %>
           </div>
 
           <div class="pt-4">
-            <p class="px-4 text-xs font-semibold text-[#A8929F] uppercase tracking-wider">Settings</p>
+            <p class="px-4 text-xs font-semibold plum-sidebar-section uppercase tracking-wider">Settings</p>
             <%= link_to "Site Settings", cp_site_settings_path,
-                class: "flex items-center px-4 py-2 mt-2 text-sm font-medium rounded-md #{request.path.include?('/cp/site_settings') ? 'bg-white/10 text-white' : 'text-[#D9CBD4] hover:bg-white/10 hover:text-white'}" %>
+                class: "flex items-center px-4 py-2 mt-2 text-sm font-medium rounded-md plum-sidebar-link #{request.path.include?('/cp/site_settings') ? 'active' : ''}" %>
             <%= link_to "Themes", cp_themes_path,
-                class: "flex items-center px-4 py-2 mt-2 text-sm font-medium rounded-md #{request.path.include?('/cp/themes') ? 'bg-white/10 text-white' : 'text-[#D9CBD4] hover:bg-white/10 hover:text-white'}" %>
+                class: "flex items-center px-4 py-2 mt-2 text-sm font-medium rounded-md plum-sidebar-link #{request.path.include?('/cp/themes') ? 'active' : ''}" %>
           </div>
         </nav>
 
@@ -65,12 +84,12 @@
           <div class="flex-1 min-w-0">
             <p class="text-sm font-medium text-white truncate"><%= current_user_label %></p>
             <% if current_user.respond_to?(:role) %>
-              <p class="text-xs text-[#D9CBD4] truncate"><%= current_user.role.titleize %></p>
+              <p class="text-xs plum-sidebar-link truncate"><%= current_user.role.titleize %></p>
             <% end %>
           </div>
           <% if plum_managed_auth? %>
             <%= button_to "Logout", logout_path, method: :delete,
-                class: "ml-2 px-3 py-1 text-xs font-medium text-[#D9CBD4] hover:text-white" %>
+                class: "ml-2 px-3 py-1 text-xs font-medium plum-sidebar-link" %>
           <% end %>
         </div>
       </div>

@@ -16,7 +16,7 @@
         <div class="flex justify-center">
           <%= image_tag Plum.configuration.cp_logo_path, alt: Plum.configuration.cp_name, class: "h-16 w-16" %>
         </div>
-        <h1 class="mt-4 text-center text-3xl font-bold text-[#241B27]"><%= Plum.configuration.cp_name %></h1>
+        <h1 class="mt-4 text-center text-3xl font-bold" style="color: <%= Plum.configuration.cp_sidebar_bg %>"><%= Plum.configuration.cp_name %></h1>
         <h2 class="mt-2 text-center text-xl text-gray-600">Sign in to your account</h2>
       </div>
       <% if flash[:alert] %>
