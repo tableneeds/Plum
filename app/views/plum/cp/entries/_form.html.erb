@@ -91,7 +91,7 @@
               <% when "taxonomy" %>
                 <% taxonomy_handle = field["taxonomy"].to_s %>
                 <% terms = (@taxonomy_terms_by_field || {}).fetch(field_handle, []) %>
-                <% selected_ids = entry.terms.where(taxonomy: { handle: taxonomy_handle }).pluck(:id) rescue [] %>
+                <% selected_ids = entry.persisted? ? entry.terms.joins(:taxonomy).where(plum_taxonomies: { handle: taxonomy_handle }).pluck(:id) : [] %>
                 <div class="mt-1 space-y-2">
                   <% terms.each do |term| %>
                     <label class="flex items-center gap-2 text-sm text-gray-700">
