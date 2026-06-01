@@ -12,7 +12,14 @@ module Plum
     end
 
     def show
-      @entry = Entry.for_site(current_site).live.find_by!(slug: params[:slug])
+      slug = params[:slug]
+
+      @content_type = ContentType.for_site(current_site).find_by(handle: slug)
+      if @content_type
+        return render_collection(@content_type)
+      end
+
+      @entry = Entry.for_site(current_site).live.find_by!(slug: slug)
       template = "entries/#{@entry.content_type.handle}"
       html = Plum::LiquidRenderer.render_template(template, build_context(@entry).to_h)
       render html: html.html_safe, layout: false
@@ -21,6 +28,23 @@ module Plum
     end
 
     private
+
+    def render_collection(content_type)
+      context = build_context
+      entries = Entry.for_site(current_site).live
+                     .where(content_type: content_type)
+                     .order(published_at: :desc, created_at: :desc)
+      context_hash = context.to_h.merge(
+        "collection" => {
+          "title" => content_type.name,
+          "handle" => content_type.handle,
+          "entries" => entries.map { |e| context.send(:entry_context, e) }
+        }
+      )
+      template = "collections/#{content_type.handle}"
+      html = Plum::LiquidRenderer.render_template(template, context_hash)
+      render html: html.html_safe, layout: false
+    end
 
     def build_context(entry = nil)
       LiquidContext.new(controller: self, site: current_site, entry: entry)

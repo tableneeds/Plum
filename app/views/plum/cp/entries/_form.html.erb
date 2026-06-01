@@ -45,9 +45,13 @@
                     class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500" %>
               <% when "rich_text" %>
                 <div class="mt-1">
-                  <lexxy-editor name="entry[data][<%= field_handle %>]"
+                  <%= hidden_field_tag "entry[data][#{field_handle}]", entry.data&.dig(field_handle), id: "#{field_id}_hidden" %>
+                  <lexxy-editor value="<%= entry.data&.dig(field_handle) %>"
+                                data-direct-upload-url="<%= main_app.rails_direct_uploads_url %>"
+                                data-blob-url-template="<%= main_app.rails_service_blob_url(":signed_id", ":filename") %>"
+                                data-hidden-field="<%= field_id %>_hidden"
                                 class="lexxy-content min-h-48 rounded-lg border border-gray-300 bg-white shadow-sm"
-                                placeholder="Write something…"><%= entry.data&.dig(field_handle) %></lexxy-editor>
+                                placeholder="Write something…"></lexxy-editor>
                 </div>
               <% when "number" %>
                 <%= number_field_tag "entry[data][#{field_handle}]", entry.data&.dig(field_handle), id: field_id,

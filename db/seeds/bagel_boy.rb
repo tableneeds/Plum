@@ -65,14 +65,15 @@ home.assign_attributes(
         "button_url" => ORDER_URL
       }),
       block("rich_text", {
-        "body" => "## Welcome to the Thunderdome!\n_(aka your favorite bagel shop in Foley)_\n\n" \
-          "Where ovens hum like V8 engines, bagels don't just rise—they arrive swinging, and the only law is hunger. " \
-          "We roll 'em fresh, sling 'em fast, and schmear like it's our calling. Napkins? Always ready.\n\n" \
-          "Since August 2022, Bagel Boy has been turning a humble drive-thru into a full-blown Foley ritual. " \
+        "body" => "<h2>Welcome to the Thunderdome!</h2>" \
+          "<p><em>(aka your favorite bagel shop in Foley)</em></p>" \
+          "<p>Where ovens hum like V8 engines, bagels don't just rise—they arrive swinging, and the only law is hunger. " \
+          "We roll 'em fresh, sling 'em fast, and schmear like it's our calling. Napkins? Always ready.</p>" \
+          "<p>Since August 2022, Bagel Boy has been turning a humble drive-thru into a full-blown Foley ritual. " \
           "What started with flinging fresh bagels out the window like edible joy-discs is now a local obsession—" \
-          "with indoor seating so you can vibe while you bite and catch the morning magic in action.\n\n" \
-          "We're rallying the city, one bagel at a time—fueling school runs, day shifts, and dance parties " \
-          "disguised as coffee breaks. It's loud (in the best way), it's local, and it's 100% us. You in?"
+          "with indoor seating so you can vibe while you bite and catch the morning magic in action.</p>" \
+          "<p>We're rallying the city, one bagel at a time—fueling school runs, day shifts, and dance parties " \
+          "disguised as coffee breaks. It's loud (in the best way), it's local, and it's 100% us. You in?</p>"
       }),
       block("gallery", {
         "heading" => "Bagels! Coffee! Bakery!"
@@ -86,23 +87,23 @@ home.assign_attributes(
       block("image_text", {
         "heading" => "We don't mean to brag, but… Best of Baldwin 2025, 2024 & 2023",
         "image_position" => "right",
-        "body" => "Our award-winning bagels? Crafted by a band of elite breakfast artisans who've earned their titles " \
+        "body" => "<p>Our award-winning bagels? Crafted by a band of elite breakfast artisans who've earned their titles " \
           "through legendary trials, pilgrimages through flour storms, and push-ups over flaming ovens. " \
           "The dough-slingers, egg-flippers, bacon whisperers, and caffeine oracles—every shift, every bagel, " \
-          "every perfectly drippy egg is a love letter to the process.\n\n" \
-          "To our bagel-obsessed community: **you're the real MVPs.** Thanks for every order, every messy table, " \
-          "every \"I'll take two more.\"\n\n" \
-          "We love you all the way we love carbs: endlessly, shamelessly, and with zero regard for napkins."
+          "every perfectly drippy egg is a love letter to the process.</p>" \
+          "<p>To our bagel-obsessed community: <strong>you're the real MVPs.</strong> Thanks for every order, every messy table, " \
+          "every \"I'll take two more.\"</p>" \
+          "<p>We love you all the way we love carbs: endlessly, shamelessly, and with zero regard for napkins.</p>"
       }),
       block("image_text", {
         "heading" => "The Bagels You Love, Made the RIGHT Way",
         "image_position" => "left",
-        "body" => "We don't do basic. We do **24-hour fermented, boiled-to-perfection, crispy-crusted, " \
-          "chewy-centered BAGELS that slap.**\n\n" \
-          "No shortcuts. No fluff. No \"eh, close enough.\" This is real-deal, sink-your-teeth-into-it, " \
-          "make-you-weep-a-little kind of bagel artistry.\n\n" \
-          "Plain bagel? Respect. Everything bagel with double schmear and hot honey? We salute your chaos.\n\n" \
-          "**Fuel up. Freak out. Repeat.** Bagel Boy loves you (like, aggressively loves you.)"
+        "body" => "<p>We don't do basic. We do <strong>24-hour fermented, boiled-to-perfection, crispy-crusted, " \
+          "chewy-centered BAGELS that slap.</strong></p>" \
+          "<p>No shortcuts. No fluff. No \"eh, close enough.\" This is real-deal, sink-your-teeth-into-it, " \
+          "make-you-weep-a-little kind of bagel artistry.</p>" \
+          "<p>Plain bagel? Respect. Everything bagel with double schmear and hot honey? We salute your chaos.</p>" \
+          "<p><strong>Fuel up. Freak out. Repeat.</strong> Bagel Boy loves you (like, aggressively loves you.)</p>"
       }),
       block("hours", {
         "heading" => "Come See Us",
@@ -138,21 +139,23 @@ catering.assign_attributes(
         "button_url" => CATERING_URL
       }),
       block("rich_text", {
-        "body" => "Trying to impress your team? Planning a chill get-together that deserves something better than " \
-          "sad muffins and a half-empty coffee pot?\n\n" \
-          "**Bagel Boy Catering in Foley pulls up STRONG.** We're talking hot breakfast sammies, " \
-          "heavy-on-the-schmear platters, and caffeine that could make a mime sing.\n\n" \
-          "We've got the goods. You just bring the people. **Book now before someone suggests a fruit tray.**"
+        "body" => "<p>Trying to impress your team? Planning a chill get-together that deserves something better than " \
+          "sad muffins and a half-empty coffee pot?</p>" \
+          "<p><strong>Bagel Boy Catering in Foley pulls up STRONG.</strong> We're talking hot breakfast sammies, " \
+          "heavy-on-the-schmear platters, and caffeine that could make a mime sing.</p>" \
+          "<p>We've got the goods. You just bring the people. <strong>Book now before someone suggests a fruit tray.</strong></p>"
       }),
       block("image_text", {
         "heading" => "We're great at parties… and know how to liven up a meeting",
         "image_position" => "left",
-        "body" => "- Corporate breakfasts & lunch meetings\n" \
-          "- School or university events\n" \
-          "- Community fundraisers & nonprofit gatherings\n" \
-          "- Baby showers, bridal brunches & birthdays\n" \
-          "- Rehearsal brunches & post-wedding bites\n" \
-          "- Holiday parties & weekend get-togethers"
+        "body" => "<ul>" \
+          "<li>Corporate breakfasts &amp; lunch meetings</li>" \
+          "<li>School or university events</li>" \
+          "<li>Community fundraisers &amp; nonprofit gatherings</li>" \
+          "<li>Baby showers, bridal brunches &amp; birthdays</li>" \
+          "<li>Rehearsal brunches &amp; post-wedding bites</li>" \
+          "<li>Holiday parties &amp; weekend get-togethers</li>" \
+          "</ul>"
       }),
       block("cta", {
         "heading" => "Ready to be a breakfast hero?",

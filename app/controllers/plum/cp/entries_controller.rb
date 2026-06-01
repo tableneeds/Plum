@@ -2,9 +2,13 @@ module Plum
   module Cp
     class EntriesController < BaseController
       ALLOWED_RICH_TEXT_TAGS = %w[
-        a blockquote br code em h1 h2 h3 hr li ol p pre s strong ul
+        a action-text-attachment blockquote br code em figcaption figure
+        h1 h2 h3 hr img li ol p pre s strong table tbody td th thead tr ul
       ].freeze
-      ALLOWED_RICH_TEXT_ATTRIBUTES = %w[href rel target title].freeze
+      ALLOWED_RICH_TEXT_ATTRIBUTES = %w[
+        alt caption content-type filename filesize height href presentation
+        rel sgid src target title url width
+      ].freeze
 
       before_action :set_content_type
       before_action :set_entry, only: [ :edit, :update, :destroy ]
@@ -132,7 +136,7 @@ module Plum
         when "image"
           value.present? ? value.to_i : nil
         when "rich_text"
-          sanitized_rich_text(value)
+          value
         when "relationship"
           normalized_relationship_value(entry, field, value)
         when "blocks"

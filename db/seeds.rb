@@ -57,7 +57,7 @@ about_page = plum_site.entries.find_or_create_by!(slug: "about") do |e|
   e.status = :published
   e.published_at = Time.current
   e.data = {
-    "body" => "Plum is a small Rails-native CMS for calm websites, reusable themes, and client-friendly editing."
+    "body" => "<p>Plum is a small Rails-native CMS for calm websites, reusable themes, and client-friendly editing.</p>"
   }
 end
 puts "Created sample page: /about"
@@ -70,16 +70,7 @@ entry = plum_site.entries.find_or_create_by!(slug: "hello-world") do |e|
   e.status = :published
   e.published_at = Time.current
   e.data = {
-    "body" => "## Welcome to Plum CMS
-
-This is your first blog post. You can edit it from the control panel.
-
-Plum uses **Liquid templates** to render your content, giving you full control over your site's appearance.
-
-- Easy to use control panel
-- Flexible content types
-- Liquid templating
-- Markdown support",
+    "body" => "<h2>Welcome to Plum CMS</h2><p>This is your first blog post. You can edit it from the control panel.</p><p>Plum uses <strong>Liquid templates</strong> to render your content, giving you full control over your site's appearance.</p><ul><li>Easy to use control panel</li><li>Flexible content types</li><li>Liquid templating</li></ul>",
     "excerpt" => "This is your first blog post created with Plum CMS."
   }
 end
@@ -108,7 +99,7 @@ plum_site.entries.find_or_create_by!(slug: "welcome") do |e|
       { "id" => SecureRandom.uuid, "type" => "hero",
         "fields" => { "heading" => "Welcome to Plum", "subheading" => "This page is built from blocks." } },
       { "id" => SecureRandom.uuid, "type" => "rich_text",
-        "fields" => { "body" => "Blocks are defined by the **theme** and arranged in the control panel." } }
+        "fields" => { "body" => "<p>Blocks are defined by the <strong>theme</strong> and arranged in the control panel.</p>" } }
     ]
   }
 end

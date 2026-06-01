@@ -29,6 +29,7 @@ module Plum
       themes_for(theme_handle).flat_map do |theme|
         paths = [ theme.template_path(template_name) ]
         paths << theme.template_path("entries/_default") if template_name.to_s.start_with?("entries/")
+        paths << theme.template_path("collections/_default") if template_name.to_s.start_with?("collections/")
         paths
       end
     end

@@ -65,6 +65,8 @@ module Plum
         case field["type"]
         when "image"
           data[handle] = image_asset_context(data[handle])
+        when "rich_text"
+          data[handle] = resolve_rich_text(data[handle])
         when "relationship"
           data[handle] = relationship_entry_context(data[handle], relationship_depth: relationship_depth)
         when "blocks"
@@ -138,6 +140,52 @@ module Plum
       return unless related_entry
 
       entry_context(related_entry, relationship_depth: relationship_depth - 1)
+    end
+
+    LEXXY_CSS_VARS = {
+      "var(--highlight-1)" => "rgb(136, 118, 38)",
+      "var(--highlight-2)" => "rgb(185, 94, 6)",
+      "var(--highlight-3)" => "rgb(207, 0, 0)",
+      "var(--highlight-4)" => "rgb(216, 28, 170)",
+      "var(--highlight-5)" => "rgb(144, 19, 254)",
+      "var(--highlight-6)" => "rgb(5, 98, 185)",
+      "var(--highlight-7)" => "rgb(17, 138, 15)",
+      "var(--highlight-8)" => "rgb(148, 82, 22)",
+      "var(--highlight-9)" => "rgb(102, 102, 102)",
+      "var(--highlight-bg-1)" => "rgba(229, 223, 6, 0.3)",
+      "var(--highlight-bg-2)" => "rgba(255, 185, 87, 0.3)",
+      "var(--highlight-bg-3)" => "rgba(255, 118, 118, 0.3)",
+      "var(--highlight-bg-4)" => "rgba(248, 137, 216, 0.3)",
+      "var(--highlight-bg-5)" => "rgba(190, 165, 255, 0.3)",
+      "var(--highlight-bg-6)" => "rgba(124, 192, 252, 0.3)",
+      "var(--highlight-bg-7)" => "rgba(140, 255, 129, 0.3)",
+      "var(--highlight-bg-8)" => "rgba(221, 170, 123, 0.3)",
+      "var(--highlight-bg-9)" => "rgba(200, 200, 200, 0.3)"
+    }.freeze
+
+    def resolve_rich_text(html)
+      return html if html.blank?
+
+      result = html.to_s
+
+      result.gsub!(/<action-text-attachment[^>]*>.*?<\/action-text-attachment>/m) do |tag|
+        url = tag[/url="([^"]*)"/, 1]
+        alt = tag[/alt="([^"]*)"/, 1] || ""
+        width = tag[/width="([^"]*)"/, 1]
+        height = tag[/height="([^"]*)"/, 1]
+
+        attrs = %(src="#{url}" alt="#{alt}")
+        attrs += %( width="#{width}") if width
+        attrs += %( height="#{height}") if height
+        %(<img #{attrs}>)
+      end
+
+      LEXXY_CSS_VARS.each { |var, val| result.gsub!(var, val) }
+
+      result.gsub!(/<mark\b/, '<span')
+      result.gsub!(%r{</mark>}, "</span>")
+
+      result
     end
 
     # Renders a blocks field value (an array of block instances) into HTML using

@@ -5,6 +5,9 @@ module Plum
     def markdown(input)
       return "" if input.blank?
 
+      text = input.to_s
+      return text if text.match?(/<[a-z][\s\S]*>/i)
+
       renderer = Redcarpet::Render::HTML.new(
         hard_wrap: true,
         link_attributes: { target: "_blank", rel: "noopener" }
@@ -19,7 +22,7 @@ module Plum
         no_intra_emphasis: true
       )
 
-      md.render(input.to_s)
+      md.render(text)
     end
 
     def theme_asset_url(input)

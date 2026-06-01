@@ -1,0 +1,16 @@
+<div class="plum-powered" style="max-width: 48rem; margin: 0 auto; padding: 2rem;">
+  <h1>{{ collection.title }}</h1>
+
+  {% for entry in collection.entries %}
+    <article style="margin-bottom: 2rem; padding-bottom: 2rem; border-bottom: 1px solid #eee;">
+      <h2><a href="{{ entry.url }}">{{ entry.title }}</a></h2>
+      {% if entry.published_at %}
+        <p style="color: #666; font-size: 0.875rem;">{{ entry.published_at | date: "%B %d, %Y" }}</p>
+      {% endif %}
+    </article>
+  {% endfor %}
+
+  {% if collection.entries.size == 0 %}
+    <p>No entries yet.</p>
+  {% endif %}
+</div>
