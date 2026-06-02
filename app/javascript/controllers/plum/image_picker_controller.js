@@ -125,7 +125,8 @@ export default class extends Controller {
       const img = document.createElement("img")
       img.src = url
       img.alt = alt || ""
-      img.className = "h-32 w-full rounded-md object-cover"
+      img.className = "rounded-md object-contain"
+      img.style.cssText = "max-height: 8rem; max-width: 16rem;"
       this.previewTarget.appendChild(img)
     } else {
       this.previewTarget.innerHTML = '<div class="flex h-32 w-full items-center justify-center rounded-md border border-dashed border-gray-300 text-sm text-gray-400">No image selected</div>'
