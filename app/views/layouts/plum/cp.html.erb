@@ -9,6 +9,7 @@
   <%= stylesheet_link_tag "plum/control_panel", "data-turbo-track": "reload" %>
   <%= stylesheet_link_tag "lexxy", "data-turbo-track": "reload" %>
   <%= javascript_importmap_tags %>
+  <script type="module">import "plum/application"</script>
   <style>
     :root {
       --plum-accent: <%= Plum.configuration.cp_accent_color %>;
