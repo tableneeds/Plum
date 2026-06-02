@@ -73,8 +73,8 @@
                 class: "flex items-center px-4 py-2 mt-2 text-sm font-medium rounded-md plum-sidebar-link #{request.path.include?('/cp/globals') ? 'active' : ''}" %>
             <%= link_to "Navigation", cp_nav_menus_path,
                 class: "flex items-center px-4 py-2 mt-2 text-sm font-medium rounded-md plum-sidebar-link #{request.path.include?('/cp/nav_menus') ? 'active' : ''}" %>
-            <%= link_to "Taxonomies", "/cp/taxonomies",
-                class: "flex items-center px-4 py-2 mt-2 text-sm font-medium rounded-md plum-sidebar-link #{request.path.include?('/cp/taxonomies') ? 'active' : ''}" %>
+            <%= link_to "Taxonomies", "#{cp_prefix}/taxonomies",
+                class: "flex items-center px-4 py-2 mt-2 text-sm font-medium rounded-md plum-sidebar-link #{request.path.include?('/taxonomies') ? 'active' : ''}" %>
             <%= link_to "Forms", cp_form_definitions_path,
                 class: "flex items-center px-4 py-2 mt-2 text-sm font-medium rounded-md plum-sidebar-link #{request.path.include?('/cp/forms') ? 'active' : ''}" %>
           </div>

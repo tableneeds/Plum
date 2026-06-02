@@ -6,8 +6,13 @@ module Plum
       helper ThemeSettingsHelper
 
       before_action :require_login
+      helper_method :cp_prefix
 
       private
+
+      def cp_prefix
+        @cp_prefix ||= cp_root_path.chomp("/")
+      end
 
       def require_login
         return if Plum.authorized?(self)

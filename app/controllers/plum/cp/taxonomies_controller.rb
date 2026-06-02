@@ -20,7 +20,7 @@ module Plum
         @taxonomy = current_site.taxonomies.build(taxonomy_params)
 
         if @taxonomy.save
-          redirect_to "/cp/taxonomies/#{@taxonomy.id}", notice: "Taxonomy created"
+          redirect_to "#{cp_prefix}/taxonomies/#{@taxonomy.id}", notice: "Taxonomy created"
         else
           render :new, status: :unprocessable_entity
         end
@@ -31,7 +31,7 @@ module Plum
 
       def update
         if @taxonomy.update(taxonomy_params)
-          redirect_to "/cp/taxonomies/#{@taxonomy.id}", notice: "Taxonomy updated"
+          redirect_to "#{cp_prefix}/taxonomies/#{@taxonomy.id}", notice: "Taxonomy updated"
         else
           render :edit, status: :unprocessable_entity
         end
@@ -39,7 +39,7 @@ module Plum
 
       def destroy
         @taxonomy.destroy
-        redirect_to "/cp/taxonomies", notice: "Taxonomy deleted"
+        redirect_to "#{cp_prefix}/taxonomies", notice: "Taxonomy deleted"
       end
 
       private
