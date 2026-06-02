@@ -65,8 +65,11 @@
           <div class="pt-4">
             <p class="px-4 text-xs font-semibold plum-sidebar-section uppercase tracking-wider">Content</p>
             <% Plum::ContentType.for_site(current_site).each do |ct| %>
-              <%= link_to ct.name, cp_content_type_path(ct),
-                  class: "flex items-center px-4 py-2 mt-2 text-sm font-medium rounded-md plum-sidebar-link #{request.path.include?("/cp/content_types/#{ct.id}") ? 'active' : ''}" %>
+              <%= link_to cp_content_type_path(ct),
+                  class: "flex items-center gap-2 px-4 py-2 mt-2 text-sm font-medium rounded-md plum-sidebar-link #{request.path.include?("/cp/content_types/#{ct.id}") ? 'active' : ''}" do %>
+                <%= render "plum/cp/shared/icon", name: ct.icon.presence || "document" %>
+                <%= ct.name %>
+              <% end %>
             <% end %>
             <%= link_to "+ New Type", new_cp_content_type_path,
                 class: "flex items-center px-4 py-2 mt-2 text-sm font-medium plum-sidebar-link" %>
