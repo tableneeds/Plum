@@ -4,55 +4,98 @@ Plum is a Rails-native CMS engine with a Hotwire control panel, Liquid themes,
 and site-scoped content. It can run as a standalone Rails app or be mounted in a
 larger Rails app.
 
-## Local Engine Install
+## Installation
 
-Until Plum is published, install it from a local path or private Git repo:
+Add Plum to your Gemfile:
 
 ```ruby
+# From GitHub (private repo):
+gem "plum", git: "git@github.com:tableneeds/Plum.git", branch: "main"
+
+# Or from a local path during development:
 gem "plum", path: "../plum"
 ```
 
-Then run:
+Then:
 
 ```bash
-bin/rails generate plum:install --mount-path=/cms
+bundle install
+bin/rails generate plum:install
+bin/rails active_storage:install   # if not already installed
 bin/rails db:migrate
+bin/rails server
 ```
 
-Mount path can be changed for embedded products:
+Visit `/cms` (or your custom mount path) and log in.
+
+### Mount path
+
+The default mount path is `/cms`. Change it during install:
 
 ```bash
 bin/rails generate plum:install --mount-path=/website
 ```
 
-Or mount the engine manually:
+Or mount the engine manually in `config/routes.rb`:
 
 ```ruby
 mount Plum::Engine, at: "/website"
 ```
 
-For Table Needs, configure Plum with host-owned resolvers:
+## Embedding in a Host App
+
+For apps like Table Needs where users already have accounts:
 
 ```ruby
 Plum.configure do |config|
-  config.current_site_resolver = ->(_controller) { Plum::Site.for_owner!(Current.restaurant) }
-  config.current_user_resolver = ->(_controller) { Current.user }
+  config.current_site_resolver = ->(controller) { Current.restaurant.plum_site }
+  config.current_user_resolver = ->(controller) { Current.user }
   config.authorize_with = :host
-  config.host_authorization_resolver = ->(_controller) { Current.user.can_manage_website?(Current.restaurant) }
-  config.register_content_source :restaurant, ->(context) { context.site.owner.to_liquid }
-  config.register_content_source :menu, "TableNeeds::PlumAdapters::Menu"
-  config.register_content_source :hours, ->(context) { context.owner.hours_for_web }
+  config.host_authorization_resolver = ->(controller) {
+    Current.user&.can_manage_website?(Current.restaurant)
+  }
 end
 ```
 
-Each customer should get one `Plum::Site`, commonly through the optional
-polymorphic `owner` association.
+In host mode:
+- Plum's login page is bypassed (returns 403 instead of redirect)
+- Plum's role system is skipped — the host app owns authorization
+- `current_user` doesn't need to be a `Plum::User`
 
-## Host Content Sources
+Each customer gets one `Plum::Site`, typically through the polymorphic `owner`
+association on `plum_sites`.
 
-Host apps can expose read-only application data to Liquid without copying it
-into Plum tables. Register each source with a lowercase, underscore-separated
-handle:
+## White-Label
+
+The entire control panel can be rebranded:
+
+```ruby
+Plum.configure do |config|
+  # Branding
+  config.cp_name = "Table Needs"
+  config.cp_subtitle = "Website"
+  config.cp_logo_path = "table-needs-logo.svg"
+
+  # Colors
+  config.cp_accent_color = "#2563eb"
+  config.cp_sidebar_bg = "#1e293b"
+  config.cp_sidebar_header_bg = "#0f172a"
+  config.cp_sidebar_text = "#cbd5e1"
+  config.cp_sidebar_muted = "#64748b"
+
+  # Back link to host app
+  config.cp_back_url = "/dashboard"
+  config.cp_back_label = "← Table Needs"
+end
+```
+
+All buttons, links, focus rings, sidebar, login page, and page titles follow
+the configured brand. Zero Plum branding when white-labeled.
+
+## Content Sources
+
+Host apps can inject live application data into Liquid templates without copying
+it into Plum tables:
 
 ```ruby
 Plum.configure do |config|
@@ -61,240 +104,150 @@ Plum.configure do |config|
 end
 ```
 
-Adapters receive a `Plum::ContentSourceContext` with `controller`, `site`,
-`owner`, `request`, `params`, `session`, and `current_user`. Adapter classes can
-subclass `Plum::ContentSource`:
-
-```ruby
-class TableNeeds::PlumAdapters::Menu < Plum::ContentSource
-  def to_liquid
-    {
-      items: owner.menu_items.visible.map do |item|
-        {
-          name: item.name,
-          price: item.formatted_price,
-          description: item.description
-        }
-      end
-    }
-  end
-end
-```
-
 Registered sources become top-level Liquid objects:
 
 ```liquid
 <h1>{{ restaurant.name }}</h1>
-
 {% for item in menu.items %}
-  <h2>{{ item.name }}</h2>
-  <p>{{ item.description }}</p>
-  <strong>{{ item.price }}</strong>
+  <p>{{ item.name }} — {{ item.price }}</p>
 {% endfor %}
 ```
 
-Content sources must return Liquid-safe data: hashes, arrays, strings, numbers,
-booleans, dates/times, or objects that implement `to_liquid`. Hash keys are
-normalized to strings.
+This is the foundation for AI grounding — the same registry that makes content
+sources available to templates can feed AI with live merchant data.
 
-## Assets And Image Fields
+## Field Types
 
-Images live in `Plum::Asset` records with files stored through Active Storage.
-The control panel exposes an asset library at `/cp/assets` for uploading images
-and editing alt text, captions, and folders.
+Blueprint fields define the content model for each content type:
 
-Blueprints can define image fields:
+| Type | Description |
+|------|-------------|
+| `text` | Single-line text input |
+| `textarea` | Multi-line text |
+| `rich_text` | Lexxy rich text editor (images, formatting, tables) |
+| `number` | Numeric input |
+| `boolean` | Checkbox (true/false) |
+| `date` | Date picker |
+| `select` | Dropdown (requires `options` array) |
+| `checkboxes` | Multi-select checkboxes (requires `options` array) |
+| `color` | Native color picker |
+| `url` | URL input |
+| `image` | Image picker (Active Storage) |
+| `relationship` | Link to another entry (optional `content_type` filter) |
+| `taxonomy` | Term picker from a taxonomy (requires `taxonomy` handle) |
+| `blocks` | Page builder sections |
 
-```json
-{
-  "fields": [
-    { "handle": "hero_image", "type": "image", "label": "Hero Image" }
-  ]
-}
-```
+## Image Transforms
 
-Entry forms let editors choose an existing asset or upload a new image inline.
-Plum stores the asset id in `entry.data`, then expands it for Liquid:
-
-```liquid
-{% if entry.data.hero_image.url %}
-  <img src="{{ entry.data.hero_image.url }}" alt="{{ entry.data.hero_image.alt_text }}">
-{% endif %}
-```
-
-Image objects expose `id`, `url`, `alt_text`, `caption`, `filename`,
-`content_type`, `byte_size`, and `folder`.
-
-## Rich Text Fields
-
-Blueprint fields with `"type": "rich_text"` use the Tiptap editor in the
-control panel. Plum stores the generated HTML in `entry.data`, while existing
-Markdown-style content still renders through the bundled themes' `markdown`
-filter.
-
-```json
-{
-  "fields": [
-    { "handle": "body", "type": "rich_text", "label": "Body" }
-  ]
-}
-```
-
-## Relationship Fields
-
-Relationship fields let one entry point at another entry on the same site. Add
-`content_type` to limit the selector to a specific content type handle:
-
-```json
-{
-  "fields": [
-    {
-      "handle": "featured_post",
-      "type": "relationship",
-      "label": "Featured Post",
-      "content_type": "posts"
-    }
-  ]
-}
-```
-
-Plum stores the related entry id in `entry.data`. Public Liquid expands
-published related entries into entry objects:
+Images expose pre-built variant URLs via Active Storage:
 
 ```liquid
-{% if entry.data.featured_post %}
-  <a href="{{ entry.data.featured_post.url }}">
-    {{ entry.data.featured_post.title }}
-  </a>
-{% endif %}
+<img src="{{ entry.data.hero_image.medium }}" alt="{{ entry.data.hero_image.alt_text }}">
 ```
 
-## Globals And Navigation
+Available sizes: `thumb` (300x300 fill), `small` (640px), `medium` (1200px),
+`large` (2000px), `url` (original). Requires `libvips` — falls back to the
+original URL without it.
 
-Globals are reusable JSON objects for site-wide data such as company info,
-announcements, social links, or contact details. A global with handle `company`
-is available in Liquid as:
+## Taxonomies
+
+Taxonomies (categories, tags) are managed in the CP under Taxonomies. Add a
+`taxonomy` field to a content type's blueprint to tag entries with terms.
+
+```json
+{ "handle": "categories", "type": "taxonomy", "label": "Categories", "taxonomy": "categories" }
+```
+
+Front-end pages are automatic:
+- `/:taxonomy_slug` — lists all terms with entry counts
+- `/:taxonomy_slug/:term_slug` — lists entries tagged with that term (paginated)
+
+In templates:
+
+```liquid
+{% for tag in entry.terms.categories %}
+  <a href="{{ tag.url }}">{{ tag.name }}</a>
+{% endfor %}
+
+{% for term in taxonomies.categories.terms %}
+  <a href="{{ term.url }}">{{ term.name }}</a>
+{% endfor %}
+```
+
+## Collection Pages
+
+Visiting `/:content_type_handle` (e.g. `/posts`) renders a paginated index of
+all published entries for that content type. Themes provide collection templates
+at `collections/{handle}.liquid` with a `_default.liquid` fallback.
+
+Pagination variables: `pagination.current_page`, `pagination.total_pages`,
+`pagination.previous_url`, `pagination.next_url`.
+
+## Search
+
+`/search?q=term` searches entry titles and slugs. Themes provide a
+`search.liquid` template with a search form and results.
+
+## Roles
+
+Standalone mode has three roles: `viewer` (read-only CP), `editor` (manage
+content), `admin` (full access including content types, settings, themes,
+taxonomies). In embedded/host mode, roles are skipped entirely.
+
+## Rich Text
+
+Rich text fields use [Lexxy](https://basecamp.github.io/lexxy/) (Basecamp's
+editor built on Meta's Lexical). Supports bold, italic, strikethrough, headings,
+lists, links, quotes, code blocks, tables, image uploads, and text colors.
+
+Images uploaded through Lexxy use Active Storage Direct Upload and render on the
+front-end as standard `<img>` tags. Text colors are resolved from Lexxy's CSS
+variables to real color values at render time.
+
+## Globals and Navigation
+
+Globals are site-wide JSON objects (company info, social links):
 
 ```liquid
 {{ globals.company.phone }}
-{{ globals.company.address }}
 ```
 
-Navigation menus are managed in the control panel and exposed by handle. A menu
-with handle `main` is available as `nav.main`:
+Navigation menus are managed in the CP:
 
 ```liquid
-{% if nav.main.items.size > 0 %}
-  <nav>
-    {% for item in nav.main.items %}
-      <a href="{{ item.url }}">{{ item.label }}</a>
-    {% endfor %}
-  </nav>
-{% endif %}
+{% for item in nav.main.items %}
+  <a href="{{ item.url }}">{{ item.label }}</a>
+{% endfor %}
 ```
 
-Navigation items can point to a custom URL or a Plum entry. Entry-backed items
-resolve to the correct mounted URL when Plum is embedded in another Rails app.
+## Themes
 
-## Forms
+Themes live in `app/themes/{handle}/` with:
+- `theme.yml` — name, settings, block definitions
+- `layouts/base.liquid` — site layout
+- `templates/` — entry, collection, taxonomy, search templates
+- `blocks/{handle}.liquid` — block partials
+- `assets/` — CSS, images
 
-Forms are defined in the control panel and rendered in Liquid by handle:
-
-```liquid
-{% if forms.contact %}
-  {% form "contact" %}
-{% endif %}
-```
-
-Supported field types are `text`, `email`, `textarea`, `select`, and
-`checkbox`. Public submissions post back to Plum, are scoped to the current
-site, and can be reviewed from the form detail screen in the control panel.
-
-The v1 form contract stores submissions in `plum_form_submissions.data`.
-
-When a form has a `notification_email`, Plum emails that address on each new
-submission via `Plum::FormMailer`, enqueued with `deliver_later` (Active Job).
-The engine only composes and enqueues the message — the host application is
-responsible for configuring ActionMailer delivery (SMTP, `default_url_options`,
-a queue backend, etc.). Set the "from" address with:
-
-```ruby
-Plum.configure do |config|
-  config.mailer_sender = "no-reply@yourdomain.com"
-end
-```
-
-Forms without a `notification_email` are stored but send no email.
+Themes can be installed from a zip in the CP.
 
 ## Database
 
-Plum is SQLite-first and ships with SQLite as the default, but the engine is
-database-agnostic: all JSON columns are read and filtered in Ruby (no
-database-specific JSON SQL), so it also runs on PostgreSQL — the database a host
-app such as Table Needs is likely to use. To run the test suite against
-PostgreSQL instead of SQLite:
+Plum is SQLite-first but database-agnostic. All JSON is filtered in Ruby (no
+DB-specific SQL), so it runs on PostgreSQL too. Test against Postgres:
 
 ```bash
-PLUM_TEST_DB=postgres bin/rails db:test:prepare
 PLUM_TEST_DB=postgres bin/rails test
 ```
 
-Connection details are read from the standard `PG*` environment variables
-(`PGHOST`, `PGUSER`, `PGPASSWORD`, and `PLUM_TEST_PG_DATABASE`, default
-`plum_test`). CI runs the suite on both SQLite and PostgreSQL.
+## Development
 
-## Theme Packages
-
-Themes can be installed from a zip in the control panel. A package must contain
-`theme.yml` at the root, or inside one top-level folder:
-
-```text
-theme.yml
-layouts/base.liquid
-templates/index.liquid
-assets/theme.css
-assets/screenshot.svg
+```bash
+git clone git@github.com:tableneeds/Plum.git && cd Plum
+bin/setup
+bin/rails server
 ```
 
-`theme.yml` is the v1 theme contract:
+Login: `admin@example.com` / `password123`
 
-```yaml
-name: Bagel Shop
-handle: bagel-shop
-version: 1.0.0
-author: Plum
-category: Restaurant
-screenshot: screenshot.svg
-description: Warm retail theme for neighborhood food brands.
-settings:
-  fields:
-    - handle: accent_color
-      type: color
-      label: Accent Color
-      default: "#1f6f63"
-    - handle: hero_note
-      type: text
-      label: Hero Note
-    - handle: show_powered_by
-      type: boolean
-      label: Show Powered By
-      default: true
-    - handle: corner_style
-      type: select
-      label: Corner Style
-      options:
-        - label: Soft
-          value: soft
-        - label: Square
-          value: square
-      default: soft
-```
-
-Theme handles must use lowercase letters, numbers, and hyphens. Theme setting
-handles must use lowercase letters, numbers, and underscores. Supported setting
-types are `text`, `textarea`, `color`, `boolean`, and `select`.
-
-Screenshots are optional and are resolved relative to the theme's `assets`
-folder. Plum rejects packages with unsafe paths, missing manifests, duplicate
-handles, invalid setting schemas, screenshots that point outside `assets`, or no
-Liquid templates/layouts.
+For Bagel Boy demo content: `bin/rails runner "load 'db/seeds/bagel_boy.rb'"`
