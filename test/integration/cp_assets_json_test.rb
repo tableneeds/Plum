@@ -3,7 +3,7 @@ require "test_helper"
 module Plum
   class CpAssetsJsonTest < ActionDispatch::IntegrationTest
     setup do
-      @site = Plum::Site.first_or_create_standalone!
+      @site = Plum::Site.first_or_create_standalone!(skip_defaults: true)
       Plum::SiteSetting.instance(@site).update!(name: "Test Site", theme_name: "default")
       Plum::User.create!(email: "admin@example.com", password: "password123", role: :admin)
       post login_path, params: { email: "admin@example.com", password: "password123" }

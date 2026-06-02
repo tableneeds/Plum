@@ -3,7 +3,7 @@ require "test_helper"
 module Plum
   class BlockRenderingTest < ActionDispatch::IntegrationTest
     test "renders an entry's blocks field as HTML on the public page" do
-      site = Plum::Site.first_or_create_standalone!
+      site = Plum::Site.first_or_create_standalone!(skip_defaults: true)
       Plum::SiteSetting.instance(site).update!(name: "Bagel Boy", theme_name: "default")
 
       content_type = site.content_types.create!(

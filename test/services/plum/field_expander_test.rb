@@ -3,7 +3,7 @@ require "test_helper"
 module Plum
   class FieldExpanderTest < ActiveSupport::TestCase
     setup do
-      @site = Plum::Site.first_or_create_standalone!
+      @site = Plum::Site.first_or_create_standalone!(skip_defaults: true)
     end
 
     test "leaves plain fields untouched" do

@@ -2,7 +2,7 @@ require "test_helper"
 
 class PublicLiquidRenderingTest < ActionDispatch::IntegrationTest
   setup do
-    @site = Plum::Site.first_or_create_standalone!
+    @site = Plum::Site.first_or_create_standalone!(skip_defaults: true)
     @admin = Plum::User.create!(
       email: "admin@example.com",
       password: "password123",

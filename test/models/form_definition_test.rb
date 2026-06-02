@@ -3,7 +3,7 @@ require "test_helper"
 module Plum
   class FormDefinitionTest < ActiveSupport::TestCase
     test "generates a handle from the name" do
-      site = Site.create!(name: "Bagel Boy", theme_name: "default")
+      site = Site.create!(name: "Bagel Boy", theme_name: "default", skip_defaults: true)
       form = site.form_definitions.create!(
         name: "Contact Us",
         fields: []
@@ -13,7 +13,7 @@ module Plum
     end
 
     test "validates field handles and types" do
-      site = Site.create!(name: "Bagel Boy", theme_name: "default")
+      site = Site.create!(name: "Bagel Boy", theme_name: "default", skip_defaults: true)
       form = site.form_definitions.build(
         name: "Contact",
         handle: "contact",

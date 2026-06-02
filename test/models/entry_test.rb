@@ -2,7 +2,7 @@ require "test_helper"
 
 class EntryTest < ActiveSupport::TestCase
   setup do
-    @site = Plum::Site.first_or_create_standalone!
+    @site = Plum::Site.first_or_create_standalone!(skip_defaults: true)
     @author = Plum::User.create!(
       email: "author@example.com",
       password: "password123",

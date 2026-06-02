@@ -3,7 +3,7 @@ require "test_helper"
 module Plum
   class NavItemTest < ActiveSupport::TestCase
     setup do
-      @site = Site.create!(name: "Bagel Boy", theme_name: "default")
+      @site = Site.create!(name: "Bagel Boy", theme_name: "default", skip_defaults: true)
       @menu = @site.nav_menus.create!(name: "Main", handle: "main")
     end
 
@@ -35,7 +35,7 @@ module Plum
     end
 
     test "rejects entries from another site" do
-      other_site = Site.create!(name: "Other", theme_name: "default")
+      other_site = Site.create!(name: "Other", theme_name: "default", skip_defaults: true)
       content_type = other_site.content_types.create!(
         name: "Pages",
         handle: "pages",

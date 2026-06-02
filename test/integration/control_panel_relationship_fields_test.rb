@@ -2,8 +2,8 @@ require "test_helper"
 
 class ControlPanelRelationshipFieldsTest < ActionDispatch::IntegrationTest
   setup do
-    @site = Plum::Site.first_or_create_standalone!
-    @other_site = Plum::Site.create!(name: "Other Site")
+    @site = Plum::Site.first_or_create_standalone!(skip_defaults: true)
+    @other_site = Plum::Site.create!(name: "Other Site", skip_defaults: true)
     @admin = Plum::User.create!(
       email: "admin@example.com",
       password: "password123",

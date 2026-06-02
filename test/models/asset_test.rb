@@ -3,7 +3,7 @@ require "test_helper"
 module Plum
   class AssetTest < ActiveSupport::TestCase
     test "exposes image metadata to liquid" do
-      site = Site.create!(name: "Bagel Boy", theme_name: "default")
+      site = Site.create!(name: "Bagel Boy", theme_name: "default", skip_defaults: true)
       asset = site.assets.build(alt_text: "Sesame bagel", caption: "Fresh tray", folder: " menu ")
       attach_test_png(asset, filename: "bagel.png")
 
@@ -20,7 +20,7 @@ module Plum
     end
 
     test "rejects non image uploads" do
-      site = Site.create!(name: "Bagel Boy", theme_name: "default")
+      site = Site.create!(name: "Bagel Boy", theme_name: "default", skip_defaults: true)
       asset = site.assets.build
       asset.file.attach(
         io: StringIO.new("not image"),

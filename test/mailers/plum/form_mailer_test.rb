@@ -3,7 +3,7 @@ require "test_helper"
 module Plum
   class FormMailerTest < ActionMailer::TestCase
     setup do
-      @site = Plum::Site.first_or_create_standalone!
+      @site = Plum::Site.first_or_create_standalone!(skip_defaults: true)
       Plum::SiteSetting.instance(@site).update!(name: "Bagel Boy")
       @form = @site.form_definitions.create!(
         name: "Contact",

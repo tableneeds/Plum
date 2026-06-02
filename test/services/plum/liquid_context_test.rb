@@ -11,7 +11,7 @@ module Plum
     end
 
     test "adds registered content sources to the Liquid context" do
-      site = Plum::Site.create!(name: "Bagel Boy", theme_name: "default")
+      site = Plum::Site.create!(name: "Bagel Boy", theme_name: "default", skip_defaults: true)
       controller = fake_controller
 
       Plum.register_content_source(:restaurant) do |context|
@@ -28,7 +28,7 @@ module Plum
     end
 
     test "adds mounted theme asset base URL to the site context" do
-      site = Plum::Site.create!(name: "Bagel Boy", theme_name: "bagel-shop")
+      site = Plum::Site.create!(name: "Bagel Boy", theme_name: "bagel-shop", skip_defaults: true)
       controller = fake_controller(script_name: "/website")
 
       context = LiquidContext.new(controller: controller, site: site).to_h
@@ -37,7 +37,7 @@ module Plum
     end
 
     test "expands image field ids into asset objects" do
-      site = Plum::Site.create!(name: "Bagel Boy", theme_name: "default")
+      site = Plum::Site.create!(name: "Bagel Boy", theme_name: "default", skip_defaults: true)
       content_type = site.content_types.create!(
         name: "Posts",
         handle: "posts",
@@ -67,7 +67,7 @@ module Plum
     end
 
     test "expands relationship field ids into published entry objects" do
-      site = Plum::Site.create!(name: "Bagel Boy", theme_name: "default")
+      site = Plum::Site.create!(name: "Bagel Boy", theme_name: "default", skip_defaults: true)
       posts = site.content_types.create!(
         name: "Posts",
         handle: "posts",
@@ -128,7 +128,7 @@ module Plum
     end
 
     test "exposes globals and navigation menus" do
-      site = Plum::Site.create!(name: "Bagel Boy", theme_name: "default")
+      site = Plum::Site.create!(name: "Bagel Boy", theme_name: "default", skip_defaults: true)
       site.globals.create!(
         name: "Company Info",
         handle: "company",

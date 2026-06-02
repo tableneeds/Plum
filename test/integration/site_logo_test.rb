@@ -2,7 +2,7 @@ require "test_helper"
 
 class SiteLogoTest < ActionDispatch::IntegrationTest
   setup do
-    @site = Plum::Site.first_or_create_standalone!
+    @site = Plum::Site.first_or_create_standalone!(skip_defaults: true)
     @settings = Plum::SiteSetting.instance(@site)
     @settings.update!(name: "Bagel Boy", theme_name: "default")
   end

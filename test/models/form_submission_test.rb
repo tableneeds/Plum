@@ -3,7 +3,7 @@ require "test_helper"
 module Plum
   class FormSubmissionTest < ActiveSupport::TestCase
     setup do
-      @site = Site.create!(name: "Bagel Boy", theme_name: "default")
+      @site = Site.create!(name: "Bagel Boy", theme_name: "default", skip_defaults: true)
       @form = @site.form_definitions.create!(
         name: "Contact",
         handle: "contact",

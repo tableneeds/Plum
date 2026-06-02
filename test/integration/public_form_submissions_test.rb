@@ -2,7 +2,7 @@ require "test_helper"
 
 class PublicFormSubmissionsTest < ActionDispatch::IntegrationTest
   setup do
-    @site = Plum::Site.first_or_create_standalone!
+    @site = Plum::Site.first_or_create_standalone!(skip_defaults: true)
     Plum::SiteSetting.instance(@site).update!(name: "Bagel Boy", theme_name: "default")
     @form = @site.form_definitions.create!(
       name: "Contact",

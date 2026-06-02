@@ -9,7 +9,7 @@ class HostAuthorizationTest < ActionDispatch::IntegrationTest
     @previous_current_user_resolver = Plum.configuration.current_user_resolver
     @previous_host_authorization_resolver = Plum.configuration.host_authorization_resolver
 
-    @site = Plum::Site.create!(name: "Embedded Site", theme_name: "default")
+    @site = Plum::Site.create!(name: "Embedded Site", theme_name: "default", skip_defaults: true)
   end
 
   teardown do

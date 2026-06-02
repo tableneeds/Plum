@@ -3,7 +3,7 @@ require "test_helper"
 module Plum
   class HomepageConventionTest < ActiveSupport::TestCase
     setup do
-      @site = Plum::Site.first_or_create_standalone!
+      @site = Plum::Site.first_or_create_standalone!(skip_defaults: true)
       @type = @site.content_types.create!(name: "Pages", handle: "pages", blueprint: { "fields" => [] })
       @home = @site.entries.create!(
         content_type: @type, title: "Home", slug: "home",
