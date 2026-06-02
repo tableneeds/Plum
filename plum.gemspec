@@ -36,4 +36,6 @@ Gem::Specification.new do |spec|
   spec.add_dependency "stimulus-rails", "~> 1.3"
   spec.add_dependency "tailwindcss-rails", "~> 4.0"
   spec.add_dependency "turbo-rails", "~> 2.0"
+  spec.add_dependency "lexxy", "~> 0.1"
+  spec.add_dependency "image_processing", "~> 1.2"
 end
