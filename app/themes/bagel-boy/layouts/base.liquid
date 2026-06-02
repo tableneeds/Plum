@@ -56,7 +56,7 @@
         </div>
       {% endif %}
       {% unless site.theme_settings.show_powered_by == false %}
-        <p class="bb-powered">Powered by Plum</p>
+        <p class="bb-powered"><a href="{{ site.powered_by_url }}">Powered by {{ site.powered_by_name }}</a></p>
       {% endunless %}
     </div>
   </footer>

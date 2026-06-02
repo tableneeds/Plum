@@ -109,7 +109,7 @@
 
     <footer>
       {% unless site.theme_settings.show_powered_by == false %}
-        <p class="plum-powered"><img src="/icon.svg" alt=""> Powered by Plum CMS</p>
+        <p class="plum-powered"><a href="{{ site.powered_by_url }}">Powered by {{ site.powered_by_name }}</a></p>
       {% endunless %}
     </footer>
   </div>

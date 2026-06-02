@@ -42,7 +42,9 @@ module Plum
         "custom_css" => site.custom_css,
         "url" => public_root_path,
         "meta_title" => settings.seo_title,
-        "meta_description" => settings.seo_description
+        "meta_description" => settings.seo_description,
+        "powered_by_name" => Plum.configuration.powered_by_name,
+        "powered_by_url" => Plum.configuration.powered_by_url
       }
     end
 

@@ -5,7 +5,8 @@ module Plum
     attr_accessor :authorize_with, :current_site_resolver, :current_user_resolver, :host_authorization_resolver,
                   :mailer_sender, :cp_name, :cp_subtitle, :cp_logo_path,
                   :cp_accent_color, :cp_sidebar_bg, :cp_sidebar_header_bg, :cp_sidebar_text, :cp_sidebar_muted,
-                  :cp_back_url, :cp_back_label
+                  :cp_back_url, :cp_back_label,
+                  :powered_by_name, :powered_by_url
     attr_writer :theme_paths
     attr_reader :content_sources
 
@@ -22,6 +23,8 @@ module Plum
       @cp_sidebar_muted = "#A8929F"
       @cp_back_url = nil
       @cp_back_label = "← Back"
+      @powered_by_name = "Plum"
+      @powered_by_url = "https://plumcms.com"
       @content_sources = ContentSourceRegistry.new
       @current_site_resolver = ->(_controller) { Plum::Site.first_or_create_standalone! }
       @current_user_resolver = lambda { |controller|
