@@ -4,7 +4,7 @@ module Plum
   class Engine < ::Rails::Engine
     isolate_namespace Plum
     config.paths["config/routes.rb"] = "config/plum_routes.rb"
-    config.paths["db/migrate"] = []
+    config.paths["db/migrate"] = [ "db/engine_migrate" ]
 
     initializer "plum.assets" do |app|
       app.config.assets.paths << root.join("app/assets/javascripts")

@@ -1,11 +1,8 @@
 require "rails/generators"
-require "rails/generators/active_record"
 
 module Plum
   module Generators
     class InstallGenerator < Rails::Generators::Base
-      include Rails::Generators::Migration
-
       source_root File.expand_path("templates", __dir__)
 
       class_option :mount_path,
@@ -22,8 +19,8 @@ module Plum
         template "plum_initializer.rb", "config/initializers/plum.rb"
       end
 
-      def copy_migration
-        migration_template "create_plum_tables.rb", "db/migrate/create_plum_tables.rb"
+      def copy_migrations
+        rails_command "plum:install:migrations"
       end
 
       def create_theme_directory
@@ -42,18 +39,15 @@ module Plum
           Plum is installed.
 
           Next steps:
-            bin/rails active_storage:install # if the host app has not installed Active Storage yet
+            bin/rails active_storage:install  # if not already installed
             bin/rails db:migrate
 
           Plum is mounted at #{options[:mount_path]}.
 
-          All JavaScript, CSS, and importmap pins are served from the
-          engine automatically — no files are copied into your app.
+          Migrations are copied to db/migrate/ and can be reviewed
+          before running. JavaScript and CSS are served from the
+          engine automatically.
         TEXT
-      end
-
-      def self.next_migration_number(dirname)
-        ActiveRecord::Generators::Base.next_migration_number(dirname)
       end
     end
   end
