@@ -1,28 +1,92 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 750" role="img" aria-labelledby="title desc">
-  <title id="title">Bagel Shop theme screenshot</title>
-  <desc id="desc">A warm storefront website layout with a large headline and bagel illustration.</desc>
-  <rect width="1200" height="750" fill="#fffaf0"/>
-  <rect x="94" y="76" width="1012" height="598" rx="18" fill="#fff7e8" stroke="#2b2119" stroke-opacity=".16" stroke-width="4"/>
-  <rect x="94" y="76" width="1012" height="96" rx="18" fill="#fff7e8"/>
-  <line x1="94" y1="172" x2="1106" y2="172" stroke="#2b2119" stroke-opacity=".16" stroke-width="4"/>
-  <circle cx="158" cy="124" r="34" fill="#b9652d"/>
-  <circle cx="158" cy="124" r="13" fill="#fffaf0"/>
-  <circle cx="146" cy="111" r="4" fill="#f7d58a"/>
-  <circle cx="170" cy="116" r="4" fill="#f7d58a"/>
-  <rect x="210" y="104" width="206" height="24" rx="12" fill="#2b2119"/>
-  <rect x="210" y="139" width="154" height="13" rx="6.5" fill="#765f4b"/>
-  <rect x="888" y="114" width="124" height="16" rx="8" fill="#1f6f63"/>
-  <text x="150" y="307" fill="#1f6f63" font-family="Arial, sans-serif" font-size="25" font-weight="700">FRESH FROM THE OVEN</text>
-  <rect x="150" y="338" width="438" height="78" rx="10" fill="#2b2119"/>
-  <rect x="150" y="434" width="350" height="78" rx="10" fill="#2b2119"/>
-  <rect x="150" y="548" width="438" height="20" rx="10" fill="#765f4b"/>
-  <rect x="150" y="584" width="374" height="20" rx="10" fill="#765f4b"/>
-  <rect x="744" y="250" width="250" height="304" rx="12" fill="#f5e7cf" stroke="#2b2119" stroke-opacity=".16" stroke-width="4" transform="rotate(2 869 402)"/>
-  <circle cx="870" cy="380" r="104" fill="#b9652d"/>
-  <circle cx="870" cy="380" r="32" fill="#f5e7cf"/>
-  <circle cx="834" cy="338" r="8" fill="#f9db8d"/>
-  <circle cx="895" cy="333" r="7" fill="#f9db8d"/>
-  <circle cx="918" cy="394" r="8" fill="#f9db8d"/>
-  <circle cx="850" cy="438" r="7" fill="#f9db8d"/>
-  <rect x="784" y="506" width="172" height="15" rx="7.5" fill="#765f4b"/>
+  <title id="title">Bagel Boy theme preview</title>
+  <desc id="desc">A polished preview of the Bagel Boy theme with a retro bakery header, hero section, menu cards, and hours panel.</desc>
+
+  <defs>
+    <filter id="soft-shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="16" stdDeviation="18" flood-color="#0C0B0A" flood-opacity=".15"/>
+    </filter>
+    <pattern id="tile" width="58" height="58" patternUnits="userSpaceOnUse">
+      <path d="M0 58L58 0" stroke="#FDC694" stroke-width="4" stroke-opacity=".28"/>
+    </pattern>
+    <radialGradient id="bagel" cx="34%" cy="28%" r="72%">
+      <stop offset="0" stop-color="#FFE4A2"/>
+      <stop offset=".48" stop-color="#C87734"/>
+      <stop offset="1" stop-color="#9B4D1F"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="1200" height="750" fill="#FFF6E9"/>
+  <rect width="1200" height="750" fill="url(#tile)" opacity=".55"/>
+
+  <g filter="url(#soft-shadow)">
+    <rect x="70" y="56" width="1060" height="640" rx="24" fill="#FEFEFE"/>
+  </g>
+
+  <rect x="70" y="56" width="1060" height="640" rx="24" fill="#FEFEFE" stroke="#0C0B0A" stroke-opacity=".14" stroke-width="3"/>
+  <rect x="70" y="56" width="1060" height="112" rx="24" fill="#FEFEFE"/>
+  <path d="M70 144H1130" stroke="#FB404C" stroke-width="8"/>
+
+  <g transform="translate(116 82)">
+    <circle cx="40" cy="40" r="37" fill="#FB404C"/>
+    <circle cx="40" cy="40" r="15" fill="#FEFEFE"/>
+    <circle cx="25" cy="24" r="4.5" fill="#FCDE5A"/>
+    <circle cx="50" cy="19" r="4" fill="#FCDE5A"/>
+    <circle cx="57" cy="50" r="4.5" fill="#FCDE5A"/>
+    <text x="92" y="47" fill="#FB404C" font-family="Arial Black, Arial, sans-serif" font-size="36" font-weight="900">Bagel Boy</text>
+  </g>
+
+  <g fill="#0C0B0A" font-family="Arial, sans-serif" font-size="18" font-weight="700">
+    <text x="775" y="126">Menu</text>
+    <text x="858" y="126">Hours</text>
+    <text x="943" y="126">Order</text>
+  </g>
+  <rect x="1024" y="95" width="76" height="38" rx="19" fill="#FCDE5A"/>
+  <text x="1043" y="120" fill="#0C0B0A" font-family="Arial, sans-serif" font-size="15" font-weight="900">Visit</text>
+
+  <g transform="translate(116 214)">
+    <rect x="0" y="0" width="608" height="302" rx="26" fill="#FFF6E9"/>
+    <text x="34" y="68" fill="#FB404C" font-family="Arial Black, Arial, sans-serif" font-size="74" font-weight="900">Big bagel</text>
+    <text x="34" y="145" fill="#FB404C" font-family="Arial Black, Arial, sans-serif" font-size="74" font-weight="900">energy.</text>
+    <rect x="38" y="184" width="342" height="15" rx="7.5" fill="#0C0B0A" opacity=".82"/>
+    <rect x="38" y="214" width="432" height="15" rx="7.5" fill="#0C0B0A" opacity=".34"/>
+    <rect x="38" y="244" width="252" height="15" rx="7.5" fill="#0C0B0A" opacity=".34"/>
+    <rect x="408" y="232" width="142" height="46" rx="23" fill="#FB404C"/>
+    <text x="438" y="262" fill="#FEFEFE" font-family="Arial, sans-serif" font-size="18" font-weight="900">Order</text>
+  </g>
+
+  <g transform="translate(745 206)">
+    <rect x="28" y="40" width="270" height="284" rx="24" fill="#FDC694" transform="rotate(3 163 182)"/>
+    <rect x="50" y="28" width="270" height="284" rx="24" fill="#FCDE5A" transform="rotate(-5 185 170)"/>
+    <circle cx="184" cy="178" r="122" fill="url(#bagel)"/>
+    <circle cx="184" cy="178" r="43" fill="#FFF6E9"/>
+    <circle cx="139" cy="125" r="8" fill="#FCDE5A"/>
+    <circle cx="207" cy="105" r="7" fill="#FCDE5A"/>
+    <circle cx="247" cy="167" r="8" fill="#FCDE5A"/>
+    <circle cx="135" cy="221" r="7" fill="#FCDE5A"/>
+    <circle cx="205" cy="246" r="6" fill="#FCDE5A"/>
+    <path d="M58 292C116 318 246 318 306 284" fill="none" stroke="#0C0B0A" stroke-width="12" stroke-linecap="round" opacity=".85"/>
+  </g>
+
+  <g transform="translate(116 556)">
+    <rect width="248" height="94" rx="18" fill="#FEFEFE" stroke="#FB404C" stroke-width="4"/>
+    <text x="24" y="38" fill="#0C0B0A" font-family="Arial Black, Arial, sans-serif" font-size="22" font-weight="900">Poppy Plain</text>
+    <rect x="24" y="56" width="142" height="11" rx="5.5" fill="#0C0B0A" opacity=".32"/>
+    <text x="199" y="62" fill="#FB404C" font-family="Arial, sans-serif" font-size="21" font-weight="900">$4</text>
+  </g>
+
+  <g transform="translate(394 556)">
+    <rect width="248" height="94" rx="18" fill="#FEFEFE" stroke="#FDC694" stroke-width="4"/>
+    <text x="24" y="38" fill="#0C0B0A" font-family="Arial Black, Arial, sans-serif" font-size="22" font-weight="900">Chip Salt</text>
+    <rect x="24" y="56" width="156" height="11" rx="5.5" fill="#0C0B0A" opacity=".32"/>
+    <text x="199" y="62" fill="#FB404C" font-family="Arial, sans-serif" font-size="21" font-weight="900">$5</text>
+  </g>
+
+  <g transform="translate(672 556)">
+    <rect width="404" height="94" rx="18" fill="#0C0B0A"/>
+    <text x="28" y="38" fill="#FCDE5A" font-family="Arial Black, Arial, sans-serif" font-size="23" font-weight="900">Open early every day</text>
+    <rect x="28" y="57" width="224" height="12" rx="6" fill="#FFF6E9" opacity=".7"/>
+    <rect x="326" y="31" width="50" height="20" rx="10" fill="#FB404C"/>
+    <rect x="284" y="62" width="82" height="12" rx="6" fill="#FFF6E9" opacity=".35"/>
+  </g>
 </svg>
