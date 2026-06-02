@@ -88,24 +88,23 @@
           </div>
         </nav>
 
-        <!-- User -->
+        <!-- Footer -->
         <div class="p-4 border-t border-white/10">
-          <div class="flex items-center">
-            <div class="flex-1 min-w-0">
-              <p class="text-sm font-medium text-white truncate"><%= current_user_label %></p>
-              <% if current_user.respond_to?(:role) %>
-                <p class="text-xs plum-sidebar-link truncate"><%= current_user.role.titleize %></p>
-              <% end %>
-            </div>
-            <% if plum_managed_auth? %>
-              <%= button_to "Logout", logout_path, method: :delete,
-                  class: "ml-2 px-3 py-1 text-xs font-medium plum-sidebar-link" %>
-            <% end %>
-          </div>
           <% if Plum.configuration.cp_back_url %>
-            <a href="<%= Plum.configuration.cp_back_url %>" class="flex items-center justify-center mt-3 px-3 py-2 text-sm font-medium rounded-md plum-sidebar-link" style="background: rgba(255,255,255,0.1);">
+            <a href="<%= Plum.configuration.cp_back_url %>" class="flex items-center justify-center px-3 py-2 text-sm font-medium rounded-md plum-sidebar-link" style="background: rgba(255,255,255,0.1);">
               <%= Plum.configuration.cp_back_label %>
             </a>
+          <% elsif plum_managed_auth? %>
+            <div class="flex items-center">
+              <div class="flex-1 min-w-0">
+                <p class="text-sm font-medium text-white truncate"><%= current_user_label %></p>
+                <% if current_user.respond_to?(:role) %>
+                  <p class="text-xs plum-sidebar-link truncate"><%= current_user.role.titleize %></p>
+                <% end %>
+              </div>
+              <%= button_to "Logout", logout_path, method: :delete,
+                  class: "ml-2 px-3 py-1 text-xs font-medium plum-sidebar-link" %>
+            </div>
           <% end %>
         </div>
       </div>
