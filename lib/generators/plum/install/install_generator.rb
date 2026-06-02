@@ -51,12 +51,9 @@ module Plum
       def copy_javascript_controllers
         empty_directory "app/javascript/controllers/plum"
 
-        copy_file Plum::Engine.root.join("app/javascript/controllers/plum/blueprint_controller.js"),
-                  "app/javascript/controllers/plum/blueprint_controller.js"
-        copy_file Plum::Engine.root.join("app/javascript/controllers/plum/form_fields_controller.js"),
-                  "app/javascript/controllers/plum/form_fields_controller.js"
-        copy_file Plum::Engine.root.join("app/javascript/controllers/plum/theme_settings_controller.js"),
-                  "app/javascript/controllers/plum/theme_settings_controller.js"
+        Dir[Plum::Engine.root.join("app/javascript/controllers/plum/*.js")].each do |path|
+          copy_file path, "app/javascript/controllers/plum/#{File.basename(path)}"
+        end
       end
 
       def copy_vendor_files
@@ -64,6 +61,49 @@ module Plum
 
         Dir[Plum::Engine.root.join("vendor/javascript/*.js")].each do |path|
           copy_file path, "vendor/javascript/#{File.basename(path)}"
+        end
+      end
+
+      def setup_importmap_pins
+        importmap_path = File.join(destination_root, "config/importmap.rb")
+        return unless File.exist?(importmap_path)
+
+        content = File.read(importmap_path)
+
+        unless content.include?('"lexxy"')
+          append_to_file "config/importmap.rb", %(pin "lexxy", to: "lexxy.js"\n)
+        end
+
+        unless content.include?('"@rails/activestorage"')
+          append_to_file "config/importmap.rb", %(pin "@rails/activestorage", to: "activestorage.esm.js"\n)
+        end
+      end
+
+      def setup_lexxy_import
+        js_path = File.join(destination_root, "app/javascript/application.js")
+        return unless File.exist?(js_path)
+
+        content = File.read(js_path)
+
+        unless content.include?('"lexxy"')
+          append_to_file "app/javascript/application.js", <<~JS
+
+            import "lexxy"
+
+            document.addEventListener("turbo:submit-start", (event) => {
+              event.target.querySelectorAll("lexxy-editor[data-hidden-field]").forEach((editor) => {
+                const hidden = document.getElementById(editor.dataset.hiddenField)
+                if (hidden) hidden.value = editor.value
+              })
+            })
+
+            document.addEventListener("submit", (event) => {
+              event.target.querySelectorAll("lexxy-editor[data-hidden-field]").forEach((editor) => {
+                const hidden = document.getElementById(editor.dataset.hiddenField)
+                if (hidden) hidden.value = editor.value
+              })
+            })
+          JS
         end
       end
 
