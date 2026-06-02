@@ -58,6 +58,9 @@
         <nav class="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
           <%= link_to "Dashboard", cp_root_path,
               class: "flex items-center px-4 py-2 text-sm font-medium rounded-md plum-sidebar-link #{request.path == cp_root_path ? 'active' : ''}" %>
+          <%= link_to root_path, target: "_blank", class: "flex items-center px-4 py-2 text-sm font-medium rounded-md plum-sidebar-link" do %>
+            View Website &nearr;
+          <% end %>
 
           <div class="pt-4">
             <p class="px-4 text-xs font-semibold plum-sidebar-section uppercase tracking-wider">Content</p>
