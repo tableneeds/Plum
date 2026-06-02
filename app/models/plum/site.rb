@@ -35,7 +35,7 @@ module Plum
       find_or_create_by!(owner: owner) do |site|
         site.name = attributes.fetch(:name) { owner_default_name(owner) }
         site.theme_name = attributes.fetch(:theme_name, "default")
-        site.skip_defaults = attributes.fetch(:skip_defaults, true)
+        site.skip_defaults = attributes.fetch(:skip_defaults, false)
         site.domain = attributes[:domain] if attributes.key?(:domain)
         site.settings = attributes[:settings] if attributes.key?(:settings)
         site.theme_settings = attributes[:theme_settings] if attributes.key?(:theme_settings)

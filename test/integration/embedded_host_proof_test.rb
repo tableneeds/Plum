@@ -53,7 +53,7 @@ class EmbeddedHostProofTest < ActionDispatch::IntegrationTest
       hours: { "today" => "6 AM - 2 PM" }
     )
     @host_user = HostUser.new("Restaurant Owner", @restaurant.id)
-    @site = Plum::Site.for_owner!(@restaurant, name: @restaurant.name, theme_name: "embedded-host")
+    @site = Plum::Site.for_owner!(@restaurant, name: @restaurant.name, theme_name: "embedded-host", skip_defaults: true)
 
     Plum.configure do |config|
       config.authorize_with = :host
