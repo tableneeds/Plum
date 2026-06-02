@@ -14,11 +14,13 @@ module Plum
 
     def current_user_label
       user = current_user
+      return nil unless user
 
-      return user.email if user.respond_to?(:email) && user.email.present?
+      return user.first_name if user.respond_to?(:first_name) && user.first_name.present?
       return user.name if user.respond_to?(:name) && user.name.present?
+      return user.email if user.respond_to?(:email) && user.email.present?
 
-      "Account"
+      nil
     end
 
     def logged_in?

@@ -1,6 +1,6 @@
 <div class="mb-8">
   <h1 class="text-2xl font-bold text-gray-900">Dashboard</h1>
-  <p class="mt-1 text-sm text-gray-500">Welcome back, <%= current_user_label %></p>
+  <p class="mt-1 text-sm text-gray-500">Welcome back<%= ", #{current_user_label}" if current_user_label %></p>
 </div>
 
 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
