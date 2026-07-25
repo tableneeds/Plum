@@ -16,13 +16,24 @@ Gem::Specification.new do |spec|
   spec.metadata["source_code_uri"] = spec.homepage
 
   spec.files = Dir.chdir(__dir__) do
-    `git ls-files -z --cached --others --exclude-standard`.split("\x0").select do |path|
-      File.file?(path) &&
-        (path.match?(%r{\A(app/(assets|controllers/plum|helpers|javascript|models/plum|services/plum|themes|views/layouts/plum|views/plum)|config/locales|db/engine_migrate|lib|vendor/javascript)/}) ||
-          path == "config/plum_routes.rb" ||
-          path == "config/plum_importmap.rb" ||
-          path == "README.md")
-    end
+    Dir[
+      "app/assets/**/*",
+      "app/controllers/plum/**/*",
+      "app/helpers/**/*",
+      "app/javascript/**/*",
+      "app/models/plum/**/*",
+      "app/services/plum/**/*",
+      "app/themes/**/*",
+      "app/views/layouts/plum/**/*",
+      "app/views/plum/**/*",
+      "config/locales/**/*",
+      "db/engine_migrate/**/*",
+      "lib/**/*",
+      "vendor/javascript/**/*",
+      "config/plum_routes.rb",
+      "config/plum_importmap.rb",
+      "README.md"
+    ].select { |path| File.file?(path) }.sort
   end
 
   spec.require_paths = [ "lib" ]
