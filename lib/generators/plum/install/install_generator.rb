@@ -20,7 +20,7 @@ module Plum
       end
 
       def copy_migrations
-        rails_command "plum:install:migrations"
+        rake "plum:install:migrations"
       end
 
       def create_theme_directory

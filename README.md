@@ -9,11 +9,7 @@ larger Rails app.
 Add Plum to your Gemfile:
 
 ```ruby
-# From GitHub (private repo):
-gem "plum", git: "git@github.com:tableneeds/Plum.git", branch: "main"
-
-# Or from a local path during development:
-gem "plum", path: "../plum"
+gem "plum-cms", "~> 0.1.0"
 ```
 
 Then:
@@ -26,7 +22,10 @@ bin/rails db:migrate
 bin/rails server
 ```
 
-Visit `/cms` (or your custom mount path) and log in.
+Visit `/cms` (or your custom mount path) and create or seed an administrator.
+
+Plum is pre-1.0 software. Pin the minor version in production and review the
+changelog before upgrading.
 
 ### Mount path
 

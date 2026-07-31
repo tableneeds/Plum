@@ -1,10 +1,10 @@
 require_relative "lib/plum/version"
 
 Gem::Specification.new do |spec|
-  spec.name = "plum"
+  spec.name = "plum-cms"
   spec.version = Plum::VERSION
   spec.authors = [ "Ben Simmons" ]
-  spec.email = [ "ben@example.com" ]
+  spec.email = [ "bdsimmons1@gmail.com" ]
 
   spec.summary = "A Rails-native CMS engine."
   spec.description = "Plum is a Rails-native CMS engine with Hotwire control panel, Liquid themes, and site-scoped content."
@@ -13,6 +13,7 @@ Gem::Specification.new do |spec|
   spec.required_ruby_version = ">= 3.3"
 
   spec.metadata["allowed_push_host"] = "https://rubygems.org"
+  spec.metadata["rubygems_mfa_required"] = "true"
   spec.metadata["source_code_uri"] = "https://github.com/tableneeds/plum"
   spec.metadata["bug_tracker_uri"] = "https://github.com/tableneeds/plum/issues"
 
@@ -27,17 +28,20 @@ Gem::Specification.new do |spec|
       "app/themes/**/*",
       "app/views/layouts/plum/**/*",
       "app/views/plum/**/*",
+      "compat/**/*",
       "config/locales/**/*",
       "db/engine_migrate/**/*",
       "lib/**/*",
       "vendor/javascript/**/*",
       "config/plum_routes.rb",
       "config/plum_importmap.rb",
+      "CHANGELOG.md",
+      "LICENSE.txt",
       "README.md"
     ].select { |path| File.file?(path) }.sort
   end
 
-  spec.require_paths = [ "lib" ]
+  spec.require_paths = [ "lib", "compat" ]
 
   spec.add_dependency "bcrypt", "~> 3.1"
   spec.add_dependency "importmap-rails", "~> 2.0"
