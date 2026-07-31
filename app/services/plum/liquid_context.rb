@@ -27,25 +27,27 @@ module Plum
     attr_reader :controller, :site, :entry, :theme_name, :theme_settings
 
     def site_context
-      settings = SiteSetting.instance(site)
-      {
-        "name" => settings.name,
-        "tagline" => settings.tagline,
-        "seo_title" => settings.seo_title,
-        "seo_description" => settings.seo_description,
-        "primary_color" => settings.primary_color,
-        "support_email" => settings.support_email,
-        "logo" => image_asset_context(settings.logo),
-        "theme_name" => theme_name.presence || settings.theme_name,
-        "theme_settings" => theme_settings || site.theme_settings,
-        "theme_asset_base_url" => theme_asset_base_url,
-        "custom_css" => site.custom_css,
-        "url" => public_root_path,
-        "meta_title" => settings.seo_title,
-        "meta_description" => settings.seo_description,
-        "powered_by_name" => Plum.configuration.powered_by_name,
-        "powered_by_url" => Plum.configuration.powered_by_url
-      }
+      @site_context ||= begin
+        settings = SiteSetting.instance(site)
+        {
+          "name" => settings.name,
+          "tagline" => settings.tagline,
+          "seo_title" => settings.seo_title,
+          "seo_description" => settings.seo_description,
+          "primary_color" => settings.primary_color,
+          "support_email" => settings.support_email,
+          "logo" => image_asset_context(settings.logo),
+          "theme_name" => theme_name.presence || settings.theme_name,
+          "theme_settings" => theme_settings || site.theme_settings,
+          "theme_asset_base_url" => theme_asset_base_url,
+          "custom_css" => site.custom_css,
+          "url" => public_root_path,
+          "meta_title" => settings.seo_title,
+          "meta_description" => settings.seo_description,
+          "powered_by_name" => Plum.configuration.powered_by_name,
+          "powered_by_url" => Plum.configuration.powered_by_url
+        }
+      end
     end
 
     def entry_context(entry, relationship_depth: MAX_RELATIONSHIP_DEPTH, expand_blocks: false)
@@ -56,8 +58,8 @@ module Plum
         "url" => public_entry_path(entry),
         "data" => entry_data_context(entry, relationship_depth: relationship_depth, expand_blocks: expand_blocks)
       }
-      if entry.association(:terms).loaded? || entry.terms.any?
-        ctx["terms"] = entry.terms.includes(:taxonomy).group_by { |t| t.taxonomy.handle }.transform_values do |terms|
+      if entry.association(:terms).loaded? && entry.terms.any?
+        ctx["terms"] = entry.terms.group_by { |t| t.taxonomy.handle }.transform_values do |terms|
           terms.map { |t| { "name" => t.name, "slug" => t.slug, "url" => "/#{t.taxonomy.slug}/#{t.slug}" } }
         end
       end
@@ -87,33 +89,39 @@ module Plum
     end
 
     def taxonomies_context
-      Taxonomy.for_site(site).includes(:terms).each_with_object({}) do |taxonomy, hash|
+      @taxonomies_context ||= Taxonomy.for_site(site).includes(:terms).each_with_object({}) do |taxonomy, hash|
         hash[taxonomy.handle] = {
           "name" => taxonomy.name,
           "handle" => taxonomy.handle,
           "slug" => taxonomy.slug,
-          "terms" => taxonomy.terms.ordered.map { |t|
-            { "name" => t.name, "slug" => t.slug, "url" => "/#{taxonomy.slug}/#{t.slug}" }
+          "terms" => taxonomy.terms.sort_by(&:position).map { |term|
+            { "name" => term.name, "slug" => term.slug, "url" => "/#{taxonomy.slug}/#{term.slug}" }
           }
         }
       end
     end
 
     def entries_context
-      ContentType.for_site(site).includes(:entries).each_with_object({}) do |content_type, hash|
-        live_entries = content_type.entries.live.order(published_at: :desc, created_at: :desc)
-        hash[content_type.handle] = live_entries.map { |entry| entry_context(entry) }
+      @entries_context ||= begin
+        entries_by_type = Entry.for_site(site).live
+                               .includes(:content_type, terms: :taxonomy)
+                               .order(published_at: :desc, created_at: :desc)
+                               .group_by(&:content_type_id)
+
+        ContentType.for_site(site).each_with_object({}) do |content_type, hash|
+          hash[content_type.handle] = Array(entries_by_type[content_type.id]).map { |item| entry_context(item) }
+        end
       end
     end
 
     def globals_context
-      Global.for_site(site).each_with_object({}) do |global, hash|
+      @globals_context ||= Global.for_site(site).each_with_object({}) do |global, hash|
         hash[global.handle] = global.data
       end
     end
 
     def forms_context
-      FormDefinition.for_site(site).each_with_object({}) do |form, hash|
+      @forms_context ||= FormDefinition.for_site(site).each_with_object({}) do |form, hash|
         hash[form.handle] = {
           "name" => form.name,
           "handle" => form.handle,
@@ -127,21 +135,29 @@ module Plum
     end
 
     def nav_context
-      NavMenu.for_site(site).includes(nav_items: [ :entry, :children ]).each_with_object({}) do |menu, hash|
-        hash[menu.handle] = {
-          "name" => menu.name,
-          "handle" => menu.handle,
-          "items" => menu.root_items.map { |item| nav_item_context(item) }
-        }
+      @nav_context ||= begin
+        items_by_menu = NavItem.for_site(site)
+                               .includes(entry: [ :content_type, { terms: :taxonomy } ])
+                               .group_by(&:nav_menu_id)
+
+        NavMenu.for_site(site).each_with_object({}) do |menu, hash|
+          menu_items = Array(items_by_menu[menu.id])
+          items_by_parent = menu_items.group_by(&:parent_id)
+          hash[menu.handle] = {
+            "name" => menu.name,
+            "handle" => menu.handle,
+            "items" => Array(items_by_parent[nil]).map { |item| nav_item_context(item, items_by_parent) }
+          }
+        end
       end
     end
 
-    def nav_item_context(item)
+    def nav_item_context(item, items_by_parent)
       {
         "label" => item.label,
         "url" => nav_item_url(item),
         "entry" => item.entry ? entry_context(item.entry) : nil,
-        "children" => item.children.map { |child| nav_item_context(child) }
+        "children" => Array(items_by_parent[item.id]).map { |child| nav_item_context(child, items_by_parent) }
       }
     end
 
@@ -204,7 +220,7 @@ module Plum
 
       LEXXY_CSS_VARS.each { |var, val| result.gsub!(var, val) }
 
-      result.gsub!(/<mark\b/, '<span')
+      result.gsub!(/<mark\b/, "<span")
       result.gsub!(%r{</mark>}, "</span>")
 
       result

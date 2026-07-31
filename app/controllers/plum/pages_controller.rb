@@ -4,7 +4,9 @@ module Plum
 
     def home
       @site_settings = SiteSetting.instance(current_site)
-      @entry = Entry.for_site(current_site).live.includes(:content_type).find_by(slug: HOMEPAGE_SLUG)
+      @entry = Entry.for_site(current_site).live
+                    .includes(:content_type, terms: :taxonomy)
+                    .find_by(slug: HOMEPAGE_SLUG)
 
       template = @entry ? "entries/#{@entry.content_type.handle}" : "index"
       html = Plum::LiquidRenderer.render_template(template, build_context(@entry).to_h)
@@ -50,7 +52,9 @@ module Plum
         return render_taxonomy_index(taxonomy) if taxonomy
       end
 
-      @entry = Entry.for_site(current_site).live.find_by!(slug: slug)
+      @entry = Entry.for_site(current_site).live
+                    .includes(:content_type, terms: :taxonomy)
+                    .find_by!(slug: slug)
       template = "entries/#{@entry.content_type.handle}"
       html = Plum::LiquidRenderer.render_template(template, build_context(@entry).to_h)
       render html: html.html_safe, layout: false

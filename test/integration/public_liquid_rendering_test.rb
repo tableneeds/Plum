@@ -61,6 +61,28 @@ class PublicLiquidRenderingTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "/about"
   end
 
+  test "homepage rendering has a bounded query count as content grows" do
+    entries = 8.times.map do |index|
+      create_entry(
+        title: "Post #{index}",
+        slug: "post-#{index}",
+        status: :published,
+        published_at: index.hours.ago
+      )
+    end
+    @site.nav_menus.create!(name: "Main", handle: "main").tap do |menu|
+      entries.first(4).each_with_index do |entry, index|
+        menu.nav_items.create!(site: @site, label: entry.title, entry: entry, position: index)
+      end
+    end
+
+    get root_path # Warm framework and schema caches before measuring application work.
+    query_count = count_sql_queries { get root_path }
+
+    assert_response :success
+    assert_operator query_count, :<=, 20, "expected at most 20 queries, got #{query_count}"
+  end
+
   test "scheduled entries are not public pages" do
     create_entry(title: "Scheduled Post", slug: "scheduled-post", status: :scheduled, published_at: 1.hour.ago)
 
@@ -108,6 +130,18 @@ class PublicLiquidRenderingTest < ActionDispatch::IntegrationTest
   end
 
   private
+
+  def count_sql_queries
+    count = 0
+    subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |*, payload|
+      count += 1 unless payload[:name] == "SCHEMA" || payload[:cached]
+    end
+
+    yield
+    count
+  ensure
+    ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
+  end
 
   def create_entry(attributes)
     @posts.entries.create!(
