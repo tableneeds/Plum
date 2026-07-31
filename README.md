@@ -248,6 +248,6 @@ bin/setup
 bin/rails server
 ```
 
-Login: `admin@example.com` / `password123`
+Login: `admin@example.com` / `password`
 
 For Bagel Boy demo content: `bin/rails runner "load 'db/seeds/bagel_boy.rb'"`

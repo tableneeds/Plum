@@ -1,9 +1,10 @@
 # Create admin user
-admin = Plum::User.find_or_create_by!(email: "admin@example.com") do |user|
-  user.password = "password123"
-  user.role = :admin
-end
-puts "Created admin user: admin@example.com / password123"
+admin = Plum::User.find_or_initialize_by(email: "admin@example.com")
+seed_password = Rails.env.production? ? ENV.fetch("PLUM_ADMIN_PASSWORD") : "password"
+admin.password = seed_password
+admin.role = :admin
+admin.save!
+puts Rails.env.production? ? "Created admin user: admin@example.com" : "Created admin user: admin@example.com / password"
 
 # Create standalone site
 plum_site = Plum::Site.first_or_create_standalone!

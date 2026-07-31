@@ -24,10 +24,10 @@ settings.update!(
   support_email: "hello@bagelboy.example"
 )
 
-admin = Plum::User.find_or_create_by!(email: "admin@example.com") do |u|
-  u.password = "password123"
-  u.role = :admin
-end
+admin = Plum::User.find_or_initialize_by(email: "admin@example.com")
+admin.password = "password"
+admin.role = :admin
+admin.save!
 
 def block(type, fields)
   { "id" => SecureRandom.uuid, "type" => type, "fields" => fields }
