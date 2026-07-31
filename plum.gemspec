@@ -8,12 +8,13 @@ Gem::Specification.new do |spec|
 
   spec.summary = "A Rails-native CMS engine."
   spec.description = "Plum is a Rails-native CMS engine with Hotwire control panel, Liquid themes, and site-scoped content."
-  spec.homepage = "https://example.com/plum"
+  spec.homepage = "https://plumcms.org"
   spec.license = "MIT"
   spec.required_ruby_version = ">= 3.3"
 
   spec.metadata["allowed_push_host"] = "https://rubygems.org"
-  spec.metadata["source_code_uri"] = spec.homepage
+  spec.metadata["source_code_uri"] = "https://github.com/tableneeds/plum"
+  spec.metadata["bug_tracker_uri"] = "https://github.com/tableneeds/plum/issues"
 
   spec.files = Dir.chdir(__dir__) do
     Dir[
