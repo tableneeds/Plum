@@ -107,6 +107,36 @@ class PublicLiquidRenderingTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "<strong>sesame</strong>"
   end
 
+  test "content types can conventionally prefix their entry routes" do
+    guides = @site.content_types.create!(
+      name: "Guides",
+      handle: "guides",
+      blueprint: { "route_prefix" => "learn", "fields" => [] }
+    )
+    guides.entries.create!(
+      site: @site, author: @admin, title: "Install Plum", slug: "install-plum",
+      status: :published, published_at: 1.hour.ago, data: {}
+    )
+
+    get "/learn/install-plum"
+
+    assert_response :success
+    assert_includes response.body, "Install Plum"
+  end
+
+  test "rich text headings receive stable anchor ids" do
+    create_entry(
+      title: "Anchored Guide", slug: "anchored-guide", status: :published,
+      published_at: 1.hour.ago, data: { "body" => "<h2>Install Plum</h2><h3>Run the generator</h3>" }
+    )
+
+    get "/anchored-guide"
+
+    assert_response :success
+    assert_includes response.body, '<h2 id="install-plum">'
+    assert_includes response.body, '<h3 id="run-the-generator">'
+  end
+
   test "published entry renders image fields through Liquid" do
     asset = @site.assets.build(alt_text: "Bagel tray", caption: "Morning batch")
     attach_test_png(asset, filename: "bagels.png")

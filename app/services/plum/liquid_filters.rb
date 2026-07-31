@@ -1,4 +1,5 @@
 require "redcarpet"
+require "nokogiri"
 
 module Plum
   module LiquidFilters
@@ -37,6 +38,21 @@ module Plum
       return "" unless builder
 
       builder.call(input)
+    end
+
+    def table_of_contents(input)
+      return "" if input.blank?
+
+      headings = Nokogiri::HTML.fragment(input.to_s).css("h2, h3")
+      return "" if headings.empty?
+
+      items = headings.map do |heading|
+        id = heading["id"].presence || heading.text.parameterize
+        label = ERB::Util.html_escape(heading.text)
+        %(<li class="toc-#{heading.name}"><a href="##{id}">#{label}</a></li>)
+      end
+
+      %(<nav class="table-of-contents" aria-label="On this page"><p>On this page</p><ol>#{items.join}</ol></nav>)
     end
   end
 end

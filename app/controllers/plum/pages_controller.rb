@@ -42,6 +42,17 @@ module Plum
 
       if slug.include?("/")
         parts = slug.split("/", 2)
+        content_type = ContentType.for_site(current_site).find do |candidate|
+          candidate.route_prefix == parts[0]
+        end
+        if content_type
+          @entry = Entry.for_site(current_site).live
+                        .includes(:content_type, terms: :taxonomy)
+                        .find_by!(content_type: content_type, slug: parts[1])
+          html = Plum::LiquidRenderer.render_template("entries/#{content_type.handle}", build_context(@entry).to_h)
+          return render html: html.html_safe, layout: false
+        end
+
         taxonomy = Taxonomy.for_site(current_site).find_by(slug: parts[0])
         if taxonomy
           term = taxonomy.terms.find_by!(slug: parts[1])

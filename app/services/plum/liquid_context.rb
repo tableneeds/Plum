@@ -1,3 +1,5 @@
+require "nokogiri"
+
 module Plum
   class LiquidContext
     MAX_RELATIONSHIP_DEPTH = 2
@@ -63,6 +65,7 @@ module Plum
           terms.map { |t| { "name" => t.name, "slug" => t.slug, "url" => "/#{t.taxonomy.slug}/#{t.slug}" } }
         end
       end
+      ctx.merge!(adjacent_entry_context(entry)) if expand_blocks
       ctx
     end
 
@@ -103,13 +106,8 @@ module Plum
 
     def entries_context
       @entries_context ||= begin
-        entries_by_type = Entry.for_site(site).live
-                               .includes(:content_type, terms: :taxonomy)
-                               .order(published_at: :desc, created_at: :desc)
-                               .group_by(&:content_type_id)
-
         ContentType.for_site(site).each_with_object({}) do |content_type, hash|
-          hash[content_type.handle] = Array(entries_by_type[content_type.id]).map { |item| entry_context(item) }
+          hash[content_type.handle] = Array(live_entries_by_type[content_type.id]).map { |item| entry_context(item) }
         end
       end
     end
@@ -223,7 +221,37 @@ module Plum
       result.gsub!(/<mark\b/, "<span")
       result.gsub!(%r{</mark>}, "</span>")
 
-      result
+      add_heading_ids(result)
+    end
+
+    def add_heading_ids(html)
+      fragment = Nokogiri::HTML.fragment(html)
+      used_ids = Hash.new(0)
+
+      fragment.css("h2, h3").each do |heading|
+        base_id = heading["id"].presence || heading.text.parameterize.presence || "section"
+        used_ids[base_id] += 1
+        heading["id"] = used_ids[base_id] == 1 ? base_id : "#{base_id}-#{used_ids[base_id]}"
+      end
+
+      fragment.to_html
+    end
+
+    def adjacent_entry_context(current_entry)
+      siblings = Array(live_entries_by_type[current_entry.content_type_id]).sort_by do |item|
+        [ item.data&.fetch("position", nil).to_i, item.title.to_s ]
+      end
+      index = siblings.index { |item| item.id == current_entry.id }
+      return {} unless index
+
+      {
+        "previous" => index.positive? ? navigation_entry_context(siblings[index - 1]) : nil,
+        "next" => index < siblings.length - 1 ? navigation_entry_context(siblings[index + 1]) : nil
+      }
+    end
+
+    def navigation_entry_context(item)
+      { "title" => item.title, "slug" => item.slug, "url" => public_entry_path(item) }
     end
 
     # Renders a blocks field value (an array of block instances) into HTML using
@@ -276,6 +304,13 @@ module Plum
       @relationship_entry_cache ||= Entry.for_site(site).live.includes(:content_type).index_by(&:id)
     end
 
+    def live_entries_by_type
+      @live_entries_by_type ||= Entry.for_site(site).live
+                                    .includes(:content_type, terms: :taxonomy)
+                                    .order(published_at: :desc, created_at: :desc)
+                                    .group_by(&:content_type_id)
+    end
+
     def public_root_path
       controller.request.script_name.presence || "/"
     end
@@ -285,7 +320,8 @@ module Plum
     end
 
     def public_entry_path(entry)
-      "#{controller.request.script_name.to_s.chomp("/")}/#{entry.slug}"
+      path = [ entry.content_type.route_prefix, entry.slug ].compact.join("/")
+      "#{controller.request.script_name.to_s.chomp("/")}/#{path}"
     end
 
     def public_form_path(form)
