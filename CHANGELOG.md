@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.1.2 — 2026-08-04
+
+### Fixed
+
+- Allowed long control-panel brand names, subtitles, and content-type names to
+  wrap without clipping or displacing their icons.
+- Kept control-panel branding limited to the configured `cp_name` and
+  `cp_subtitle`; public “Powered by” attribution is not appended to the sidebar.
+- Allowed the control-panel subtitle to be omitted by setting `cp_subtitle` to
+  `nil`.
+
 ## 0.1.1 — 2026-08-04
 
 ### Changed

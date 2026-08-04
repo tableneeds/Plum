@@ -88,6 +88,12 @@ Plum.configure do |config|
 end
 ```
 
+`cp_name` and `cp_subtitle` are the only text shown in the control-panel
+header. Set either value to any brand copy you want (or set `cp_subtitle` to
+`nil` to omit the second line). Public-site “Powered by” copy is configured
+separately with `powered_by_name` and `powered_by_url`; it is not appended to
+the control-panel header.
+
 All buttons, links, focus rings, sidebar, login page, and page titles follow
 the configured brand. Zero Plum branding when white-labeled.
 

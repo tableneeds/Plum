@@ -20,6 +20,8 @@
     }
     .plum-sidebar { background: var(--plum-sidebar-bg); }
     .plum-sidebar-header { background: var(--plum-sidebar-header); }
+    .plum-sidebar-header { min-height: 4rem; }
+    .plum-sidebar-wrapping-text { min-width: 0; overflow-wrap: anywhere; }
     .plum-sidebar-link { color: var(--plum-sidebar-text); }
     .plum-sidebar-link:hover, .plum-sidebar-link.active { background: rgba(255,255,255,0.1); color: #fff; }
     .plum-sidebar-section { color: var(--plum-sidebar-muted); }
@@ -45,12 +47,14 @@
     <div class="fixed inset-y-0 left-0 w-64 plum-sidebar">
       <div class="flex flex-col h-full">
         <!-- Logo -->
-        <div class="flex items-center h-16 px-5 border-b border-white/10 plum-sidebar-header">
-          <%= link_to cp_root_path, class: "flex items-center gap-3 text-white" do %>
+        <div class="flex min-h-16 items-center px-5 py-3 border-b border-white/10 plum-sidebar-header">
+          <%= link_to cp_root_path, class: "flex w-full min-w-0 items-center gap-3 text-white" do %>
             <%= image_tag Plum.configuration.cp_logo_path, alt: "", class: "h-9 w-9 shrink-0" %>
-            <span class="leading-tight">
-              <span class="block text-lg font-semibold tracking-normal"><%= Plum.configuration.cp_name %></span>
-              <span class="block text-xs font-medium plum-sidebar-subtitle"><%= Plum.configuration.cp_subtitle %></span>
+            <span class="min-w-0 leading-tight">
+              <span class="plum-sidebar-wrapping-text block text-lg font-semibold tracking-normal"><%= Plum.configuration.cp_name %></span>
+              <% if Plum.configuration.cp_subtitle.present? %>
+                <span class="plum-sidebar-wrapping-text mt-1 block text-xs font-medium plum-sidebar-subtitle"><%= Plum.configuration.cp_subtitle %></span>
+              <% end %>
             </span>
           <% end %>
         </div>
@@ -68,8 +72,8 @@
             <% Plum::ContentType.for_site(current_site).each do |ct| %>
               <%= link_to cp_content_type_path(ct),
                   class: "flex items-center gap-2 px-4 py-2 mt-2 text-sm font-medium rounded-md plum-sidebar-link #{request.path.include?("/cp/content_types/#{ct.id}") ? 'active' : ''}" do %>
-                <%= render "plum/cp/shared/icon", name: ct.icon.presence || "document" %>
-                <%= ct.name %>
+                <span class="shrink-0"><%= render "plum/cp/shared/icon", name: ct.icon.presence || "document" %></span>
+                <span class="plum-sidebar-wrapping-text"><%= ct.name %></span>
               <% end %>
             <% end %>
             <%= link_to "+ New Type", new_cp_content_type_path,
