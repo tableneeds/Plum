@@ -32,7 +32,9 @@
       <%= render "plum/cp/shared/image_picker",
           input_name: "site_setting[logo]",
           value: @site_settings.logo.to_s,
-          field_id: "site_setting_logo" %>
+          field_id: "site_setting_logo",
+          save_url: "#{cp_site_settings_path}/image_field",
+          field_handle: "logo" %>
     </div>
 
     <div>

@@ -11,9 +11,9 @@ module Plum
       ].freeze
 
       before_action :set_content_type
-      before_action :set_entry, only: [ :edit, :update, :destroy ]
+      before_action :set_entry, only: [ :edit, :update, :destroy, :image_field ]
       before_action :set_form_collections, only: [ :new, :create, :edit, :update ]
-      before_action :require_editor, only: [ :new, :create, :edit, :update, :destroy ]
+      before_action :require_editor, only: [ :new, :create, :edit, :update, :destroy, :image_field ]
 
       def index
         @entries = @content_type.entries.order(updated_at: :desc)
@@ -45,6 +45,26 @@ module Plum
           redirect_to edit_cp_content_type_entry_path(@content_type, @entry), notice: "Entry updated"
         else
           render :edit, status: :unprocessable_entity
+        end
+      end
+
+      # Persists one image association without submitting (and potentially
+      # overwriting) the other edited fields on the page.
+      def image_field
+        handle = params[:field_handle].to_s
+        field = image_fields.find { |candidate| candidate["handle"].to_s == handle }
+        return render json: { error: "Unknown image field" }, status: :unprocessable_entity unless field
+
+        asset_id = params[:asset_id].presence
+        if asset_id && !current_site.assets.exists?(id: asset_id)
+          return render json: { error: "Image is not available" }, status: :unprocessable_entity
+        end
+
+        data = @entry.data.to_h.merge(handle => asset_id&.to_i)
+        if @entry.update(data: data)
+          render json: { saved: true, asset_id: data[handle] }
+        else
+          render json: { error: @entry.errors.full_messages.to_sentence }, status: :unprocessable_entity
         end
       end
 

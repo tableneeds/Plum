@@ -180,7 +180,7 @@ export default class extends Controller {
     // must be set via setAttribute — assigning through element.dataset[...] with
     // such keys throws a SyntaxError.
     const wrap = document.createElement("div")
-    wrap.className = "space-y-1"
+    wrap.className = "space-y-3"
     wrap.setAttribute("data-controller", "plum--image-picker")
     wrap.setAttribute("data-plum--image-picker-assets-url-value", this.assetsUrlValue)
     wrap.setAttribute("data-plum--image-picker-upload-url-value", this.uploadUrlValue)
@@ -214,34 +214,53 @@ export default class extends Controller {
     wrap.appendChild(preview)
 
     const controls = document.createElement("div")
-    controls.className = "flex items-center gap-2"
-    controls.appendChild(this.pickerButton("Choose image", "toggle", "rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"))
-    controls.appendChild(this.pickerButton("Remove", "clear", "text-sm text-gray-500 hover:text-gray-700"))
+    controls.className = "flex flex-wrap items-center gap-3"
+    controls.appendChild(this.pickerButton("Choose image", "toggle", "inline-flex cursor-pointer items-center rounded-lg bg-purple-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"))
+    controls.appendChild(this.pickerButton("Remove", "clear", "rounded-md px-2 py-2 text-sm font-medium text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700"))
     wrap.appendChild(controls)
 
     const panel = document.createElement("div")
-    panel.className = "hidden rounded-lg border border-gray-200 bg-gray-50 p-3"
+    panel.className = "hidden overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm"
     panel.setAttribute("data-plum--image-picker-target", "panel")
 
+    const header = document.createElement("div")
+    header.className = "flex items-center justify-between border-b border-gray-200 px-4 py-3"
+    header.innerHTML = '<div><p class="text-sm font-semibold text-gray-900">Image library</p><p class="text-xs text-gray-500">Select an existing image or upload a new one.</p></div>'
+    header.appendChild(this.pickerButton("Close", "close", "rounded-md px-2 py-1 text-sm font-medium text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700"))
+    panel.appendChild(header)
+
     const status = document.createElement("p")
-    status.className = "mb-2 text-xs font-medium text-gray-500"
+    status.className = "hidden border-b px-4 py-2 text-sm font-medium"
+    status.setAttribute("role", "status")
     status.setAttribute("data-plum--image-picker-target", "status")
     panel.appendChild(status)
 
     const grid = document.createElement("div")
-    grid.className = "grid grid-cols-3 gap-2 sm:grid-cols-4"
+    grid.className = "grid grid-cols-2 gap-3 p-4 sm:grid-cols-4"
     grid.setAttribute("data-plum--image-picker-target", "grid")
     panel.appendChild(grid)
 
     const uploadWrap = document.createElement("div")
-    uploadWrap.className = "mt-3 border-t border-gray-200 pt-3"
+    uploadWrap.className = "border-t border-gray-200 bg-gray-50 px-4 py-4"
+    const uploadHeading = document.createElement("p")
+    uploadHeading.className = "mb-2 text-sm font-semibold text-gray-700"
+    uploadHeading.textContent = "Upload a new image"
     const file = document.createElement("input")
     file.type = "file"
     file.accept = "image/*"
-    file.className = "block w-full text-sm text-gray-700"
+    file.className = "peer sr-only"
     file.setAttribute("data-plum--image-picker-target", "file")
     file.setAttribute("data-action", "change->plum--image-picker#upload")
+    file.id = `block-image-upload-${index}-${fieldDef.handle}`
+    const uploadLabel = document.createElement("label")
+    uploadLabel.htmlFor = file.id
+    uploadLabel.setAttribute("data-plum--image-picker-target", "dropzone")
+    uploadLabel.setAttribute("data-action", "dragenter->plum--image-picker#dragenter dragover->plum--image-picker#dragover dragleave->plum--image-picker#dragleave drop->plum--image-picker#drop")
+    uploadLabel.className = "flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-white px-6 py-6 text-center transition-colors hover:border-purple-400 hover:bg-purple-50 peer-focus:ring-2 peer-focus:ring-purple-500 peer-focus:ring-offset-2"
+    uploadLabel.innerHTML = '<span class="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-purple-100 text-purple-600" aria-hidden="true"><svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M10 2a1 1 0 0 1 1 1v6.59l2.3-2.3a1 1 0 1 1 1.4 1.42l-4 4a1 1 0 0 1-1.4 0l-4-4A1 1 0 0 1 6.7 7.3L9 9.59V3a1 1 0 0 1 1-1Z"/><path d="M3 13a1 1 0 0 1 1 1v2h12v-2a1 1 0 1 1 2 0v2a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-2a1 1 0 0 1 1-1Z"/></svg></span><span class="text-sm font-semibold text-purple-600">Choose an image</span><span class="mt-1 text-xs text-gray-500" data-plum--image-picker-target="filename">Drag and drop, or click to browse · PNG, JPG, GIF, or WebP</span>'
+    uploadWrap.appendChild(uploadHeading)
     uploadWrap.appendChild(file)
+    uploadWrap.appendChild(uploadLabel)
     panel.appendChild(uploadWrap)
 
     wrap.appendChild(panel)
@@ -251,7 +270,7 @@ export default class extends Controller {
   pickerButton(text, action, className) {
     const btn = document.createElement("button")
     btn.type = "button"
-    btn.className = className
+    btn.className = `${className} cursor-pointer`
     btn.textContent = text
     btn.dataset.action = `plum--image-picker#${action}`
     return btn

@@ -4,35 +4,68 @@
     input_name - the form field name (stores the selected asset id)
     value      - currently selected asset id (optional)
     field_id   - dom id for the hidden input (optional)
+    save_url   - endpoint for independently persisting this image field (optional)
+    field_handle - image field handle sent to save_url (optional)
 %>
-<div class="mt-1 space-y-2"
+<% upload_field_id = "#{field_id.presence || input_name.parameterize}-upload" %>
+<div class="mt-2 space-y-3"
      data-controller="plum--image-picker"
      data-plum--image-picker-assets-url-value="<%= cp_assets_path(format: :json) %>"
-     data-plum--image-picker-upload-url-value="<%= cp_assets_path %>">
+     data-plum--image-picker-upload-url-value="<%= cp_assets_path %>"
+     <% if local_assigns[:save_url].present? %>
+       data-plum--image-picker-save-url-value="<%= save_url %>"
+       data-plum--image-picker-field-handle-value="<%= local_assigns[:field_handle] %>"
+     <% end %>>
   <%= hidden_field_tag input_name, value, id: field_id,
       data: { "plum--image-picker-target": "input" } %>
 
   <div data-plum--image-picker-target="preview"></div>
 
-  <div class="flex items-center gap-2">
+  <div class="flex flex-wrap items-center gap-3">
     <button type="button" data-action="plum--image-picker#toggle"
-            class="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50">Choose image</button>
+            class="inline-flex cursor-pointer items-center rounded-lg bg-purple-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2">Choose image</button>
     <button type="button" data-action="plum--image-picker#clear"
-            class="text-sm text-gray-500 hover:text-gray-700">Remove</button>
+            class="cursor-pointer rounded-md px-2 py-2 text-sm font-medium text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700">Remove</button>
+    <% if local_assigns[:save_url].present? %>
+      <button type="button" disabled
+              data-action="plum--image-picker#save"
+              data-plum--image-picker-target="saveButton"
+              class="hidden cursor-pointer rounded-lg border border-purple-200 bg-purple-50 px-4 py-2 text-sm font-semibold text-purple-700 transition-colors hover:bg-purple-100 disabled:cursor-not-allowed disabled:opacity-50">Save image</button>
+    <% end %>
   </div>
+  <% if local_assigns[:save_url].present? %>
+    <p class="hidden text-sm font-medium" aria-live="polite" data-plum--image-picker-target="saveStatus"></p>
+  <% elsif input_name.start_with?("entry[") %>
+    <p class="text-xs text-gray-500">Save the entry first to enable independent image saving.</p>
+  <% end %>
 
-  <div class="hidden rounded-lg border border-gray-200 bg-gray-50 p-3" data-plum--image-picker-target="panel">
-    <div class="mb-2 flex items-center justify-between">
-      <span class="text-xs font-medium text-gray-500" data-plum--image-picker-target="status"></span>
-      <button type="button" data-action="plum--image-picker#close" class="text-xs text-gray-500 hover:text-gray-700">Close</button>
+  <div class="hidden overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm" data-plum--image-picker-target="panel">
+    <div class="flex items-center justify-between border-b border-gray-200 px-4 py-3">
+      <div>
+        <p class="text-sm font-semibold text-gray-900">Image library</p>
+        <p class="text-xs text-gray-500">Select an existing image or upload a new one.</p>
+      </div>
+      <button type="button" data-action="plum--image-picker#close" class="cursor-pointer rounded-md px-2 py-1 text-sm font-medium text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700">Close</button>
     </div>
-    <div class="grid grid-cols-3 gap-2 sm:grid-cols-4" data-plum--image-picker-target="grid"></div>
-    <div class="mt-3 border-t border-gray-200 pt-3">
-      <label class="block text-xs font-medium text-gray-500">Upload a new image</label>
+    <p class="hidden border-b px-4 py-2 text-sm font-medium" role="status" data-plum--image-picker-target="status"></p>
+    <div class="grid grid-cols-2 gap-3 p-4 sm:grid-cols-4" data-plum--image-picker-target="grid"></div>
+    <div class="border-t border-gray-200 bg-gray-50 px-4 py-4">
+      <p class="mb-2 text-sm font-semibold text-gray-700">Upload a new image</p>
       <input type="file" accept="image/*"
+             id="<%= upload_field_id %>"
              data-plum--image-picker-target="file"
              data-action="change->plum--image-picker#upload"
-             class="mt-1 block w-full text-sm text-gray-700">
+             class="peer sr-only">
+      <label for="<%= upload_field_id %>"
+             data-plum--image-picker-target="dropzone"
+             data-action="dragenter->plum--image-picker#dragenter dragover->plum--image-picker#dragover dragleave->plum--image-picker#dragleave drop->plum--image-picker#drop"
+             class="flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-white px-6 py-6 text-center transition-colors hover:border-purple-400 hover:bg-purple-50 peer-focus:ring-2 peer-focus:ring-purple-500 peer-focus:ring-offset-2">
+        <span class="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-purple-100 text-purple-600" aria-hidden="true">
+          <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M10 2a1 1 0 0 1 1 1v6.59l2.3-2.3a1 1 0 1 1 1.4 1.42l-4 4a1 1 0 0 1-1.4 0l-4-4A1 1 0 0 1 6.7 7.3L9 9.59V3a1 1 0 0 1 1-1Z"/><path d="M3 13a1 1 0 0 1 1 1v2h12v-2a1 1 0 1 1 2 0v2a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-2a1 1 0 0 1 1-1Z"/></svg>
+        </span>
+        <span class="text-sm font-semibold text-purple-600">Choose an image</span>
+        <span class="mt-1 text-xs text-gray-500" data-plum--image-picker-target="filename">Drag and drop, or click to browse · PNG, JPG, GIF, or WebP</span>
+      </label>
     </div>
   </div>
 </div>

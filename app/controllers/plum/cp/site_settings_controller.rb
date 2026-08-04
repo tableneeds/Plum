@@ -8,7 +8,7 @@ module Plum
 
       before_action :set_site_settings
       before_action :set_theme_options
-      before_action :require_admin, only: [ :edit, :update ]
+      before_action :require_admin, only: [ :edit, :update, :image_field ]
 
       def show
         redirect_to edit_cp_site_settings_path
@@ -28,6 +28,19 @@ module Plum
         else
           set_theme_options
           render :edit, status: :unprocessable_entity
+        end
+      end
+
+      def image_field
+        asset_id = params[:asset_id].presence
+        if asset_id && !current_site.assets.exists?(id: asset_id)
+          return render json: { error: "Image is not available" }, status: :unprocessable_entity
+        end
+
+        if @site_settings.update(logo: asset_id&.to_s)
+          render json: { saved: true, asset_id: asset_id&.to_i }
+        else
+          render json: { error: @site_settings.errors.full_messages.to_sentence }, status: :unprocessable_entity
         end
       end
 

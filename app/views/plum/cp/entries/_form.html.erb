@@ -112,7 +112,9 @@
                 <%= render "plum/cp/shared/image_picker",
                     input_name: "entry[data][#{field_handle}]",
                     value: entry.data&.dig(field_handle).to_s,
-                    field_id: field_id %>
+                    field_id: field_id,
+                    save_url: entry.persisted? ? "#{cp_content_type_entry_path(@content_type, entry)}/image_field" : nil,
+                    field_handle: field_handle %>
               <% when "relationship" %>
                 <% selected_entry_id = entry.data&.dig(field_handle).to_s %>
                 <% relationship_entries = (@relationship_entries_by_field || {}).fetch(field_handle, []) %>

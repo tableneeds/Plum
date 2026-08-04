@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.1.1 — 2026-08-04
+
+### Changed
+
+- Redesigned image pickers with a responsive image library, accessible upload
+  controls, drag-and-drop support, clearer status feedback, and consistent
+  pointer cursors throughout the control panel.
+- Added independent Hotwire image saving for entry image fields and the site
+  logo so image changes do not submit or overwrite other in-progress edits.
+- Image removals now require confirmation and persist immediately without an
+  extra save step.
+
+### Fixed
+
+- Synchronized the compiled control-panel stylesheet with its Tailwind source.
+- Included the independent image-save routes in both development and packaged
+  engine route sets.
+
 ## 0.1.0 — 2026-07-31
 
 The first public release of Plum, a Rails-native content management engine.
