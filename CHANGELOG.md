@@ -15,6 +15,8 @@
 
 - Corrected the packaged Propshaft search path so engine Stimulus controllers
   resolve under their `plum/` import-map namespace in external applications.
+- Upgraded Lexxy so pasted plain text preserves paragraph boundaries and
+  block formatting only changes the active paragraph.
 
 ## 0.2.0 — 2026-08-07
 

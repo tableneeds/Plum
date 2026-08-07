@@ -80,6 +80,31 @@ class EntriesTest < ApplicationSystemTestCase
     assert_selector "input[type='hidden'][name='entry[data][body]']", visible: :hidden
   end
 
+  test "plain text paste creates separate blocks for heading formatting" do
+    visit new_cp_content_type_entry_path(@content_type)
+
+    editor = find("lexxy-editor .lexxy-editor__content")
+    page.execute_script(<<~JAVASCRIPT, editor.native)
+      const editor = arguments[0]
+      const clipboard = new DataTransfer()
+      clipboard.setData("text/plain", "First section\\n\\nSecond section")
+      editor.dispatchEvent(new ClipboardEvent("paste", {
+        bubbles: true,
+        cancelable: true,
+        clipboardData: clipboard
+      }))
+    JAVASCRIPT
+
+    assert_selector "lexxy-editor p", text: "First section"
+    assert_selector "lexxy-editor p", text: "Second section"
+
+    find("lexxy-editor p", text: "First section").click
+    find("button[title='Heading']").click
+
+    assert_selector "lexxy-editor h2", text: "First section"
+    assert_selector "lexxy-editor p", text: "Second section"
+  end
+
   test "creating an entry with an uploaded image field" do
     image_path = png_fixture_path(filename: "hero.png")
     @content_type.update!(
