@@ -228,6 +228,21 @@ Pagination variables: `pagination.current_page`, `pagination.total_pages`,
 `/search?q=term` searches entry titles and slugs. Themes provide a
 `search.liquid` template with a search form and results.
 
+## Portability and backups
+
+Plum can move or recover an entire site—including assets and remapped content
+relationships—with versioned archives:
+
+```sh
+bin/rails plum:site:export ARCHIVE=site.plum.zip
+bin/rails plum:site:import ARCHIVE=site.plum.zip
+bin/rails plum:backup:create DIRECTORY=/var/backups/plum
+bin/rails plum:backup:restore ARCHIVE=/var/backups/plum/site.plum.zip
+```
+
+See [the portability guide](docs/portability.md) for archive guarantees and
+production backup guidance.
+
 ## Content API
 
 Published entries are available through a read-only, site-scoped JSON API:

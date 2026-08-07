@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- Added versioned, checksum-verified site archives covering content schemas,
+  entries, relationships, taxonomies, navigation, globals, forms, settings,
+  revisions, and original asset files.
+- Added export/import and timestamped backup/restore Rake tasks with safe
+  new-site restoration and identifier remapping.
+- Reframed the roadmap around a production-readiness 0.3.0 milestone.
+
 ## 0.2.0 — 2026-08-07
 
 ### Added

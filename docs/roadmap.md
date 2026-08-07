@@ -1,76 +1,79 @@
 # Roadmap
 
-Plum's roadmap is organized by outcomes rather than promised dates. Items move
-as the product is exercised in real applications and the Rails community gives
-feedback.
+Plum's roadmap is organized by outcomes rather than promised dates. Priorities
+move as the product is exercised in real Rails applications.
 
-## Now: Make Plum Real and Adoptable
+## Shipped: Plum 0.2.0 — Authoring Foundation
 
-The current milestone is to build and publish the Plum marketing and
-documentation site as a standalone Rails application powered by Plum and
-SQLite.
+Plum 0.2.0 established the practical authoring surface:
 
-### Product foundation
+- a visual blueprint builder with 21 field types, reusable fieldsets, nested
+  structures, validation, field widths, sections, and conditions;
+- assets with single and multiple image fields, metadata, focal points, and
+  responsive variants;
+- relationships, taxonomies, navigation, globals, forms, and Liquid themes;
+- drafts, scheduled publishing, immutable revisions, and rollback;
+- localized entries, locale-aware public routes, and a live-only content API;
+- registry-backed custom field types and packaged Tailwind control-panel styles.
 
-- Publish a clear vision, product principles, and supported use cases.
-- Build `plumcms.org` with Plum as an external dependency.
-- Define a portable production layout for the SQLite database, uploaded assets,
-  and mutable site data.
-- Package the site as an ONCE-compatible Docker application.
-- Exercise installation, initialization, health checks, upgrades, backup, and
-  restore on a real VM.
-- Keep SQLite and PostgreSQL verification in CI.
+See [the Statamic parity matrix](statamic-parity.md) for the supported surface.
 
-### Documentation
+## Now: Plum 0.3.0 — Production Readiness
 
-- Document installation and the first editable page.
-- Document sites, content types, fields, entries, and publishing.
-- Document blocks, assets, relationships, taxonomies, navigation, globals, and
-  forms.
-- Document Liquid themes and host content sources.
-- Document embedded authentication, authorization, tenancy, and routing.
-- Document standalone SQLite and embedded PostgreSQL deployments.
-- Publish configuration, troubleshooting, and upgrade references.
+The 0.3.0 milestone makes Plum safe to adopt, move, recover, and operate outside
+its development repository.
 
-### Distribution
+### 1. Portability and recovery
 
-- Publish the `plum` gem.
-- State supported Ruby and Rails versions.
-- Establish semantic versioning and an upgrade policy.
-- Test fresh external installations and upgrades in CI.
-- Provide a production-ready container contract and example application.
+- Versioned site export/import covering schemas, entries, relationships,
+  taxonomies, navigation, globals, forms, settings, and assets.
+- Tested backup and restore commands with integrity checks and clear failure
+  behavior.
+- A documented archive format that remains readable across compatible releases.
 
-## Next: Editorial Confidence and Portability
+### 2. Real-world installation
 
-Once the public site proves the basic workflow, focus on the features editors
-and agencies need to trust Plum in production.
+- Build `plumcms.org` as a standalone Rails application using the released gem.
+- Test fresh external installations and 0.2.x upgrades in CI.
+- Publish a production Docker contract and SQLite deployment example.
+- Exercise health checks, upgrades, persistence, backup, and restore on a VM.
 
-- Draft preview.
-- Revisions and rollback.
-- Scheduled publishing.
-- Multi-entry relationships.
-- Reusable blocks and sections.
-- Content, schema, and asset export/import.
-- Document hierarchy, tables of contents, and site search.
-- SEO metadata, canonical URLs, sitemaps, feeds, and redirect management.
-- Stronger asset organization and image editing.
-- Form spam protection and improved submission workflows.
-- Tested backup and restore commands.
+### 3. Publishing and discovery
+
+- SEO metadata, canonical URLs, redirects, XML sitemaps, and feeds.
+- Document hierarchy, breadcrumbs, generated tables of contents, and site search.
+- Secure, shareable preview links for draft and scheduled content.
+
+### 4. Editorial operations
+
+- Asset folders, search, replacement, cropping, and richer transformations.
+- Granular editorial roles, approvals, and publish permissions.
+- Form spam protection and improved submission review/export workflows.
+
+### 5. Documentation
+
+- Complete installation and first-page guides.
+- Document every supported field and content primitive.
+- Document standalone SQLite and embedded PostgreSQL operation.
+- Publish configuration, troubleshooting, extension, upgrade, backup, and
+  restore references.
+
+## Next: Plum 0.4.0 — Repeatable Adoption
+
+- A thin `plum` CLI for diagnostics, export/import, backup/restore, upgrades,
+  themes, and packaging.
+- Starter applications for common publishing use cases.
+- Theme scaffolding, validation, packaging, and distribution tools.
+- A collection of high-quality open themes and blocks.
+- Importers for common CMS and structured-data formats.
+- Addon discovery and a documented compatibility contract.
 
 ## Later: The Rails Content Ecosystem
 
-After installation and production operation are dependable, make Plum easier to
-adopt repeatedly and extend publicly.
-
-- A thin `plum` CLI for new sites, diagnostics, themes, export/import, upgrades,
-  and packaging.
-- Starter applications for common content-site use cases.
-- A documented extension contract for fields, blocks, and content sources.
-- A collection of high-quality open themes and blocks.
-- Theme scaffolding, validation, packaging, and distribution tools.
-- Importers for common CMS and structured-data formats.
-- Optional content APIs for applications that genuinely need them.
+- Translation-service integrations and richer localization workflows.
+- Agency-oriented multisite operations and reusable project recipes.
 - Community examples, case studies, talks, and contribution programs.
+- Broader content APIs where real applications demonstrate the need.
 
 ## Plum 1.0
 
@@ -92,7 +95,6 @@ It requires:
 
 ## Not on the Near-Term Roadmap
 
-Plum is not currently trying to become a general-purpose admin framework, a
-freeform visual design tool, an ecommerce platform, or a hosted headless CMS.
-Those products solve different problems. Plum's focus is managed content that
-belongs inside Rails.
+Plum is not trying to become a general-purpose admin framework, a freeform
+visual design tool, an ecommerce platform, or a hosted headless CMS. Plum's
+focus is managed content that belongs inside Rails.
