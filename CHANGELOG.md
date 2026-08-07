@@ -11,6 +11,11 @@
   new-site restoration and identifier remapping.
 - Reframed the roadmap around a production-readiness 0.3.0 milestone.
 
+### Fixed
+
+- Corrected the packaged Propshaft search path so engine Stimulus controllers
+  resolve under their `plum/` import-map namespace in external applications.
+
 ## 0.2.0 — 2026-08-07
 
 ### Added

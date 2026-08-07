@@ -8,7 +8,9 @@ module Plum
 
     initializer "plum.assets" do |app|
       app.config.assets.paths << root.join("app/assets/javascripts")
-      app.config.assets.paths << root.join("app/javascript/controllers/plum")
+      # Importmap exposes these files as `plum/*`, so Propshaft must resolve
+      # them relative to the parent controllers directory.
+      app.config.assets.paths << root.join("app/javascript/controllers")
       app.config.assets.paths << root.join("vendor/javascript")
 
       lexxy_spec = Gem.loaded_specs["lexxy"]
