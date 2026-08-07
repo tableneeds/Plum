@@ -78,6 +78,8 @@
             <% end %>
             <%= link_to "+ New Type", new_cp_content_type_path,
                 class: "flex items-center px-4 py-2 mt-2 text-sm font-medium plum-sidebar-link" %>
+            <%= link_to "Fieldsets", cp_fieldsets_path,
+                class: "flex items-center px-4 py-2 mt-2 text-sm font-medium rounded-md plum-sidebar-link #{request.path.include?('/cp/fieldsets') ? 'active' : ''}" %>
             <%= link_to "Assets", cp_assets_path,
                 class: "flex items-center px-4 py-2 mt-2 text-sm font-medium rounded-md plum-sidebar-link #{request.path.include?('/cp/assets') ? 'active' : ''}" %>
             <%= link_to "Globals", cp_globals_path,

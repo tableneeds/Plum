@@ -31,6 +31,7 @@ Gem::Specification.new do |spec|
       "compat/**/*",
       "config/locales/**/*",
       "db/engine_migrate/**/*",
+      "docs/**/*.md",
       "lib/**/*",
       "vendor/javascript/**/*",
       "config/plum_routes.rb",

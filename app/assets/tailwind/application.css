@@ -13,6 +13,48 @@
 }
 
 @layer components {
+  .plum-blueprint-field {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.75rem;
+    background: #f9fafb;
+    padding: 1rem;
+  }
+
+  .plum-blueprint-field-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .plum-blueprint-field-title {
+    overflow: hidden;
+    color: #111827;
+    font-size: 0.875rem;
+    font-weight: 650;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .plum-blueprint-field-type {
+    margin-left: 0.5rem;
+    color: #6b7280;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.75rem;
+    font-weight: 400;
+  }
+
+  @media (min-width: 640px) {
+    .plum-blueprint-field {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
   .plum-rich-text-content {
     min-height: 14rem;
     outline: none;

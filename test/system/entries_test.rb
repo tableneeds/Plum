@@ -74,11 +74,10 @@ class EntriesTest < ApplicationSystemTestCase
   test "rich text field shows editor toolbar" do
     visit new_cp_content_type_entry_path(@content_type)
 
-    within "[data-controller='plum--rich-text-editor']" do
-      assert_button "Bold"
-      assert_button "Italic"
-      assert_selector ".ProseMirror"
-    end
+    assert_selector "lexxy-editor.lexxy-content"
+    assert_selector "button[title='Bold']"
+    assert_selector "button[title='Italic']"
+    assert_selector "input[type='hidden'][name='entry[data][body]']", visible: :hidden
   end
 
   test "creating an entry with an uploaded image field" do
@@ -96,12 +95,13 @@ class EntriesTest < ApplicationSystemTestCase
 
     fill_in "Title", with: "Image Entry"
     fill_rich_text with: "Image body"
-    attach_file "Or upload a new image", image_path
+    click_button "Choose image"
+    attach_file "entry_data_hero_image-upload", image_path, make_visible: true
+    assert_selector "[data-plum--image-picker-target='preview'] img"
     select "Published", from: "Status"
     click_button "Save"
 
     assert_text "Entry created"
-    assert_text "hero.png"
 
     entry = Plum::Entry.find_by!(slug: "image-entry")
     asset = Plum::Asset.find(entry.data["hero_image"])
@@ -148,8 +148,6 @@ class EntriesTest < ApplicationSystemTestCase
     assert_text "Entry created"
     assert_text "Everything Bagel"
 
-    click_link "Edit"
-
     assert_equal related_entry.id.to_s, find("#entry_data_featured_post").value
   end
 
@@ -175,12 +173,12 @@ class EntriesTest < ApplicationSystemTestCase
 
     fill_in "Title", with: "Rich Text Post"
 
-    within "[data-controller='plum--rich-text-editor']" do
-      click_button "Bold"
-      editor = find(".ProseMirror")
+    within "lexxy-editor" do
+      find("button[title='Bold']").click
+      editor = find(".lexxy-editor__content")
       editor.click
       editor.send_keys("Bold intro")
-      click_button "Bold"
+      find("button[title='Bold']").click
       editor.send_keys(" and plain text.")
     end
 
@@ -200,11 +198,9 @@ class EntriesTest < ApplicationSystemTestCase
   private
 
   def fill_rich_text(with:)
-    within "[data-controller='plum--rich-text-editor']" do
-      editor = find(".ProseMirror")
-      editor.click
-      editor.send_keys(with)
-    end
+    editor = find("lexxy-editor .lexxy-editor__content")
+    editor.click
+    editor.send_keys(with)
   end
 
   def login_as(user)
@@ -212,6 +208,6 @@ class EntriesTest < ApplicationSystemTestCase
     fill_in "Email", with: user.email
     fill_in "Password", with: "password123"
     click_button "Sign in"
-    assert_text "Dashboard"
+    assert_current_path cp_root_path
   end
 end

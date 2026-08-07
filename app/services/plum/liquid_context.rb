@@ -306,6 +306,7 @@ module Plum
 
     def live_entries_by_type
       @live_entries_by_type ||= Entry.for_site(site).live
+                                    .where(locale: current_locale)
                                     .includes(:content_type, terms: :taxonomy)
                                     .order(published_at: :desc, created_at: :desc)
                                     .group_by(&:content_type_id)
@@ -320,8 +321,13 @@ module Plum
     end
 
     def public_entry_path(entry)
-      path = [ entry.content_type.route_prefix, entry.slug ].compact.join("/")
+      locale_prefix = entry.locale == site.default_locale ? nil : entry.locale
+      path = [ locale_prefix, entry.content_type.route_prefix, entry.slug ].compact.join("/")
       "#{controller.request.script_name.to_s.chomp("/")}/#{path}"
+    end
+
+    def current_locale
+      entry&.locale.presence || controller.params[:locale].presence || site.default_locale
     end
 
     def public_form_path(form)

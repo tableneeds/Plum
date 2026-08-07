@@ -1,0 +1,25 @@
+<div class="mb-8 flex items-center justify-between gap-4">
+  <div>
+    <h1 class="text-2xl font-bold text-gray-900">Revision history</h1>
+    <p class="mt-1 text-sm text-gray-500"><%= @entry.title %></p>
+  </div>
+  <%= link_to "Back to entry", edit_cp_content_type_entry_path(@content_type, @entry), class: "rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50" %>
+</div>
+
+<div class="overflow-hidden rounded-lg bg-white shadow">
+  <ul class="divide-y divide-gray-200">
+    <% @revisions.each_with_index do |revision, index| %>
+      <li class="flex flex-wrap items-center justify-between gap-4 px-6 py-4">
+        <div>
+          <p class="text-sm font-semibold text-gray-900"><%= index.zero? ? "Current saved version" : revision.created_at.to_fs(:long) %></p>
+          <p class="mt-1 text-xs text-gray-500"><%= revision.editor_label %> · <%= revision.snapshot["status"].to_s.titleize %></p>
+        </div>
+        <% unless index.zero? %>
+          <%= button_to "Restore", restore_cp_content_type_entry_revision_path(@content_type, @entry, revision), method: :post,
+              form: { data: { turbo_confirm: "Restore this version? The current version will remain in history." } },
+              class: "rounded-md border border-purple-200 bg-purple-50 px-3 py-2 text-sm font-semibold text-purple-700 hover:bg-purple-100" %>
+        <% end %>
+      </li>
+    <% end %>
+  </ul>
+</div>

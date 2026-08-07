@@ -13,6 +13,7 @@ module Plum
     has_many :form_submissions, dependent: :destroy
     has_many :taxonomies, dependent: :destroy
     has_many :terms, dependent: :destroy
+    has_many :fieldsets, dependent: :destroy
 
     attribute :skip_defaults, :boolean, default: false
 
@@ -49,6 +50,20 @@ module Plum
 
     def theme_settings
       super || {}
+    end
+
+    def locales
+      configured = Array(settings.to_h["locales"]).map(&:to_s).select { |locale| locale.match?(/\A[a-z]{2}(?:-[A-Z]{2})?\z/) }
+      configured.presence || [ "en" ]
+    end
+
+    def default_locale
+      configured = settings.to_h["default_locale"].to_s
+      locales.include?(configured) ? configured : locales.first
+    end
+
+    def localized?
+      locales.many?
     end
 
     private

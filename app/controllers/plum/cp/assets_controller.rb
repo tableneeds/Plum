@@ -66,7 +66,7 @@ module Plum
       end
 
       def asset_params
-        params.require(:asset).permit(:file, :alt_text, :caption, :folder)
+        params.require(:asset).permit(:file, :alt_text, :caption, :folder, :focal_x, :focal_y)
       end
 
       def asset_json(asset)
@@ -76,6 +76,9 @@ module Plum
           filename: asset.filename,
           folder: asset.folder.to_s,
           alt_text: asset.alt_text.to_s,
+          focal_x: asset.focal_x,
+          focal_y: asset.focal_y,
+          object_position: "#{asset.focal_x}% #{asset.focal_y}%",
           label: plum_asset_label(asset)
         }
       end

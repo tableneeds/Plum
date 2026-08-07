@@ -29,64 +29,90 @@
         </div>
 
         <!-- Dynamic fields based on blueprint -->
-        <div class="bg-white shadow rounded-lg p-6 space-y-6">
+        <div class="bg-white shadow rounded-lg p-6">
           <h3 class="text-lg font-medium text-gray-900">Content</h3>
+          <div class="mt-6 grid grid-cols-12 gap-6" data-controller="plum--conditional-fields">
           <% @content_type.fields.each do |field| %>
             <% field_handle = field["handle"].to_s %>
             <% field_id = "entry_data_#{field_handle.parameterize}" %>
-            <div>
-              <label for="<%= field_id %>" class="block text-sm font-medium text-gray-700"><%= field["label"] || field_handle.titleize %></label>
+            <% field_value = entry.data&.dig(field_handle) %>
+            <% field_value = field["default"] if entry.new_record? && field_value.nil? && field.key?("default") %>
+            <% condition = field["condition"].presence %>
+            <div class="<%= 'border-b border-gray-200 pb-2 pt-4' if field['type'] == 'section' %>" style="grid-column: span <%= field['type'] == 'section' ? 12 : (field['width'].presence || 12) %> / span <%= field['type'] == 'section' ? 12 : (field['width'].presence || 12) %>;"<% if condition %> data-field-condition="<%= condition.to_json %>"<% end %>>
+              <label for="<%= field_id %>" class="block <%= field['type'] == 'section' ? 'text-lg font-semibold text-gray-900' : 'text-sm font-medium text-gray-700' %>"><%= field["label"] || field_handle.titleize %></label>
+              <% if field["instructions"].present? %><p class="mt-1 text-sm text-gray-500"><%= field["instructions"] %></p><% end %>
               <% case field["type"] %>
+              <% when "section" %>
               <% when "text" %>
-                <%= text_field_tag "entry[data][#{field_handle}]", entry.data&.dig(field_handle), id: field_id,
+                <%= text_field_tag "entry[data][#{field_handle}]", field_value, id: field_id, placeholder: field["placeholder"], required: field["required"],
                     class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500" %>
               <% when "textarea" %>
-                <%= text_area_tag "entry[data][#{field_handle}]", entry.data&.dig(field_handle), id: field_id, rows: 4,
+                <%= text_area_tag "entry[data][#{field_handle}]", field_value, id: field_id, rows: 4, placeholder: field["placeholder"], required: field["required"],
                     class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500" %>
               <% when "rich_text" %>
                 <div class="mt-1">
-                  <%= hidden_field_tag "entry[data][#{field_handle}]", entry.data&.dig(field_handle), id: "#{field_id}_hidden" %>
-                  <lexxy-editor value="<%= entry.data&.dig(field_handle) %>"
+                  <%= hidden_field_tag "entry[data][#{field_handle}]", field_value, id: "#{field_id}_hidden" %>
+                  <lexxy-editor value="<%= field_value %>"
                                 data-direct-upload-url="<%= main_app.rails_direct_uploads_url %>"
                                 data-blob-url-template="<%= main_app.rails_service_blob_url(":signed_id", ":filename") %>"
                                 data-hidden-field="<%= field_id %>_hidden"
                                 class="lexxy-content min-h-48 rounded-lg border border-gray-300 bg-white shadow-sm"
-                                placeholder="Write something…"></lexxy-editor>
+                                placeholder="<%= field['placeholder'].presence || 'Write something…' %>"></lexxy-editor>
                 </div>
               <% when "number" %>
-                <%= number_field_tag "entry[data][#{field_handle}]", entry.data&.dig(field_handle), id: field_id,
-                    class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500" %>
+                <div class="mt-1 flex items-center gap-2">
+                  <%= number_field_tag "entry[data][#{field_handle}]", field_value, id: field_id, placeholder: field["placeholder"], required: field["required"],
+                      min: field["min"], max: field["max"], step: field["number_kind"] == "integer" ? 1 : (field["step"].presence || "any"),
+                      class: "block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500" %>
+                  <% if field["unit"].present? %><span class="text-sm font-medium text-gray-500"><%= field["unit"] %></span><% end %>
+                </div>
               <% when "boolean" %>
                 <div class="mt-1">
                   <%= hidden_field_tag "entry[data][#{field_handle}]", "false" %>
-                  <%= check_box_tag "entry[data][#{field_handle}]", "true", ActiveModel::Type::Boolean.new.cast(entry.data&.dig(field_handle)), id: field_id %>
+                  <%= check_box_tag "entry[data][#{field_handle}]", "true", ActiveModel::Type::Boolean.new.cast(field_value), id: field_id %>
                 </div>
               <% when "date" %>
-                <%= date_field_tag "entry[data][#{field_handle}]", entry.data&.dig(field_handle), id: field_id,
-                    class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500" %>
+                <% date_options = { id: field_id, required: field["required"], min: field["min"], max: field["max"], class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500" } %>
+                <% if field["date_mode"] == "time" %>
+                  <%= time_field_tag "entry[data][#{field_handle}]", field_value, date_options %>
+                <% elsif field["date_mode"] == "datetime" %>
+                  <%= datetime_local_field_tag "entry[data][#{field_handle}]", field_value, date_options %>
+                <% else %>
+                  <%= date_field_tag "entry[data][#{field_handle}]", field_value, date_options %>
+                <% end %>
               <% when "select" %>
-                <% options = Array(field["options"]) %>
+                <% options = Plum::FieldOptions.pairs(field["options"]) %>
                 <%= select_tag "entry[data][#{field_handle}]",
-                    options_for_select([["— Select —", ""]] + options.map { |o| [o, o] }, entry.data&.dig(field_handle)),
-                    id: field_id,
+                    options_for_select([["— Select —", ""]] + options, field_value),
+                    id: field_id, required: field["required"],
                     class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500" %>
+              <% when "radio", "button_group" %>
+                <% options = Plum::FieldOptions.pairs(field["options"]) %>
+                <div class="mt-2 flex flex-wrap gap-2">
+                  <% options.each do |label, value| %>
+                    <label class="relative cursor-pointer">
+                      <%= radio_button_tag "entry[data][#{field_handle}]", value, field_value.to_s == value, required: field["required"], class: "peer sr-only" %>
+                      <span class="block rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 peer-checked:border-purple-500 peer-checked:bg-purple-50 peer-checked:text-purple-700 peer-focus:ring-2 peer-focus:ring-purple-500"><%= label %></span>
+                    </label>
+                  <% end %>
+                </div>
               <% when "checkboxes" %>
-                <% options = Array(field["options"]) %>
-                <% selected = Array(entry.data&.dig(field_handle)) %>
+                <% options = Plum::FieldOptions.pairs(field["options"]) %>
+                <% selected = Array(field_value) %>
                 <div class="mt-1 space-y-2">
-                  <% options.each do |option| %>
+                  <% options.each do |label, value| %>
                     <label class="flex items-center gap-2 text-sm text-gray-700">
-                      <%= check_box_tag "entry[data][#{field_handle}][]", option, selected.include?(option),
+                      <%= check_box_tag "entry[data][#{field_handle}][]", value, selected.include?(value),
                           class: "h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded" %>
-                      <%= option %>
+                      <%= label %>
                     </label>
                   <% end %>
                 </div>
               <% when "color" %>
                 <div class="mt-1 flex items-center gap-3">
-                  <%= color_field_tag "entry[data][#{field_handle}]", entry.data&.dig(field_handle) || "#000000", id: field_id,
+                  <%= color_field_tag "entry[data][#{field_handle}]", field_value || "#000000", id: field_id,
                       class: "h-10 w-14 p-0 border border-gray-300 rounded-md cursor-pointer" %>
-                  <span class="text-sm text-gray-500 font-mono"><%= entry.data&.dig(field_handle) %></span>
+                  <span class="text-sm text-gray-500 font-mono"><%= field_value %></span>
                 </div>
               <% when "taxonomy" %>
                 <% taxonomy_handle = field["taxonomy"].to_s %>
@@ -105,23 +131,62 @@
                   <% end %>
                 </div>
               <% when "url" %>
-                <%= url_field_tag "entry[data][#{field_handle}]", entry.data&.dig(field_handle), id: field_id,
-                    placeholder: "https://",
+                <%= url_field_tag "entry[data][#{field_handle}]", field_value, id: field_id,
+                    placeholder: field["placeholder"].presence || "https://", required: field["required"],
                     class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500" %>
               <% when "image" %>
                 <%= render "plum/cp/shared/image_picker",
                     input_name: "entry[data][#{field_handle}]",
-                    value: entry.data&.dig(field_handle).to_s,
+                    value: field_value.to_s,
                     field_id: field_id,
                     save_url: entry.persisted? ? "#{cp_content_type_entry_path(@content_type, entry)}/image_field" : nil,
                     field_handle: field_handle %>
+              <% when "images" %>
+                <% selected_asset_ids = Array(field_value).map(&:to_i) %>
+                <div class="mt-2 space-y-3" data-controller="plum--asset-collection" <% if field['max_items'].present? %>data-plum--asset-collection-max-value="<%= field['max_items'] %>"<% end %>>
+                  <%= hidden_field_tag "entry[data][#{field_handle}][]", "" %>
+                  <div class="flex items-center justify-between">
+                    <p class="text-xs text-gray-500">Choose images from the asset library.</p>
+                    <span class="text-xs font-medium text-gray-600" data-plum--asset-collection-target="count"></span>
+                  </div>
+                  <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                    <% @assets.each do |asset| %>
+                      <label class="group relative cursor-pointer overflow-hidden rounded-lg border border-gray-200 bg-gray-50 p-2 has-checked:border-purple-500 has-checked:ring-2 has-checked:ring-purple-500">
+                        <%= check_box_tag "entry[data][#{field_handle}][]", asset.id, selected_asset_ids.include?(asset.id), class: "sr-only", data: { "plum--asset-collection-target": "checkbox", action: "change->plum--asset-collection#refresh" } %>
+                        <%= image_tag asset.url, alt: asset.alt_text.to_s, class: "aspect-square w-full rounded-md object-cover" %>
+                        <span class="mt-1 block truncate text-xs text-gray-600"><%= asset.filename %></span>
+                      </label>
+                    <% end %>
+                  </div>
+                  <% if @assets.empty? %><p class="text-sm text-gray-500">No images available. <%= link_to "Upload images", cp_assets_path, class: "text-purple-600" %>.</p><% end %>
+                </div>
               <% when "relationship" %>
-                <% selected_entry_id = entry.data&.dig(field_handle).to_s %>
                 <% relationship_entries = (@relationship_entries_by_field || {}).fetch(field_handle, []) %>
-                <%= select_tag "entry[data][#{field_handle}]",
-                    options_for_select([["No entry", ""]] + relationship_entries.map { |related_entry| ["#{related_entry.title} (#{related_entry.content_type.name})", related_entry.id] }, selected_entry_id),
-                    id: field_id,
-                    class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500" %>
+                <% relationship_options = relationship_entries.map { |related_entry| ["#{related_entry.title} (#{related_entry.content_type.name})", related_entry.id] } %>
+                <% if field["multiple"] %>
+                  <%= select_tag "entry[data][#{field_handle}][]", options_for_select(relationship_options, Array(field_value).map(&:to_s)), multiple: true,
+                      id: field_id, required: field["required"], size: [relationship_options.length, 8].min,
+                      class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500" %>
+                <% else %>
+                  <%= select_tag "entry[data][#{field_handle}]", options_for_select([["No entry", ""]] + relationship_options, field_value.to_s),
+                      id: field_id, required: field["required"], class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500" %>
+                <% end %>
+              <% when "list", "group", "repeater" %>
+                <% structured_value = field_value || (field["type"] == "group" ? {} : []) %>
+                <div class="mt-2 space-y-3" data-controller="plum--structured-field"
+                     data-plum--structured-field-type-value="<%= field['type'] %>"
+                     data-plum--structured-field-fields-value="<%= Array(field['fields']).to_json %>"
+                     <% if field['min_items'].present? %>data-plum--structured-field-min-items-value="<%= field['min_items'] %>"<% end %>
+                     <% if field['max_items'].present? %>data-plum--structured-field-max-items-value="<%= field['max_items'] %>"<% end %>>
+                  <%= hidden_field_tag "entry[data][#{field_handle}]", structured_value.to_json,
+                      data: { "plum--structured-field-target": "input" } %>
+                  <p class="hidden text-sm text-gray-500" data-plum--structured-field-target="empty">No items yet.</p>
+                  <div class="space-y-3" data-plum--structured-field-target="rows"></div>
+                  <% unless field["type"] == "group" %>
+                    <button type="button" data-action="plum--structured-field#add" data-plum--structured-field-target="add"
+                            class="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40">+ Add <%= field["type"] == "list" ? "item" : "row" %></button>
+                  <% end %>
+                </div>
               <% when "blocks" %>
                 <% editor_config = Plum::BlockEditorConfig.new(@theme, allowed: field["blocks"]) %>
                 <% current_blocks = entry.data&.dig(field_handle) %>
@@ -150,9 +215,15 @@
                     </div>
                   </div>
                 <% end %>
+              <% else %>
+                <% definition = Plum::FieldTypeRegistry.find(field["type"]) %>
+                <% if definition&.partial.present? %>
+                  <%= render definition.partial, field: field, field_handle: field_handle, field_id: field_id, field_value: field_value, entry: entry %>
+                <% end %>
               <% end %>
             </div>
           <% end %>
+          </div>
           <% if @content_type.fields.empty? %>
             <p class="text-sm text-gray-500">No fields defined. <%= link_to "Edit content type", edit_cp_content_type_path(@content_type), class: "text-purple-600 hover:text-purple-900" %> to add fields.</p>
           <% end %>
@@ -163,6 +234,12 @@
       <div class="space-y-6" style="position: sticky; top: 2rem;">
         <div class="bg-white shadow rounded-lg p-6 space-y-4">
           <h3 class="text-lg font-medium text-gray-900">Publishing</h3>
+
+          <div>
+            <%= f.label :locale, class: "block text-sm font-medium text-gray-700" %>
+            <%= f.select :locale, current_site.locales.map { |locale| [locale, locale] }, {},
+                class: "mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-purple-500 focus:ring-purple-500" %>
+          </div>
 
           <div>
             <%= f.label :status, class: "block text-sm font-medium text-gray-700" %>

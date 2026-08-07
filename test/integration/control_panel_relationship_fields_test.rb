@@ -60,4 +60,17 @@ class ControlPanelRelationshipFieldsTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Featured Post is not a valid entry"
     assert_nil @pages.entries.find_by(slug: "homepage")
   end
+
+  test "stores multiple relationships in submitted order" do
+    @pages.update!(blueprint: { "fields" => [
+      { "handle" => "related_posts", "type" => "relationship", "content_type" => "posts", "multiple" => true }
+    ] })
+    first = @posts.entries.create!(site: @site, title: "First", status: :draft, data: {})
+    second = @posts.entries.create!(site: @site, title: "Second", status: :draft, data: {})
+
+    post cp_content_type_entries_path(@pages), params: { entry: { title: "Homepage", status: "draft", data: { related_posts: [ second.id, first.id ] } } }
+
+    assert_redirected_to edit_cp_content_type_entry_path(@pages, @pages.entries.find_by!(slug: "homepage"))
+    assert_equal [ second.id, first.id ], @pages.entries.find_by!(slug: "homepage").data["related_posts"]
+  end
 end

@@ -28,6 +28,7 @@ pages = plum_site.content_types.find_or_create_by!(handle: "pages") do |ct|
   ct.name = "Pages"
   ct.blueprint = {
     "fields" => [
+      { "handle" => "basics", "type" => "section", "label" => "Basic fields", "instructions" => "Section fields organize the editing form without storing entry data." },
       { "handle" => "hero_image", "type" => "image", "label" => "Hero Image" },
       { "handle" => "body", "type" => "rich_text", "label" => "Body" }
     ]
@@ -105,6 +106,103 @@ plum_site.entries.find_or_create_by!(slug: "welcome") do |e|
   }
 end
 puts "Created landing page: /welcome"
+
+# Create a field laboratory containing every registered blueprint field type.
+# This gives developers and designers one predictable place to exercise the
+# complete editor without rebuilding a content model by hand.
+topics = plum_site.taxonomies.find_or_initialize_by(handle: "showcase_topics")
+topics.update!(name: "Showcase Topics", slug: "showcase-topics")
+design_term = topics.terms.find_or_initialize_by(slug: "design-systems")
+design_term.update!(site: plum_site, name: "Design Systems")
+
+showcase_image = plum_site.assets.find_by(folder: "field-showcase", alt_text: "Plum field showcase image")
+unless showcase_image
+  showcase_image = plum_site.assets.build(folder: "field-showcase", alt_text: "Plum field showcase image")
+  showcase_image.file.attach(
+    io: File.open(Rails.root.join("app/assets/images/plum-mark.svg")),
+    filename: "plum-mark.svg",
+    content_type: "image/svg+xml"
+  )
+  showcase_image.save!
+end
+
+field_showcase = plum_site.content_types.find_or_initialize_by(handle: "field_showcase")
+field_showcase.update!(
+  name: "Field Showcase",
+  icon: "code",
+  blueprint: {
+    "fields" => [
+      { "handle" => "showcase_basics", "type" => "section", "label" => "Basic fields", "instructions" => "Section fields organize the editing form without storing entry data." },
+      { "handle" => "headline", "type" => "text", "label" => "Text", "instructions" => "Use for short, unformatted values such as names, headlines, identifiers, or labels.", "required" => true, "placeholder" => "Write a headline" },
+      { "handle" => "summary", "type" => "textarea", "label" => "Textarea", "instructions" => "Use for longer plain-text content that does not need formatting, such as summaries or notes." },
+      { "handle" => "body", "type" => "rich_text", "label" => "Rich Text", "instructions" => "Use for authored content requiring headings, links, lists, quotations, tables, or inline images." },
+      { "handle" => "rating", "type" => "number", "label" => "Number", "instructions" => "Use for quantities, prices, scores, measurements, or other values requiring numeric validation.", "number_kind" => "decimal", "min" => "0", "max" => "10", "step" => "0.5", "unit" => "points" },
+      { "handle" => "featured", "type" => "boolean", "label" => "Boolean", "instructions" => "Use for a simple yes-or-no state, such as featured, enabled, promoted, or complete." },
+      { "handle" => "event_at", "type" => "date", "label" => "Date and Time", "instructions" => "Use for scheduled dates, times, deadlines, event starts, or other temporal values.", "date_mode" => "datetime", "min" => "2026-01-01T00:00" },
+      { "handle" => "audience", "type" => "select", "label" => "Select", "instructions" => "Use when an editor must choose exactly one value from a controlled list.", "options" => [ { "label" => "Everyone", "value" => "everyone" }, { "label" => "Developers", "value" => "developers" }, { "label" => "Editors", "value" => "editors" } ] },
+      { "handle" => "priority", "type" => "radio", "label" => "Radio", "instructions" => "Use when every available single-choice option should remain visible.", "options" => [ "Low", "Normal", "High" ], "width" => 6 },
+      { "handle" => "layout", "type" => "button_group", "label" => "Button Group", "instructions" => "Use for compact visual choices with a small, familiar option set.", "options" => [ { "label" => "Editorial", "value" => "editorial" }, { "label" => "Feature", "value" => "feature" } ], "width" => 6 },
+      { "handle" => "channels", "type" => "checkboxes", "label" => "Checkboxes", "instructions" => "Use when an editor may choose several values from a controlled list.", "options" => [ { "label" => "Website", "value" => "web" }, { "label" => "Email newsletter", "value" => "email" }, { "label" => "Social media", "value" => "social" } ] },
+      { "handle" => "accent", "type" => "color", "label" => "Color", "instructions" => "Use for theme accents, backgrounds, labels, or other editor-selected colors." },
+      { "handle" => "reference_url", "type" => "url", "label" => "URL", "instructions" => "Use for validated web addresses such as external links, sources, or calls to action.", "placeholder" => "https://example.com" },
+      { "handle" => "topics", "type" => "taxonomy", "label" => "Taxonomy", "instructions" => "Use to classify entries with centrally managed categories, topics, tags, or other terms.", "taxonomy" => topics.handle },
+      { "handle" => "cover", "type" => "image", "label" => "Image", "instructions" => "Use for a single reusable image with alt text, metadata, and generated size variants." },
+      { "handle" => "gallery", "type" => "images", "label" => "Images", "instructions" => "Use for an ordered gallery or other multi-image collection.", "min_items" => 1, "max_items" => 6 },
+      { "handle" => "related_post", "type" => "relationship", "label" => "Relationship", "instructions" => "Use to connect this entry to another entry and expose its content in templates.", "content_type" => posts.handle },
+      { "handle" => "sections", "type" => "blocks", "label" => "Blocks", "instructions" => "Use for flexible page layouts assembled from reusable, theme-defined content sections." },
+      { "handle" => "keywords", "type" => "list", "label" => "List", "instructions" => "Use for an ordered collection of simple values, such as keywords, features, or aliases.", "min_items" => 1, "max_items" => 5, "unique" => true },
+      { "handle" => "contact", "type" => "group", "label" => "Group", "instructions" => "Use to keep one set of related named values together as a structured object.", "fields" => [
+        { "handle" => "name", "type" => "text", "label" => "Name", "instructions" => "The contact's display name.", "required" => true },
+        { "handle" => "email", "type" => "text", "label" => "Email", "instructions" => "The contact's email address." },
+        { "handle" => "available", "type" => "boolean", "label" => "Available", "instructions" => "Whether this contact is currently available." }
+      ] },
+      { "handle" => "speakers", "type" => "repeater", "label" => "Repeater", "instructions" => "Use for an ordered collection of structured rows, such as people, locations, or pricing tiers.", "min_items" => 1, "max_items" => 4, "fields" => [
+        { "handle" => "name", "type" => "text", "label" => "Name", "instructions" => "The speaker's public name.", "required" => true },
+        { "handle" => "role", "type" => "text", "label" => "Role", "instructions" => "The speaker's role in the event." },
+        { "handle" => "sessions", "type" => "number", "label" => "Sessions", "instructions" => "How many sessions this speaker leads." },
+        { "handle" => "confirmed", "type" => "boolean", "label" => "Confirmed", "instructions" => "Whether the speaker has confirmed participation." }
+      ] }
+    ]
+  }
+)
+
+showcase_entry = plum_site.entries.find_or_initialize_by(slug: "field-showcase")
+showcase_entry.assign_attributes(
+  content_type: field_showcase,
+  author: admin,
+  title: "Every Blueprint Field",
+  status: :draft,
+  data: {
+    "headline" => "Plum's complete field laboratory",
+    "summary" => "Representative values for every blueprint field supported by Plum.",
+    "body" => "<h2>Rich content</h2><p>This entry is safe to edit, rearrange, and experiment with.</p>",
+    "rating" => 8.5,
+    "featured" => true,
+    "event_at" => "2026-09-15T10:30",
+    "audience" => "developers",
+    "priority" => "Normal",
+    "layout" => "editorial",
+    "channels" => [ "web", "email" ],
+    "accent" => "#7c3aed",
+    "reference_url" => "https://plumcms.org",
+    "cover" => showcase_image.id,
+    "gallery" => [ showcase_image.id ],
+    "related_post" => entry.id,
+    "sections" => [
+      { "id" => SecureRandom.uuid, "type" => "hero", "fields" => { "heading" => "Blocks field", "subheading" => "Reorder this section in the editor." } },
+      { "id" => SecureRandom.uuid, "type" => "cta", "fields" => { "heading" => "Try every field", "text" => "Nothing here is precious." } }
+    ],
+    "keywords" => [ "blueprints", "fields", "structured-content" ],
+    "contact" => { "name" => "Ada Editor", "email" => "ada@example.com", "available" => true },
+    "speakers" => [
+      { "name" => "Grace Hopper", "role" => "Keynote", "sessions" => "1", "confirmed" => true },
+      { "name" => "Alan Turing", "role" => "Panelist", "sessions" => "2", "confirmed" => false }
+    ]
+  }
+)
+showcase_entry.save!
+showcase_entry.term_ids = [ design_term.id ]
+puts "Created field showcase with all #{Plum::FieldTypeRegistry.handles.size} blueprint field types"
 
 company = plum_site.globals.find_or_create_by!(handle: "company") do |global|
   global.name = "Company Info"

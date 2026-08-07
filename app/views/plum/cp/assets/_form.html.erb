@@ -9,11 +9,23 @@
     </div>
   <% end %>
 
+  <div data-controller="plum--focal-point">
   <% if asset.persisted? && plum_asset_image_url(asset).present? %>
     <div class="overflow-hidden rounded-lg border border-gray-200 bg-gray-100">
-      <%= image_tag plum_asset_image_url(asset), alt: asset.alt_text.to_s, class: "h-44 w-full object-cover" %>
+      <%= image_tag plum_asset_image_url(asset), alt: asset.alt_text.to_s, class: "h-44 w-full object-cover", data: { "plum--focal-point-target": "preview" } %>
     </div>
   <% end %>
+
+  <div class="mt-4 grid gap-4 sm:grid-cols-2">
+    <label class="text-sm font-medium text-gray-700">Horizontal focal point
+      <%= f.range_field :focal_x, min: 0, max: 100, data: { "plum--focal-point-target": "x", action: "input->plum--focal-point#refresh" }, class: "mt-2 block w-full" %>
+    </label>
+    <label class="text-sm font-medium text-gray-700">Vertical focal point
+      <%= f.range_field :focal_y, min: 0, max: 100, data: { "plum--focal-point-target": "y", action: "input->plum--focal-point#refresh" }, class: "mt-2 block w-full" %>
+    </label>
+  </div>
+  <p class="mt-2 text-xs text-gray-500">Crop focus: <span data-plum--focal-point-target="label"></span></p>
+  </div>
 
   <div>
     <%= f.label :file, asset.persisted? ? "Replace image" : "Image", class: "block text-sm font-medium text-gray-700" %>

@@ -1,5 +1,38 @@
 # Changelog
 
+## 0.2.0 — 2026-08-07
+
+### Added
+
+- Expanded visual blueprints to 21 field types, including structured lists,
+  groups, repeaters, radio controls, button groups, multi-image collections,
+  and presentation sections.
+- Added responsive field widths, conditional visibility, nested-field editing,
+  collection constraints, stable option values, and field-level instructions.
+- Added single and multiple entry relationships with site-scoped validation and
+  Liquid expansion.
+- Added reusable fieldsets with collision-safe insertion into blueprints.
+- Added immutable, attributed entry revisions with non-destructive restoration.
+- Added a live-only, paginated JSON content API with expanded field values.
+- Added site locales, linked translation variants, locale-specific slugs,
+  localized public routes, and locale-aware API responses.
+- Added asset focal points and multi-image library fields.
+- Added comprehensive field showcase seeds and blueprint schema documentation.
+
+### Changed
+
+- Redesigned blueprint field cards for clearer, responsive configuration.
+- Automated synchronization of Tailwind output into the packaged control-panel
+  stylesheet.
+- Added normalized server-side validation for numeric, temporal, collection,
+  option, relationship, asset, nested, and conditional values.
+
+### Fixed
+
+- Restored reliable image selection and default alt text for inline uploads.
+- Isolated system-test data and updated browser coverage for Lexxy and the
+  current image picker.
+
 ## 0.1.2 — 2026-08-04
 
 ### Fixed

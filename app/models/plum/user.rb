@@ -3,6 +3,7 @@ module Plum
     has_secure_password
 
     has_many :entries, foreign_key: :author_id, dependent: :nullify
+    has_many :entry_revisions, foreign_key: :editor_id, dependent: :nullify
 
     enum :role, { viewer: 0, editor: 1, admin: 2 }
 

@@ -24,8 +24,19 @@ module Plum
         case field["type"]
         when "image"
           data[handle] = image_asset_context(data[handle])
+        when "images"
+          data[handle] = Array(data[handle]).filter_map { |value| image_asset_context(value) }
         when "relationship"
-          data[handle] = relationship_entry_context(data[handle], relationship_depth: relationship_depth)
+          data[handle] = if ActiveModel::Type::Boolean.new.cast(field["multiple"])
+            Array(data[handle]).filter_map { |value| relationship_entry_context(value, relationship_depth: relationship_depth) }
+          else
+            relationship_entry_context(data[handle], relationship_depth: relationship_depth)
+          end
+        else
+          definition = FieldTypeRegistry.find(field["type"])
+          if definition&.expander
+            data[handle] = definition.expander.call(value: data[handle], field: field, site: site, expander: self)
+          end
         end
       end
 

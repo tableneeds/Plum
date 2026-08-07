@@ -20,10 +20,19 @@ module Plum
       def update
         settings_attributes = site_settings_params
         theme_settings_by_theme = settings_attributes.delete(:theme_settings_by_theme).to_h
+        locales = normalized_locales(settings_attributes.delete(:locales))
+        default_locale = settings_attributes.delete(:default_locale).to_s
         @site_settings.assign_attributes(settings_attributes)
 
+        unless locales.any? && locales.include?(default_locale)
+          @site_settings.errors.add(:base, "Locales must be valid codes and include the default locale")
+          set_theme_options
+          return render :edit, status: :unprocessable_entity
+        end
+
         if @site_settings.save
-          current_site.update!(theme_settings: theme_settings_for(@site_settings.theme_name, theme_settings_by_theme))
+          site_settings = current_site.settings.to_h.merge("locales" => locales, "default_locale" => default_locale)
+          current_site.update!(theme_settings: theme_settings_for(@site_settings.theme_name, theme_settings_by_theme), settings: site_settings)
           redirect_to edit_cp_site_settings_path, notice: "Site settings updated"
         else
           set_theme_options
@@ -92,8 +101,18 @@ module Plum
           :primary_color,
           :support_email,
           :theme_name,
+          :locales,
+          :default_locale,
           theme_settings_by_theme: {}
         )
+      end
+
+      def normalized_locales(value)
+        value.to_s.split(/[\s,]+/).filter_map do |locale|
+          parts = locale.split("-", 2)
+          normalized = [ parts[0]&.downcase, parts[1]&.upcase ].compact.join("-")
+          normalized if normalized.match?(/\A[a-z]{2}(?:-[A-Z]{2})?\z/)
+        end.uniq
       end
     end
   end

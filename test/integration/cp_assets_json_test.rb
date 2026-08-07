@@ -10,7 +10,7 @@ module Plum
     end
 
     test "index returns the site's assets as JSON" do
-      asset = @site.assets.build(alt_text: "A bagel")
+      asset = @site.assets.build(alt_text: "A bagel", focal_x: 20, focal_y: 80)
       attach_test_png(asset)
       asset.save!
 
@@ -21,6 +21,7 @@ module Plum
       record = body.find { |a| a["id"] == asset.id }
       assert record, "expected the uploaded asset in the JSON list"
       assert_equal "A bagel", record["alt_text"]
+      assert_equal "20% 80%", record["object_position"]
       assert record["url"].present?
     end
 

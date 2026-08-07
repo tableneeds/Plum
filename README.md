@@ -132,15 +132,50 @@ Blueprint fields define the content model for each content type:
 | `rich_text` | Lexxy rich text editor (images, formatting, tables) |
 | `number` | Numeric input |
 | `boolean` | Checkbox (true/false) |
-| `date` | Date picker |
-| `select` | Dropdown (requires `options` array) |
+| `date` | Date, time, or date-time input with bounds |
+| `select` | Dropdown with label/value options |
+| `radio` | Visible single-choice radio controls |
+| `button_group` | Compact single-choice segmented controls |
 | `checkboxes` | Multi-select checkboxes (requires `options` array) |
 | `color` | Native color picker |
 | `url` | URL input |
 | `image` | Image picker (Active Storage) |
-| `relationship` | Link to another entry (optional `content_type` filter) |
+| `images` | Multi-image library picker with min/max limits |
+| `relationship` | Single or multiple related entries |
 | `taxonomy` | Term picker from a taxonomy (requires `taxonomy` handle) |
 | `blocks` | Page builder sections |
+| `list` | Ordered list of plain values |
+| `group` | One object containing nested fields |
+| `repeater` | Ordered rows containing nested fields |
+| `section` | Form heading that stores no entry data |
+
+Fields support `instructions`, `required`, `default`, `placeholder`, and a
+responsive `width` from 1–12. Conditional fields use a source field, operator,
+and optional value:
+
+```json
+{
+  "handle": "featured_caption",
+  "type": "text",
+  "width": 6,
+  "condition": { "field": "featured", "operator": "equals", "value": "true" }
+}
+```
+
+Supported condition operators are `equals`, `not_equals`, `contains`, `empty`,
+and `not_empty`. Conditions affect both the editor and server-side required
+validation. Select-like fields accept legacy strings or stable label/value
+objects: `{ "label": "Published", "value": "published" }`.
+
+See [Blueprint fields](docs/blueprint-fields.md) for the complete schema.
+
+Reusable fieldsets can snapshot any content type's field configuration and be
+inserted into another blueprint. Plum rejects handle collisions and copies the
+fields, so later fieldset deletion never damages existing content types.
+
+Rails applications and gems can register custom field types with editor,
+normalization, validation, and Liquid/API expansion callbacks. See
+[Extending Plum](docs/extensions.md).
 
 ## Image Transforms
 
@@ -193,11 +228,39 @@ Pagination variables: `pagination.current_page`, `pagination.total_pages`,
 `/search?q=term` searches entry titles and slugs. Themes provide a
 `search.liquid` template with a search form and results.
 
+## Content API
+
+Published entries are available through a read-only, site-scoped JSON API:
+
+```text
+GET /api/v1/collections/posts/entries?page=1&per_page=20&q=plum
+GET /api/v1/collections/posts/entries/hello-world
+```
+
+Responses include expanded assets and relationships, taxonomy terms, public
+URLs, and pagination metadata. Draft and future-scheduled entries are never
+returned. Page size is capped at 100. Pass `locale=es` to request a configured
+translation.
+
+## Localization
+
+Configure locale codes and a default locale under Site Settings. Entries share
+one translation group while retaining locale-specific titles, slugs, content,
+publishing status, revisions, and taxonomy terms. Default-locale URLs remain
+unchanged; other locales receive a prefix such as `/es/about`.
+
 ## Roles
 
 Standalone mode has three roles: `viewer` (read-only CP), `editor` (manage
 content), `admin` (full access including content types, settings, themes,
 taxonomies). In embedded/host mode, roles are skipped entirely.
+
+## Revisions
+
+Every control-panel entry save records an immutable snapshot of its content,
+publishing state, terms, and editor identity. Editors can browse history and
+restore an older version; restoration itself creates a new revision so no
+content is discarded.
 
 ## Rich Text
 

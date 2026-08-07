@@ -5,6 +5,7 @@ module Plum
     has_one_attached :file
 
     validates :file, presence: true
+    validates :focal_x, :focal_y, numericality: { only_integer: true, greater_than_or_equal_to: 0, less_than_or_equal_to: 100 }
     validate :file_must_be_image
 
     before_validation :normalize_folder
@@ -49,7 +50,10 @@ module Plum
         "filename" => filename,
         "content_type" => content_type.to_s,
         "byte_size" => file.attached? ? file.byte_size : nil,
-        "folder" => folder.to_s
+        "folder" => folder.to_s,
+        "focal_x" => focal_x,
+        "focal_y" => focal_y,
+        "object_position" => "#{focal_x}% #{focal_y}%"
       }
     end
 

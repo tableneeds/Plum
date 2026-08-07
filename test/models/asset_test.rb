@@ -4,7 +4,7 @@ module Plum
   class AssetTest < ActiveSupport::TestCase
     test "exposes image metadata to liquid" do
       site = Site.create!(name: "Bagel Boy", theme_name: "default", skip_defaults: true)
-      asset = site.assets.build(alt_text: "Sesame bagel", caption: "Fresh tray", folder: " menu ")
+      asset = site.assets.build(alt_text: "Sesame bagel", caption: "Fresh tray", folder: " menu ", focal_x: 25, focal_y: 70)
       attach_test_png(asset, filename: "bagel.png")
 
       assert asset.save
@@ -16,7 +16,18 @@ module Plum
       assert_equal "bagel.png", liquid["filename"]
       assert_equal "image/png", liquid["content_type"]
       assert_equal "menu", liquid["folder"]
+      assert_equal "25% 70%", liquid["object_position"]
       assert_includes liquid["url"], "/rails/active_storage/blobs"
+    end
+
+    test "validates focal point percentages" do
+      site = Site.create!(name: "Bagel Boy", theme_name: "default", skip_defaults: true)
+      asset = site.assets.build(focal_x: -1, focal_y: 101)
+      attach_test_png(asset)
+
+      assert_not asset.valid?
+      assert asset.errors[:focal_x].present?
+      assert asset.errors[:focal_y].present?
     end
 
     test "rejects non image uploads" do

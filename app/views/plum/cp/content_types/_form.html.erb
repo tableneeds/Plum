@@ -46,34 +46,28 @@
     </div>
   </div>
 
-  <div class="bg-white shadow rounded-lg p-6" data-controller="plum--blueprint">
+  <div class="bg-white shadow rounded-lg p-6" data-controller="plum--blueprint"
+       data-plum--blueprint-types-value="<%= Plum::FieldTypeRegistry.as_json.to_json %>"
+       data-plum--blueprint-nested-types-value="<%= Plum::FieldTypeRegistry.as_json.select { |type| Plum::FieldTypeRegistry::NESTED_FIELD_TYPES.include?(type[:handle]) }.to_json %>"
+       <% if content_type.persisted? %>data-plum--blueprint-apply-fieldset-url-value="<%= apply_fieldset_cp_content_type_path(content_type) %>"<% end %>>
     <h3 class="text-lg font-medium text-gray-900 mb-4">Blueprint</h3>
-    <p class="text-sm text-gray-500 mb-4">Define the fields for this content type using JSON format.</p>
+    <p class="text-sm text-gray-500 mb-4">Choose fields and configure how editors enter content.</p>
 
     <%= f.hidden_field :blueprint, value: (content_type.blueprint || { "fields" => [] }).to_json, data: { "plum--blueprint-target": "input" } %>
 
     <div class="space-y-4" data-plum--blueprint-target="fields">
       <% (content_type.fields || []).each_with_index do |field, index| %>
-        <div class="grid grid-cols-1 gap-4 p-4 bg-gray-50 rounded-lg sm:grid-cols-2 lg:grid-cols-5" data-plum--blueprint-target="field">
+        <div class="plum-blueprint-field" data-plum--blueprint-target="field">
+          <div class="plum-blueprint-field-header col-span-full">
+            <p class="plum-blueprint-field-title" data-field-summary><%= field["label"].presence || field["handle"].presence || "Untitled field" %><span class="plum-blueprint-field-type"><%= field["type"].presence || "text" %></span></p>
+            <button type="button" data-action="plum--blueprint#removeField" class="text-sm font-medium text-red-600 hover:text-red-700">Remove</button>
+          </div>
           <input type="text" value="<%= field['handle'] %>" placeholder="handle" data-field="handle"
                  data-action="input->plum--blueprint#inputChanged"
                  class="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 font-mono text-sm">
           <select data-field="type" data-action="change->plum--blueprint#inputChanged"
                   class="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 text-sm">
-            <option value="text" <%= 'selected' if field['type'] == 'text' %>>Text</option>
-            <option value="textarea" <%= 'selected' if field['type'] == 'textarea' %>>Textarea</option>
-            <option value="rich_text" <%= 'selected' if field['type'] == 'rich_text' %>>Rich Text</option>
-            <option value="number" <%= 'selected' if field['type'] == 'number' %>>Number</option>
-            <option value="boolean" <%= 'selected' if field['type'] == 'boolean' %>>Boolean</option>
-            <option value="date" <%= 'selected' if field['type'] == 'date' %>>Date</option>
-            <option value="select" <%= 'selected' if field['type'] == 'select' %>>Select</option>
-            <option value="checkboxes" <%= 'selected' if field['type'] == 'checkboxes' %>>Checkboxes</option>
-            <option value="color" <%= 'selected' if field['type'] == 'color' %>>Color</option>
-            <option value="url" <%= 'selected' if field['type'] == 'url' %>>URL</option>
-            <option value="taxonomy" <%= 'selected' if field['type'] == 'taxonomy' %>>Taxonomy</option>
-            <option value="image" <%= 'selected' if field['type'] == 'image' %>>Image</option>
-            <option value="relationship" <%= 'selected' if field['type'] == 'relationship' %>>Relationship</option>
-            <option value="blocks" <%= 'selected' if field['type'] == 'blocks' %>>Blocks</option>
+            <%= options_for_select(Plum::FieldTypeRegistry.options, field["type"]) %>
           </select>
           <input type="text" value="<%= field['label'] %>" placeholder="Label" data-field="label"
                  data-action="input->plum--blueprint#inputChanged"
@@ -81,17 +75,72 @@
           <input type="text" value="<%= field['content_type'] %>" placeholder="Related type handle" data-field="content_type" data-field-config="relationship"
                  data-action="input->plum--blueprint#inputChanged"
                  class="<%= 'hidden' unless field['type'] == 'relationship' %> px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 font-mono text-sm">
+          <label class="<%= 'hidden' unless field['type'] == 'relationship' %> flex items-center gap-2 text-sm text-gray-700" data-field-config="relationship"><input type="checkbox" data-field="multiple" data-action="change->plum--blueprint#inputChanged" <%= "checked" if ActiveModel::Type::Boolean.new.cast(field['multiple']) %>> Allow multiple entries</label>
           <input type="text" value="<%= field['taxonomy'] %>" placeholder="Taxonomy handle" data-field="taxonomy" data-field-config="taxonomy"
                  data-action="input->plum--blueprint#inputChanged"
                  class="<%= 'hidden' unless field['type'] == 'taxonomy' %> px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 font-mono text-sm">
-          <input type="text" value="<%= Array(field['options']).join(', ') %>" placeholder="Option 1, Option 2, Option 3" data-field="options" data-field-config="select checkboxes"
+          <textarea rows="4" placeholder="Published | published&#10;Draft | draft" data-field="options" data-field-config="select radio button_group checkboxes"
                  data-action="input->plum--blueprint#inputChanged"
-                 class="<%= 'hidden' unless %w[select checkboxes].include?(field['type']) %> px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 text-sm">
-          <button type="button" data-action="plum--blueprint#removeField" class="justify-self-start text-red-500 hover:text-red-700">
-            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-            </svg>
-          </button>
+                 class="<%= 'hidden' unless %w[select radio button_group checkboxes].include?(field['type']) %> col-span-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 font-mono text-sm"><%= Plum::FieldOptions.editor_value(field['options']) %></textarea>
+          <div class="<%= 'hidden' unless %w[group repeater].include?(field['type']) %> col-span-full space-y-3 rounded-md border border-gray-200 bg-white p-3" data-field-config="group repeater" data-nested-editor>
+            <div class="flex items-center justify-between">
+              <p class="text-sm font-medium text-gray-700">Nested fields</p>
+              <button type="button" data-action="plum--blueprint#addNestedField" class="text-sm font-medium text-purple-600 hover:text-purple-700">+ Add nested field</button>
+            </div>
+            <div class="space-y-3" data-nested-fields>
+              <% Array(field["fields"]).each do |nested| %>
+                <div class="grid gap-2 rounded-md border border-gray-200 bg-gray-50 p-3 sm:grid-cols-3" data-nested-field>
+                  <input type="text" value="<%= nested['handle'] %>" placeholder="handle" data-nested="handle" data-action="input->plum--blueprint#inputChanged" class="rounded-md border border-gray-300 px-3 py-2 font-mono text-sm">
+                  <select data-nested="type" data-action="change->plum--blueprint#inputChanged" class="rounded-md border border-gray-300 px-3 py-2 text-sm"><%= options_for_select(Plum::FieldTypeRegistry.options.select { |_, handle| Plum::FieldTypeRegistry::NESTED_FIELD_TYPES.include?(handle) }, nested["type"]) %></select>
+                  <input type="text" value="<%= nested['label'] %>" placeholder="Label" data-nested="label" data-action="input->plum--blueprint#inputChanged" class="rounded-md border border-gray-300 px-3 py-2 text-sm">
+                  <input type="text" value="<%= nested['instructions'] %>" placeholder="Instructions" data-nested="instructions" data-action="input->plum--blueprint#inputChanged" class="rounded-md border border-gray-300 px-3 py-2 text-sm">
+                  <input type="text" value="<%= nested['placeholder'] %>" placeholder="Placeholder" data-nested="placeholder" data-action="input->plum--blueprint#inputChanged" class="rounded-md border border-gray-300 px-3 py-2 text-sm">
+                  <input type="text" value="<%= nested['default'] %>" placeholder="Default value" data-nested="default" data-action="input->plum--blueprint#inputChanged" class="rounded-md border border-gray-300 px-3 py-2 text-sm">
+                  <label class="flex items-center gap-2 text-sm text-gray-700"><input type="checkbox" data-nested="required" data-action="change->plum--blueprint#inputChanged" <%= "checked" if ActiveModel::Type::Boolean.new.cast(nested['required']) %>> Required</label>
+                  <div class="flex gap-3">
+                    <button type="button" data-direction="-1" data-action="plum--blueprint#moveNestedField" class="text-sm text-gray-600">↑ Up</button>
+                    <button type="button" data-direction="1" data-action="plum--blueprint#moveNestedField" class="text-sm text-gray-600">↓ Down</button>
+                    <button type="button" data-action="plum--blueprint#removeNestedField" class="text-sm font-medium text-red-600">Remove</button>
+                  </div>
+                </div>
+              <% end %>
+            </div>
+          </div>
+          <div class="<%= 'hidden' unless field['type'] == 'number' %> col-span-full grid gap-3 rounded-md border border-gray-200 bg-white p-3 sm:grid-cols-4" data-field-config="number">
+            <%= select_tag nil, options_for_select([["Decimal", "decimal"], ["Integer", "integer"]], field["number_kind"]), data: { field: "number_kind", action: "change->plum--blueprint#inputChanged" }, class: "rounded-md border border-gray-300 px-3 py-2 text-sm" %>
+            <input type="number" value="<%= field['min'] %>" placeholder="Minimum" data-field="min" data-action="input->plum--blueprint#inputChanged" class="rounded-md border border-gray-300 px-3 py-2 text-sm">
+            <input type="number" value="<%= field['max'] %>" placeholder="Maximum" data-field="max" data-action="input->plum--blueprint#inputChanged" class="rounded-md border border-gray-300 px-3 py-2 text-sm">
+            <input type="number" value="<%= field['step'] %>" placeholder="Step" data-field="step" data-action="input->plum--blueprint#inputChanged" class="rounded-md border border-gray-300 px-3 py-2 text-sm">
+            <input type="text" value="<%= field['unit'] %>" placeholder="Unit (optional)" data-field="unit" data-action="input->plum--blueprint#inputChanged" class="rounded-md border border-gray-300 px-3 py-2 text-sm">
+          </div>
+          <div class="<%= 'hidden' unless field['type'] == 'date' %> col-span-full grid gap-3 rounded-md border border-gray-200 bg-white p-3 sm:grid-cols-3" data-field-config="date">
+            <%= select_tag nil, options_for_select([["Date", "date"], ["Time", "time"], ["Date and time", "datetime"]], field["date_mode"]), data: { field: "date_mode", action: "change->plum--blueprint#inputChanged" }, class: "rounded-md border border-gray-300 px-3 py-2 text-sm" %>
+            <input type="text" value="<%= field['min'] %>" placeholder="Earliest value" data-field="min" data-action="input->plum--blueprint#inputChanged" class="rounded-md border border-gray-300 px-3 py-2 text-sm">
+            <input type="text" value="<%= field['max'] %>" placeholder="Latest value" data-field="max" data-action="input->plum--blueprint#inputChanged" class="rounded-md border border-gray-300 px-3 py-2 text-sm">
+          </div>
+          <div class="<%= 'hidden' unless %w[list repeater images].include?(field['type']) || (field['type'] == 'relationship' && field['multiple']) %> col-span-full grid gap-3 rounded-md border border-gray-200 bg-white p-3 sm:grid-cols-3" data-field-config="list repeater images relationship" data-multiple-only>
+            <input type="number" min="0" value="<%= field['min_items'] %>" placeholder="Minimum items" data-field="min_items" data-action="input->plum--blueprint#inputChanged" class="rounded-md border border-gray-300 px-3 py-2 text-sm">
+            <input type="number" min="0" value="<%= field['max_items'] %>" placeholder="Maximum items" data-field="max_items" data-action="input->plum--blueprint#inputChanged" class="rounded-md border border-gray-300 px-3 py-2 text-sm">
+            <label class="<%= 'hidden' unless field['type'] == 'list' %> flex items-center gap-2 text-sm text-gray-700" data-field-config="list"><input type="checkbox" data-field="unique" data-action="change->plum--blueprint#inputChanged" <%= "checked" if ActiveModel::Type::Boolean.new.cast(field['unique']) %>> Unique values</label>
+          </div>
+          <div class="col-span-full grid gap-3 border-t border-gray-200 pt-3 sm:grid-cols-3">
+            <input type="text" value="<%= field['instructions'] %>" placeholder="Instructions" data-field="instructions" data-action="input->plum--blueprint#inputChanged"
+                   class="px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm">
+            <input type="text" value="<%= field['placeholder'] %>" placeholder="Placeholder" data-field="placeholder" data-action="input->plum--blueprint#inputChanged"
+                   class="px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm">
+            <input type="text" value="<%= field['default'] %>" placeholder="Default value" data-field="default" data-action="input->plum--blueprint#inputChanged"
+                   class="px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm">
+            <label class="flex items-center gap-2 text-sm text-gray-700">
+              <input type="checkbox" data-field="required" data-action="change->plum--blueprint#inputChanged" <%= "checked" if ActiveModel::Type::Boolean.new.cast(field['required']) %>>
+              Required
+            </label>
+          </div>
+          <div class="col-span-full grid gap-3 rounded-md border border-gray-200 bg-white p-3 sm:grid-cols-4">
+            <%= select_tag nil, options_for_select([["Full width", 12], ["Three quarters", 9], ["Two thirds", 8], ["Half width", 6], ["One third", 4], ["Quarter width", 3]], field["width"].presence || 12), data: { field: "width", action: "change->plum--blueprint#inputChanged" }, class: "rounded-md border border-gray-300 px-3 py-2 text-sm" %>
+            <input type="text" value="<%= field.dig('condition', 'field') %>" placeholder="Show when field…" data-field="condition_field" data-action="input->plum--blueprint#inputChanged" class="rounded-md border border-gray-300 px-3 py-2 font-mono text-sm">
+            <%= select_tag nil, options_for_select([["Equals", "equals"], ["Does not equal", "not_equals"], ["Contains", "contains"], ["Is empty", "empty"], ["Is not empty", "not_empty"]], field.dig("condition", "operator")), include_blank: "No condition", data: { field: "condition_operator", action: "change->plum--blueprint#inputChanged" }, class: "rounded-md border border-gray-300 px-3 py-2 text-sm" %>
+            <input type="text" value="<%= field.dig('condition', 'value') %>" placeholder="Value" data-field="condition_value" data-action="input->plum--blueprint#inputChanged" class="rounded-md border border-gray-300 px-3 py-2 text-sm">
+          </div>
         </div>
       <% end %>
     </div>
@@ -103,6 +152,14 @@
       </svg>
       Add Field
     </button>
+    <% if content_type.persisted? && @fieldsets.any? %>
+      <div class="mt-4 flex flex-wrap items-center gap-3 border-t border-gray-200 pt-4">
+        <%= select_tag nil, options_from_collection_for_select(@fieldsets, :id, :name), prompt: "Choose saved fieldset", data: { fieldset_picker: true }, class: "rounded-md border border-gray-300 px-3 py-2 text-sm" %>
+        <button type="button" data-action="plum--blueprint#applyFieldset" class="rounded-md border border-purple-200 bg-purple-50 px-3 py-2 text-sm font-semibold text-purple-700 hover:bg-purple-100">Insert fieldset</button>
+        <span class="hidden text-sm" data-fieldset-status></span>
+      </div>
+    <% end %>
+    <p class="mt-3 text-xs text-gray-500"><%= link_to "Manage reusable fieldsets", cp_fieldsets_path, class: "text-purple-600 hover:text-purple-700" %></p>
   </div>
 
   <div class="flex justify-end space-x-3">

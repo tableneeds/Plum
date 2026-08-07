@@ -60,6 +60,18 @@
       <%= f.email_field :support_email,
           class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500" %>
     </div>
+
+    <div class="grid gap-4 sm:grid-cols-2">
+      <div>
+        <%= f.label :locales, "Locales", class: "block text-sm font-medium text-gray-700" %>
+        <%= text_field_tag "site_setting[locales]", current_site.locales.join(", "), class: "mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm", placeholder: "en, es, fr-CA" %>
+        <p class="mt-1 text-xs text-gray-500">Comma-separated language or language-region codes.</p>
+      </div>
+      <div>
+        <%= f.label :default_locale, "Default locale", class: "block text-sm font-medium text-gray-700" %>
+        <%= text_field_tag "site_setting[default_locale]", current_site.default_locale, class: "mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm" %>
+      </div>
+    </div>
   </div>
 
   <div class="bg-white shadow rounded-lg p-6 space-y-6">

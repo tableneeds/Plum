@@ -1,0 +1,30 @@
+<div class="mb-8">
+  <h1 class="text-2xl font-bold text-gray-900">Fieldsets</h1>
+  <p class="mt-1 text-sm text-gray-500">Save a content type's fields, then reuse them in other blueprints.</p>
+</div>
+
+<div class="grid gap-6 lg:grid-cols-3">
+  <section class="rounded-lg bg-white p-6 shadow lg:col-span-2">
+    <h2 class="text-lg font-semibold text-gray-900">Saved fieldsets</h2>
+    <div class="mt-4 divide-y divide-gray-200">
+      <% @fieldsets.each do |fieldset| %>
+        <div class="flex items-center justify-between gap-4 py-4">
+          <div><p class="text-sm font-semibold text-gray-900"><%= fieldset.name %></p><p class="text-xs text-gray-500"><%= fieldset.handle %> · <%= fieldset.fields.length %> fields</p></div>
+          <%= button_to "Delete", cp_fieldset_path(fieldset), method: :delete, form: { data: { turbo_confirm: "Delete this fieldset? Existing blueprints are unaffected." } }, class: "text-sm font-medium text-red-600" %>
+        </div>
+      <% end %>
+      <% if @fieldsets.empty? %><p class="py-6 text-sm text-gray-500">No saved fieldsets yet.</p><% end %>
+    </div>
+  </section>
+
+  <section class="rounded-lg bg-white p-6 shadow">
+    <h2 class="text-lg font-semibold text-gray-900">Create from content type</h2>
+    <%= form_with url: cp_fieldsets_path, scope: :fieldset, class: "mt-4 space-y-4" do |form| %>
+      <%= form.text_field :name, value: @fieldset&.name, required: true, placeholder: "SEO fields", class: "block w-full rounded-md border border-gray-300 px-3 py-2 text-sm" %>
+      <%= form.text_field :handle, value: @fieldset&.handle, placeholder: "Generated from name", class: "block w-full rounded-md border border-gray-300 px-3 py-2 font-mono text-sm" %>
+      <%= form.collection_select :content_type_id, @content_types, :id, :name, { prompt: "Choose source content type" }, required: true, class: "block w-full rounded-md border border-gray-300 px-3 py-2 text-sm" %>
+      <% if @fieldset&.errors&.any? %><p class="text-sm text-red-600"><%= @fieldset.errors.full_messages.to_sentence %></p><% end %>
+      <%= form.submit "Save fieldset", class: "rounded-md bg-purple-600 px-4 py-2 text-sm font-semibold text-white hover:bg-purple-700" %>
+    <% end %>
+  </section>
+</div>

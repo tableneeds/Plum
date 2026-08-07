@@ -25,7 +25,7 @@ class SiteSettingsTest < ApplicationSystemTestCase
 
     assert_text "Site settings updated"
     assert_text "Bagel Shop"
-    assert_text "Hot bagels until noon."
+    assert_field "Hero Note", with: "Hot bagels until noon."
 
     visit root_path
 

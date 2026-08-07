@@ -53,6 +53,33 @@ class ContentTypesTest < ApplicationSystemTestCase
     end
   end
 
+  test "visually configures nested repeater fields" do
+    visit new_cp_content_type_path
+
+    fill_in "Name", with: "Teams #{SecureRandom.hex(4)}"
+    click_button "Add Field"
+
+    within "[data-plum--blueprint-target='fields'] [data-plum--blueprint-target='field']:last-child" do
+      find("input[data-field='handle']").fill_in with: "people"
+      find("select[data-field='type']").select "Repeater"
+      find("input[data-field='label']").fill_in with: "People"
+      click_button "+ Add nested field"
+
+      within "[data-nested-field]:last-child" do
+        find("input[data-nested='handle']").fill_in with: "name"
+        find("select[data-nested='type']").select "Text"
+        find("input[data-nested='label']").fill_in with: "Name"
+        find("input[data-nested='required']").check
+      end
+    end
+
+    click_button "Create Content type"
+
+    assert_text "Content type created"
+    content_type = Plum::ContentType.order(:created_at).last
+    assert_equal({ "handle" => "name", "type" => "text", "label" => "Name", "required" => true }, content_type.fields.first["fields"].first)
+  end
+
   test "editing a content type" do
     content_type = Plum::ContentType.create!(
       name: "Pages",

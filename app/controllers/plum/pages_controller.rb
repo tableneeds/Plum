@@ -5,6 +5,7 @@ module Plum
     def home
       @site_settings = SiteSetting.instance(current_site)
       @entry = Entry.for_site(current_site).live
+                    .where(locale: requested_locale)
                     .includes(:content_type, terms: :taxonomy)
                     .find_by(slug: HOMEPAGE_SLUG)
 
@@ -13,10 +14,19 @@ module Plum
       render html: html.html_safe, layout: false
     end
 
+    def localized_home
+      raise ActiveRecord::RecordNotFound unless current_site.locales.include?(params[:locale])
+
+      home
+    rescue ActiveRecord::RecordNotFound
+      render file: Rails.public_path.join("404.html"), status: :not_found, layout: false
+    end
+
     def search
       query = params[:q].to_s.strip
       context = build_context
       results = Entry.for_site(current_site).live.search(query)
+                     .where(locale: requested_locale)
                      .includes(:content_type)
                      .order(published_at: :desc)
                      .limit(50)
@@ -33,6 +43,8 @@ module Plum
     end
 
     def show
+      raise ActiveRecord::RecordNotFound unless current_site.locales.include?(requested_locale)
+
       slug = params[:slug]
 
       @content_type = ContentType.for_site(current_site).find_by(handle: slug)
@@ -47,6 +59,7 @@ module Plum
         end
         if content_type
           @entry = Entry.for_site(current_site).live
+                        .where(locale: requested_locale)
                         .includes(:content_type, terms: :taxonomy)
                         .find_by!(content_type: content_type, slug: parts[1])
           html = Plum::LiquidRenderer.render_template("entries/#{content_type.handle}", build_context(@entry).to_h)
@@ -64,6 +77,7 @@ module Plum
       end
 
       @entry = Entry.for_site(current_site).live
+                    .where(locale: requested_locale)
                     .includes(:content_type, terms: :taxonomy)
                     .find_by!(slug: slug)
       template = "entries/#{@entry.content_type.handle}"
@@ -81,6 +95,7 @@ module Plum
       context = build_context
       page = [ params.fetch(:page, 1).to_i, 1 ].max
       all_entries = Entry.for_site(current_site).live
+                        .where(locale: requested_locale)
                         .where(content_type: content_type)
                         .order(published_at: :desc, created_at: :desc)
       total = all_entries.count
@@ -112,6 +127,7 @@ module Plum
       context = build_context
       page = [ params.fetch(:page, 1).to_i, 1 ].max
       all_entries = Entry.for_site(current_site).live
+                        .where(locale: requested_locale)
                         .joins(:entry_terms)
                         .where(plum_entry_terms: { term_id: term.id })
                         .order(published_at: :desc)
@@ -146,7 +162,7 @@ module Plum
           "name" => taxonomy.name,
           "handle" => taxonomy.handle,
           "slug" => taxonomy.slug,
-          "terms" => terms.map { |t| { "name" => t.name, "slug" => t.slug, "url" => "/#{taxonomy.slug}/#{t.slug}", "entries_count" => t.entries.live.count } }
+          "terms" => terms.map { |t| { "name" => t.name, "slug" => t.slug, "url" => localized_path("#{taxonomy.slug}/#{t.slug}"), "entries_count" => t.entries.live.where(locale: requested_locale).count } }
         }
       )
       template = "taxonomies/#{taxonomy.handle}_index"
@@ -156,6 +172,15 @@ module Plum
 
     def build_context(entry = nil)
       LiquidContext.new(controller: self, site: current_site, entry: entry)
+    end
+
+    def requested_locale
+      params[:locale].presence || current_site.default_locale
+    end
+
+    def localized_path(path)
+      prefix = requested_locale == current_site.default_locale ? nil : requested_locale
+      "/#{[ prefix, path ].compact.join('/')}"
     end
   end
 end

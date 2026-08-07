@@ -48,5 +48,29 @@ module Plum
 
       assert_nil result["featured"]
     end
+
+    test "expands multiple relationships in their stored order" do
+      content_type = @site.content_types.create!(name: "Posts", handle: "posts", blueprint: { "fields" => [] })
+      first = @site.entries.create!(content_type: content_type, title: "First", slug: "first", status: :published, published_at: 1.hour.ago, data: {})
+      second = @site.entries.create!(content_type: content_type, title: "Second", slug: "second", status: :published, published_at: 1.hour.ago, data: {})
+      result = FieldExpander.new(site: @site).expand(
+        values: { "related" => [ second.id, first.id ] },
+        fields: [ { "handle" => "related", "type" => "relationship", "multiple" => true } ]
+      )
+
+      assert_equal [ "Second", "First" ], result["related"].map { |entry| entry["title"] }
+    end
+
+    test "expands an ordered image collection" do
+      first = @site.assets.create!(alt_text: "First", file: { io: StringIO.new(TEST_PNG_DATA), filename: "first.png", content_type: "image/png" })
+      second = @site.assets.create!(alt_text: "Second", file: { io: StringIO.new(TEST_PNG_DATA), filename: "second.png", content_type: "image/png" })
+
+      result = FieldExpander.new(site: @site).expand(
+        values: { "gallery" => [ second.id, first.id ] },
+        fields: [ { "handle" => "gallery", "type" => "images" } ]
+      )
+
+      assert_equal [ "Second", "First" ], result["gallery"].map { |asset| asset["alt_text"] }
+    end
   end
 end
