@@ -287,6 +287,46 @@ Images uploaded through Lexxy use Active Storage Direct Upload and render on the
 front-end as standard `<img>` tags. Text colors are resolved from Lexxy's CSS
 variables to real color values at render time.
 
+## Writing Mode
+
+Entries whose content type has a rich text field get a distraction-free
+writing surface ("Write" in the entry editor): a full-screen typographic page
+with just the title and body, debounced autosave, Cmd/Ctrl+S, and a live word
+count. Saves merge into the entry's existing data, so fields that aren't on
+the writing surface are never touched.
+
+On a **published** entry, writing-mode saves become a working draft: the live
+version (and its cached pages) stay exactly as they are while you write, and
+nothing goes public until you hit "Publish changes". Drafts can also be
+published or discarded from the entry editor, and publishing records a
+revision. Unpublished (draft-status) entries save directly, since they aren't
+visible on the site anyway.
+
+## Static Page Caching
+
+Optional: rendered public pages can be written to disk and served as static
+files — no database or Liquid work on repeat visits. Content saves flush the
+site's cache automatically, and pages re-render lazily on their next hit. The
+on-disk layout (`{host}/{path}/index.html`) can be served directly by nginx or
+synced to a CDN, so page delivery scales independently of the app.
+
+**This is only correct on a single-server deployment** and is **off by
+default** — it must be enabled explicitly:
+
+```ruby
+Plum.configure do |config|
+  config.static_cache_enabled = true
+  config.static_cache_path = "/var/www/site-cache"
+end
+```
+
+Enabling it on a multi-node platform (2+ Heroku dynos, 2+ Render instances,
+any load-balanced deployment) causes visitors to silently see stale content
+served forever from whichever node missed the invalidation — not a crash,
+just wrong pages. Read
+[docs/static-caching.md](docs/static-caching.md) first, especially "Should
+you enable this?", before turning this on.
+
 ## Globals and Navigation
 
 Globals are site-wide JSON objects (company info, social links):

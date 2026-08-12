@@ -1,5 +1,91 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- Added the Plum CLI (`cli/`, Go): `plum pull` replaces your local site with
+  a remote's, `plum sync`/`plum check` apply and verify config-as-code files,
+  `plum backup` and `plum run` wrap the remaining rake tasks. Remotes are
+  defined per-project in `plum.yml` (`plum init`). Every command wraps an
+  engine rake task — the CLI adds transport, never behavior. See
+  `docs/plum-cli.md`.
+- Added three transports for CLI remotes (`via: ssh|kamal|once`): plain
+  ssh/scp (default, inherits ~/.ssh/config/agent/jump hosts); `kamal`, which
+  shells out to a local Kamal binary so `config/deploy.yml` is the only
+  source of truth for where the app lives; and `once` for 37signals' Once
+  tool, whose CLI runs on the server itself — the transport ssh-es to
+  `host:` and runs `once exec <once_app> ...` there (`once_app:` is the
+  hostname you gave `once deploy --host ...`, distinct from how you reach
+  the box). Verified against a live Once deployment. Picking a transport is
+  the only thing that changes — the rake tasks behind every command are
+  identical either way.
+- Added `plum logs [remote] [--follow]` — recent app logs, heroku-style
+  tailing with `--follow`. Plain ssh tails `log/production.log`, Kamal runs
+  `kamal app logs`, Once streams `docker logs` from the app's container
+  (resolved by Once's own container label; the Rails image logs to stdout,
+  not a file).
+- Added a Firebase-CLI-style global project registry (`plum projects
+  add/list/remove`, `plum use`, `--project`) so a fleet of Plum sites can be
+  managed from one dev machine without `cd`-ing into each repo — a local
+  `plum.yml` still always takes precedence when one is present.
+- Added `plum connect [ip-or-host]`: guided first-time server setup with no
+  YAML editing required. Detects or generates a local SSH key, tests and (on
+  confirmation) fixes passwordless login with `ssh-copy-id`, optionally adds
+  a `Host` alias to `~/.ssh/config`, and writes `plum.yml` from the answers.
+  It also detects the repo's deployment shape (`config/deploy.yml` → Kamal,
+  `Dockerfile` alone → Once) and asks the right questions for it, then
+  checks the server's tooling — Docker Engine for Kamal/Once, plus the
+  `once` binary for Once — offering to install whatever's missing, each
+  step gated on explicit confirmation. Deploying the app itself (images,
+  registry credentials) intentionally stays manual.
+- Fixed destroying an entry (or its site) crashing with a foreign-key
+  violation when the entry was linked from a nav menu — nav items are now
+  removed with their entry.
+- Added `rails plum:site:replace` — the "pull" refresh: swaps the local site
+  for a production archive in one transactional step, database-agnostic
+  (Postgres prod → SQLite dev), refusing to run in production without FORCE.
+- Fixed Plum rake tasks running their bodies twice in the standalone repo
+  (engine railtie and application both load lib/tasks; Rake appends actions
+  on re-definition).
+- Added config-as-code (phase 1): `Plum::ConfigSync` syncs content types and
+  fieldsets between YAML files (`plum/content_types/*.yml`) and the database
+  via `rails plum:config:export`, `plum:config:sync` (with PRUNE/FORCE
+  guards that never touch entry data), and `plum:config:check` for CI drift
+  detection. See `docs/config-as-code.md`.
+- Added full-page static caching: rendered public pages and theme assets are
+  written to disk keyed by host + path, served without touching the database,
+  and flushed automatically when site content changes. **Off by default,
+  explicit opt-in** (`config.static_cache_enabled = true`) — it is only
+  correct on a single-server deployment; enabling it on 2+ nodes/dynos
+  silently serves stale pages. The file layout supports direct nginx/Caddy
+  `try_files` serving. See `docs/static-caching.md`.
+- Added a "Clear page cache" control to the dashboard for administrators.
+- Added a distraction-free writing mode for entries with a rich text field:
+  full-screen typographic surface with debounced autosave, Cmd/Ctrl+S,
+  word count, and unsaved-changes protection, reachable from the entry editor.
+- Write-mode saves merge into existing entry data, so partial saves never
+  wipe unsubmitted blueprint fields, and identical consecutive saves no
+  longer stack duplicate revisions.
+- Added a git-style "Review changes" screen for working drafts: field-by-field
+  word diffs of draft vs. live content (rich text compared as readable text,
+  structured fields as JSON), with publish/discard actions inline. Linked from
+  the entry editor's draft banner and the writing surface.
+- Added working drafts for published entries: writing-mode autosaves on a
+  published entry are stored in a new `draft_data` column and never touch the
+  live content or flush its cached pages. Editors publish or discard the
+  draft explicitly (from the writing surface or the entry editor's draft
+  banner); publishing records a revision. Draft-status entries still save
+  directly.
+
+### Changed
+
+- Public `{% form %}` forms now use a honeypot spam trap instead of a
+  per-session CSRF token, so cached pages stay valid and public page views no
+  longer set session cookies. The control panel keeps standard CSRF
+  protection.
+- Theme assets are served with `Cache-Control: public, max-age=3600`.
+
 ## 0.2.1 — 2026-08-07
 
 ### Added
