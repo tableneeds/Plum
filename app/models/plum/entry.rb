@@ -331,6 +331,10 @@ module Plum
     end
 
     def prevent_homepage_destroy
+      # Only protect the homepage while its site survives — when the whole
+      # site is going away (site destroy, plum:site:replace), the cascade
+      # must be allowed through.
+      return if destroyed_by_association
       return unless homepage?
 
       errors.add(:base, "The homepage can't be deleted")

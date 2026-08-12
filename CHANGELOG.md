@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+### Fixed
+
+- Fixed `plum:site:replace` (and site destroy generally) aborting with
+  `RecordNotDestroyed` on any site that has a homepage entry — i.e. every
+  real site. The homepage's can't-be-deleted guard now stands down when the
+  entry is being removed as part of its site's dependent cascade. Found by
+  the first live `plum pull` against production.
+- Fixed `plum connect`'s deployment detection treating an unedited
+  `config/deploy.yml` scaffold (the placeholder file `rails new` ships) as
+  proof of a Kamal deployment, which steered Once-deployed repos toward a
+  broken `via: kamal` remote. A deploy.yml still carrying `kamal init`
+  placeholders now counts as absent.
+
 ### Added
 
 - Added the Plum CLI (`cli/`, Go): `plum pull` replaces your local site with

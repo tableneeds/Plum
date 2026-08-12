@@ -89,23 +89,52 @@ go build -o plum . && cp plum ~/.local/bin/plum   # reinstall after changes
 Real-world smoke tests (read-only, safe):
 `cd ~/Work/the-final-word && plum logs` and `plum check`.
 
+## `plum pull` verified live (2026-08-12, later the same day)
+
+`plum pull --yes` ran successfully in `~/Work/plum-site` against the
+`plumcms.org` once app: export via `once exec` on production → download →
+local `plum:site:replace`; local counts match production exactly. Two bugs
+were found and fixed in the process (homepage destroy guard aborting the
+replace cascade; kamal-scaffold deploy.yml fooling connect's detection —
+see CHANGELOG).
+
+State left behind, deliberately:
+
+- **`~/Work/plum-site/Gemfile` now points at the local checkout**
+  (`gem "plum-cms", path: "../Plum"`) so the local side has today's
+  `plum:site:replace`. **Do not push plum-site like this** — its Docker
+  image build would fail (../Plum isn't in the build context). The real fix
+  is releasing plum-cms 0.2.2 with today's features and bumping plum-site
+  back to a version constraint.
+- **`~/Work/plum-site` local content was replaced with production's**
+  (that was the test). Pre-pull dev DB backup, if it matters:
+  the session scratchpad's `plum-site-dev-backup.sqlite3` (temp dir, may
+  be gone; nothing valuable was in it).
+- **the-final-word can't use pull at all yet**: it vendors plum 0.1.0 at
+  `vendor/plum` with an empty `lib/tasks/` — no plum rake tasks on either
+  side. Its production image needs a rebuilt vendor copy (or a switch to
+  the published gem) before pull/sync/backup work there. Its `plum.yml`
+  was found clobbered to a bare `via: kamal` (likely a connect re-run
+  hitting the detection bug, now fixed) and has been restored to the
+  correct via: once form.
+
 ## Sensible next steps (none started)
 
-1. **`plum pull` / `plum check` end-to-end against the live once server** —
-   the transports are exercised, but a full pull (export → download →
-   `plum:site:replace`) hasn't run against production yet. `sync`'s upload
-   path relies on `once exec` passing stdin through to the container
-   (tar pipe) — plausible but **unconfirmed live**; test `check` before
-   trusting `sync --prune`.
-2. **`via: kamal` against a real Kamal fleet** — argv is unit-tested against
+1. **`plum check`/`plum sync` live** — `sync`'s upload path relies on
+   `once exec` passing stdin through to the container (tar pipe) —
+   plausible but **unconfirmed live**; test `check` (read-only) before
+   trusting `sync --prune`. Requires a `plum/` config export locally first.
+2. **Release plum-cms 0.2.2** so plum-site can go back to a gem version
+   (see above), and consider updating the-final-word's vendored copy.
+3. **`via: kamal` against a real Kamal fleet** — argv is unit-tested against
    fake binaries only.
-3. **`plum deploy`** — Ben wants heroku-like ergonomics eventually; scope so
+4. **`plum deploy`** — Ben wants heroku-like ergonomics eventually; scope so
    far deliberately excludes it (registry tokens, `once deploy`). Discuss
    scope before building.
-4. **Fleet-wide `--all`** across the project registry.
-5. **Config-as-code phase 2** — CP write-back to files, dev file watcher,
+5. **Fleet-wide `--all`** across the project registry.
+6. **Config-as-code phase 2** — CP write-back to files, dev file watcher,
    ALL_SITES=1.
-6. **CDN/surrogate-key cache backend** so static caching works multi-node.
+7. **CDN/surrogate-key cache backend** so static caching works multi-node.
 
 ## Gotchas for the next agent
 

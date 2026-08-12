@@ -21,6 +21,10 @@ module Plum
         blueprint: { "fields" => [ { "handle" => "body", "type" => "rich_text" } ] })
       posts.entries.create!(site: site, title: "Production truth", slug: "production-truth",
         status: :published, published_at: 1.hour.ago, data: { "body" => "<p>Prod</p>" })
+      # Every real site has a homepage; its destroy guard must not abort the
+      # replace (regression caught by the first live `plum pull`).
+      posts.entries.create!(site: site, title: "Home", slug: Plum::Entry::HOMEPAGE_SLUG,
+        status: :published, published_at: 1.hour.ago)
       Plum::SiteArchive.dump(site: site, path: @archive_path)
 
       # Local drift that the pull should wipe out.
