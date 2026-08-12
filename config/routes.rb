@@ -14,6 +14,10 @@ Rails.application.routes.draw do
         post :apply_fieldset, on: :member
         resources :entries do
           patch :image_field, on: :member
+          get :write, on: :member
+          get :diff, on: :member
+          post :publish_draft, on: :member
+          delete :discard_draft, on: :member
           post :translate, on: :member
           resources :revisions, controller: "entry_revisions", only: [ :index ] do
             post :restore, on: :member
@@ -32,6 +36,7 @@ Rails.application.routes.draw do
       resource :site_settings, only: [ :show, :edit, :update ]
       patch "site_settings/image_field", to: "site_settings#image_field", as: :site_settings_image_field
       resources :themes, only: [ :index, :create, :update ]
+      delete "static_cache", to: "static_cache#destroy", as: :static_cache
       resources :taxonomies do
         resources :terms, except: [ :index, :show ]
       end

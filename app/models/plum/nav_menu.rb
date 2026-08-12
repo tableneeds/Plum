@@ -1,6 +1,7 @@
 module Plum
   class NavMenu < ApplicationRecord
     include SiteScoped
+    include StaticCacheInvalidation
 
     has_many :nav_items, dependent: :destroy
 

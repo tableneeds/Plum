@@ -1,6 +1,7 @@
 module Plum
   class ContentType < ApplicationRecord
     include SiteScoped
+    include StaticCacheInvalidation
 
     FIELD_TYPES = FieldTypeRegistry.handles.freeze
 

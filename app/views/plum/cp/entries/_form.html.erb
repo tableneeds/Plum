@@ -17,7 +17,7 @@
           <div class="space-y-6">
             <div>
               <%= f.label :title, class: "block text-sm font-medium text-gray-700" %>
-              <%= f.text_field :title, class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500" %>
+              <%= f.text_field :title, value: entry.draft_title, class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500" %>
             </div>
 
             <div>
@@ -35,7 +35,7 @@
           <% @content_type.fields.each do |field| %>
             <% field_handle = field["handle"].to_s %>
             <% field_id = "entry_data_#{field_handle.parameterize}" %>
-            <% field_value = entry.data&.dig(field_handle) %>
+            <% field_value = entry.draft_field_value(field_handle) %>
             <% field_value = field["default"] if entry.new_record? && field_value.nil? && field.key?("default") %>
             <% condition = field["condition"].presence %>
             <div class="<%= 'border-b border-gray-200 pb-2 pt-4' if field['type'] == 'section' %>" style="grid-column: span <%= field['type'] == 'section' ? 12 : (field['width'].presence || 12) %> / span <%= field['type'] == 'section' ? 12 : (field['width'].presence || 12) %>;"<% if condition %> data-field-condition="<%= condition.to_json %>"<% end %>>

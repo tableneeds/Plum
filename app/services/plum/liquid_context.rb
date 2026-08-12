@@ -125,8 +125,6 @@ module Plum
           "handle" => form.handle,
           "fields" => form.form_fields,
           "action" => public_form_path(form),
-          "csrf_token" => form_authenticity_token,
-          "csrf_param" => "authenticity_token",
           "return_to" => controller.request.fullpath
         }
       end

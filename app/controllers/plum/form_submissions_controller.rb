@@ -1,6 +1,15 @@
 module Plum
   class FormSubmissionsController < ApplicationController
+    # Public forms are served from the static cache, so they can't carry a
+    # per-session CSRF token. Submissions are unauthenticated writes guarded
+    # by the honeypot below instead.
+    skip_forgery_protection
+
     def create
+      # Pretend success when the honeypot is filled so bots don't learn
+      # they were caught.
+      return redirect_to safe_return_path, notice: "Form submitted" if honeypot_tripped?
+
       form_definition = current_site.form_definitions.find_by!(handle: params[:handle])
       submission = form_definition.form_submissions.build(
         site: current_site,
@@ -16,6 +25,10 @@ module Plum
     end
 
     private
+
+    def honeypot_tripped?
+      params.dig(:form_submission, :website).present?
+    end
 
     def deliver_submission_notification(submission)
       return if submission.form_definition.notification_email.blank?

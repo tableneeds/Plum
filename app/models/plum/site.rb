@@ -1,5 +1,7 @@
 module Plum
   class Site < ApplicationRecord
+    include StaticCacheInvalidation
+
     belongs_to :owner, polymorphic: true, optional: true
 
     has_one :site_setting, dependent: :destroy

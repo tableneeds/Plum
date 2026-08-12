@@ -1,6 +1,7 @@
 module Plum
   class Global < ApplicationRecord
     include SiteScoped
+    include StaticCacheInvalidation
 
     validates :name, presence: true
     validates :handle, presence: true, uniqueness: { scope: :site_id }, format: { with: /\A[a-z][a-z0-9_]*\z/ }

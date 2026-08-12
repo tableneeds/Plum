@@ -24,9 +24,20 @@ module Plum
 
     def hidden_inputs
       [
-        hidden_input(form["csrf_param"], form["csrf_token"]),
+        honeypot_input,
         hidden_input("return_to", form["return_to"])
       ].compact.join("\n  ")
+    end
+
+    # Spam trap instead of a CSRF token: tokens are per-session, which would
+    # both break under static caching and force a session cookie onto every
+    # visitor. Bots fill this in; humans never see it.
+    def honeypot_input
+      <<~HTML.strip
+        <div style="position:absolute;left:-9999px;top:-9999px" aria-hidden="true">
+          <input type="text" name="form_submission[website]" tabindex="-1" autocomplete="off">
+        </div>
+      HTML
     end
 
     def fields_html

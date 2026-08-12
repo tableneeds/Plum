@@ -6,7 +6,8 @@ module Plum
                   :mailer_sender, :cp_name, :cp_subtitle, :cp_logo_path,
                   :cp_accent_color, :cp_sidebar_bg, :cp_sidebar_header_bg, :cp_sidebar_text, :cp_sidebar_muted,
                   :cp_back_url, :cp_back_label,
-                  :powered_by_name, :powered_by_url
+                  :powered_by_name, :powered_by_url,
+                  :static_cache_enabled, :static_cache_path, :config_path
     attr_writer :theme_paths
     attr_reader :content_sources
 
@@ -25,6 +26,16 @@ module Plum
       @cp_back_label = "← Back"
       @powered_by_name = "Plum"
       @powered_by_url = "https://plumcms.com"
+      # Explicit opt-in — see docs/static-caching.md before enabling. Off by
+      # default because it's only correct on a single-server deployment;
+      # silently corrupts pages (stale content served forever from whichever
+      # node didn't get the invalidation) on multi-node platforms like
+      # Heroku/Render with 2+ dynos.
+      @static_cache_enabled = false
+      @static_cache_path = nil
+      # Directory for config-as-code YAML (content types, fieldsets).
+      # nil = default to Rails.root/plum when the tasks are invoked.
+      @config_path = nil
       @content_sources = ContentSourceRegistry.new
       @current_site_resolver = ->(_controller) { Plum::Site.first_or_create_standalone! }
       @current_user_resolver = lambda { |controller|

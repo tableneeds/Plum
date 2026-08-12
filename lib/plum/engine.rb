@@ -1,10 +1,17 @@
 require_relative "configuration"
+require_relative "static_cache"
+require_relative "static_cache/middleware"
 
 module Plum
   class Engine < ::Rails::Engine
     isolate_namespace Plum
     config.paths["config/routes.rb"] = "config/plum_routes.rb"
     config.paths["db/migrate"] = [ "db/engine_migrate" ]
+
+    initializer "plum.static_cache" do |app|
+      # Always installed; it no-ops per request unless StaticCache.enabled?
+      app.middleware.use Plum::StaticCache::Middleware
+    end
 
     initializer "plum.assets" do |app|
       app.config.assets.paths << root.join("app/assets/javascripts")

@@ -1,0 +1,40 @@
+<div class="mb-8 flex flex-wrap items-center justify-between gap-4">
+  <div>
+    <h1 class="text-2xl font-bold text-gray-900">Review draft changes</h1>
+    <p class="mt-1 text-sm text-gray-500">
+      <%= @entry.title %> &mdash;
+      <span class="inline-flex items-center gap-3">
+        <span><span class="inline-block h-2.5 w-2.5 rounded-sm bg-red-200 align-middle"></span> removed from live</span>
+        <span><span class="inline-block h-2.5 w-2.5 rounded-sm bg-green-200 align-middle"></span> added in draft</span>
+      </span>
+    </p>
+  </div>
+  <div class="flex items-center gap-3">
+    <%= link_to "Back to editor", edit_cp_content_type_entry_path(@content_type, @entry),
+        class: "inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50" %>
+    <%= link_to "Continue writing", write_cp_content_type_entry_path(@content_type, @entry),
+        class: "inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50" %>
+    <%= button_to "Discard draft", discard_draft_cp_content_type_entry_path(@content_type, @entry), method: :delete,
+        data: { turbo_confirm: "Discard the draft changes and go back to the published version?" },
+        class: "inline-flex items-center px-4 py-2 border border-red-300 rounded-md shadow-sm text-sm font-medium text-red-700 bg-white hover:bg-red-50 cursor-pointer" %>
+    <%= button_to "Publish changes", publish_draft_cp_content_type_entry_path(@content_type, @entry),
+        class: "inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 cursor-pointer" %>
+  </div>
+</div>
+
+<% if @diff.any? %>
+  <div class="space-y-6">
+    <% @diff.changes.each do |change| %>
+      <div class="bg-white shadow rounded-lg overflow-hidden">
+        <div class="px-6 py-3 border-b border-gray-200 bg-gray-50">
+          <h2 class="text-sm font-semibold text-gray-700"><%= change.label %></h2>
+        </div>
+        <div class="px-6 py-5 text-[0.9375rem] leading-7 text-gray-800" style="white-space: pre-wrap; overflow-wrap: anywhere;"><% change.segments.each do |op, text| %><% case op %><% when :eq %><%= text %><% when :del %><del class="rounded-sm bg-red-100 px-0.5 text-red-800 decoration-red-400"><%= text %></del><% when :ins %><ins class="rounded-sm bg-green-100 px-0.5 text-green-800 no-underline"><%= text %></ins><% end %><% end %></div>
+      </div>
+    <% end %>
+  </div>
+<% else %>
+  <div class="bg-white shadow rounded-lg p-10 text-center">
+    <p class="text-sm text-gray-500">The draft matches the live version &mdash; nothing to review.</p>
+  </div>
+<% end %>

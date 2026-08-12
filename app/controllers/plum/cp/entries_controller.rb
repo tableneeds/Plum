@@ -11,9 +11,9 @@ module Plum
       ].freeze
 
       before_action :set_content_type
-      before_action :set_entry, only: [ :edit, :update, :destroy, :image_field, :translate ]
+      before_action :set_entry, only: [ :edit, :update, :destroy, :image_field, :translate, :write, :diff, :publish_draft, :discard_draft ]
       before_action :set_form_collections, only: [ :new, :create, :edit, :update ]
-      before_action :require_editor, only: [ :new, :create, :edit, :update, :destroy, :image_field, :translate ]
+      before_action :require_editor, only: [ :new, :create, :edit, :update, :destroy, :image_field, :translate, :write, :diff, :publish_draft, :discard_draft ]
 
       def index
         @entries = @content_type.entries.order(updated_at: :desc)
@@ -38,13 +38,45 @@ module Plum
       def edit
       end
 
+      # Distraction-free writing surface for the entry's first rich text
+      # field. Saves go through #update with write_mode, which merges the
+      # submitted fields into the existing data instead of replacing it.
+      def write
+        @field = @content_type.fields.find { |field| field["type"] == "rich_text" && field["handle"].present? }
+        unless @field
+          return redirect_to edit_cp_content_type_entry_path(@content_type, @entry),
+                             alert: "This content type has no rich text field to write in"
+        end
+
+        render layout: "plum/write"
+      end
+
       def update
+        # Writing-mode saves on a live entry become a working draft so the
+        # published version (and its cached pages) stay untouched.
+        return save_write_mode_draft if write_mode? && @entry.published?
+
         @entry.assign_attributes(entry_params)
+        # The full form displays draft values when a draft exists, so a form
+        # save publishes what the editor saw — the draft is no longer pending.
+        @entry.draft_data = nil unless write_mode?
 
         if save_entry(@entry)
-          redirect_to edit_cp_content_type_entry_path(@content_type, @entry), notice: "Entry updated"
+          respond_to do |format|
+            format.html do
+              if write_mode?
+                redirect_to write_cp_content_type_entry_path(@content_type, @entry), notice: "Saved"
+              else
+                redirect_to edit_cp_content_type_entry_path(@content_type, @entry), notice: "Entry updated"
+              end
+            end
+            format.json { render json: { saved: true, saved_at: Time.current.iso8601 } }
+          end
         else
-          render :edit, status: :unprocessable_entity
+          respond_to do |format|
+            format.html { render :edit, status: :unprocessable_entity }
+            format.json { render json: { saved: false, errors: @entry.errors.full_messages }, status: :unprocessable_entity }
+          end
         end
       end
 
@@ -66,6 +98,34 @@ module Plum
         else
           render json: { error: @entry.errors.full_messages.to_sentence }, status: :unprocessable_entity
         end
+      end
+
+      # Git-style review of draft vs. live content.
+      def diff
+        unless @entry.has_draft?
+          return redirect_to edit_cp_content_type_entry_path(@content_type, @entry),
+                             notice: "No draft changes to review"
+        end
+
+        @diff = Plum::DraftDiff.new(@entry)
+      end
+
+      def publish_draft
+        published = @entry.publish_draft!(editor: current_user)
+
+        respond_to do |format|
+          format.html do
+            redirect_back fallback_location: edit_cp_content_type_entry_path(@content_type, @entry),
+                          notice: published ? "Draft published" : "No draft changes to publish"
+          end
+          format.json { render json: { published: published, published_at: Time.current.iso8601 } }
+        end
+      end
+
+      def discard_draft
+        @entry.discard_draft!
+        redirect_back fallback_location: edit_cp_content_type_entry_path(@content_type, @entry),
+                      notice: "Draft discarded"
       end
 
       def destroy
@@ -121,9 +181,32 @@ module Plum
       def entry_params
         permitted = params.require(:entry).permit(:title, :slug, :status, :published_at, :locale)
         if params[:entry][:data].is_a?(ActionController::Parameters)
-          permitted[:data] = params[:entry][:data].permit!.to_h
+          submitted = params[:entry][:data].permit!.to_h
+          # Writing mode only submits the field being written, so merge it
+          # into the stored data rather than wiping the other fields.
+          submitted = @entry.data.to_h.merge(submitted) if write_mode? && @entry&.persisted?
+          permitted[:data] = submitted
         end
         permitted
+      end
+
+      def write_mode?
+        params.dig(:entry, :write_mode).present?
+      end
+
+      def save_write_mode_draft
+        submitted = params[:entry][:data].is_a?(ActionController::Parameters) ? params[:entry][:data].permit!.to_h : {}
+        @entry.save_draft!(title: params.dig(:entry, :title), data: submitted)
+
+        respond_to do |format|
+          format.html { redirect_to write_cp_content_type_entry_path(@content_type, @entry), notice: "Draft saved" }
+          format.json { render json: { saved: true, draft: true, saved_at: Time.current.iso8601 } }
+        end
+      rescue ActiveRecord::RecordInvalid => e
+        respond_to do |format|
+          format.html { redirect_to write_cp_content_type_entry_path(@content_type, @entry), alert: e.record.errors.full_messages.to_sentence }
+          format.json { render json: { saved: false, errors: e.record.errors.full_messages }, status: :unprocessable_entity }
+        end
       end
 
       def save_entry(entry)

@@ -1,6 +1,7 @@
 module Plum
   class Term < ApplicationRecord
     include SiteScoped
+    include StaticCacheInvalidation
 
     belongs_to :taxonomy
 

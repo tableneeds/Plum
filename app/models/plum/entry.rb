@@ -1,6 +1,7 @@
 module Plum
   class Entry < ApplicationRecord
     include SiteScoped
+    include StaticCacheInvalidation
 
     belongs_to :content_type
     belongs_to :author, class_name: "Plum::User", optional: true
@@ -10,6 +11,9 @@ module Plum
     has_many :terms, through: :entry_terms
     has_many :revisions, class_name: "Plum::EntryRevision", dependent: :destroy
     has_many :translations, class_name: "Plum::Entry", foreign_key: :origin_id, dependent: :destroy
+    # A deleted entry takes its nav links with it — nav items have a FK on
+    # entry_id, so without this both entry and site destroys crash.
+    has_many :nav_items, dependent: :destroy
 
     # The page served at "/" — Plum resolves the homepage by this slug
     # (convention over configuration). Its slug is locked and it can't be
@@ -45,6 +49,49 @@ module Plum
       data&.dig(handle)
     end
 
+    # Working copy ("draft of a published entry"): pending edits stored in
+    # draft_data as { "title" => ..., "data" => {...} }. The live `title` and
+    # `data` stay untouched until publish_draft!, so the public site never
+    # sees half-written content.
+    def has_draft?
+      draft_data.present?
+    end
+
+    def draft_title
+      draft_data.to_h["title"].presence || title
+    end
+
+    def draft_field_value(handle)
+      draft_data.to_h.dig("data", handle) || field_value(handle)
+    end
+
+    def save_draft!(title: nil, data: {})
+      base = draft_data.to_h
+      merged = (base["data"] || self.data.to_h).merge(data.to_h)
+      update!(draft_data: {
+        "title" => title.presence || base["title"].presence || self.title,
+        "data" => merged
+      })
+    end
+
+    def publish_draft!(editor: nil)
+      return false unless has_draft?
+
+      transaction do
+        update!(
+          title: draft_data["title"].presence || title,
+          data: draft_data["data"] || data,
+          draft_data: nil
+        )
+        record_revision!(editor: editor)
+      end
+      true
+    end
+
+    def discard_draft!
+      update!(draft_data: nil)
+    end
+
     def homepage?
       slug == HOMEPAGE_SLUG
     end
@@ -66,6 +113,12 @@ module Plum
         }
       }
       attributes[:editor] = editor if editor.is_a?(Plum::User)
+
+      # Autosave calls this on every save; identical content shouldn't pile
+      # up as duplicate history entries.
+      last = revisions.order(id: :desc).first
+      return last if last && last.snapshot == attributes[:snapshot]
+
       revisions.create!(attributes)
     end
 

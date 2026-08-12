@@ -29,6 +29,9 @@
               <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium <%= entry.published? ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800' %>">
                 <%= entry.status %>
               </span>
+              <% if entry.has_draft? %>
+                <span class="ml-1 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800" title="Has unpublished draft changes">draft edits</span>
+              <% end %>
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><%= entry.updated_at.strftime("%b %d, %Y") %></td>
             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">

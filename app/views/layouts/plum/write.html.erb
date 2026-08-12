@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <title>Writing — <%= Plum.configuration.cp_name %></title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <%= csrf_meta_tags %>
+  <%= csp_meta_tag %>
+  <%= favicon_link_tag "plum-mark.svg", type: "image/svg+xml" %>
+  <%= stylesheet_link_tag "plum/control_panel", "data-turbo-track": "reload" %>
+  <%= stylesheet_link_tag "lexxy", "data-turbo-track": "reload" %>
+  <%= javascript_importmap_tags %>
+  <script type="module">import "plum/application"</script>
+  <style>
+    :root { --plum-accent: <%= Plum.configuration.cp_accent_color %>; }
+
+    body.plum-write {
+      background: #faf9f7;
+      color: #1f2937;
+    }
+
+    .plum-write-bar {
+      position: fixed;
+      inset: 0 0 auto 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.875rem 1.5rem;
+      background: linear-gradient(to bottom, rgba(250,249,247,0.97), rgba(250,249,247,0.85) 70%, rgba(250,249,247,0));
+      z-index: 10;
+      opacity: 0.35;
+      transition: opacity 0.25s ease;
+    }
+    .plum-write-bar:hover, .plum-write-bar:focus-within,
+    .plum-write-bar.plum-write-bar--active { opacity: 1; }
+
+    .plum-write-save-state {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.3rem 0.75rem;
+      border-radius: 9999px;
+      font-size: 0.8125rem;
+      font-weight: 500;
+      color: #6b7280;
+      background: rgba(0,0,0,0.04);
+      transition: color 0.2s ease, background 0.2s ease;
+    }
+    .plum-write-save-state::before {
+      content: "";
+      width: 0.5rem;
+      height: 0.5rem;
+      border-radius: 9999px;
+      background: #9ca3af;
+      flex-shrink: 0;
+      transition: background 0.2s ease;
+    }
+    .plum-write-save-state[data-state="dirty"]::before { background: #f59e0b; }
+    .plum-write-save-state[data-state="saving"]::before {
+      background: #f59e0b;
+      animation: plum-write-pulse 1s ease-in-out infinite;
+    }
+    .plum-write-save-state[data-state="saved"] { color: #047857; background: #ecfdf5; }
+    .plum-write-save-state[data-state="saved"]::before { background: #10b981; }
+    .plum-write-save-state[data-state="error"] { color: #b91c1c; background: #fef2f2; }
+    .plum-write-save-state[data-state="error"]::before { background: #ef4444; }
+
+    @keyframes plum-write-pulse {
+      50% { opacity: 0.3; }
+    }
+
+    .plum-write-page {
+      max-width: 44rem;
+      margin: 0 auto;
+      padding: 6.5rem 1.5rem 40vh;
+    }
+
+    .plum-write-title {
+      width: 100%;
+      border: 0;
+      background: transparent;
+      resize: none;
+      overflow: hidden;
+      font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+      font-size: 2.75rem;
+      line-height: 1.15;
+      font-weight: 700;
+      color: #111827;
+      outline: none;
+      padding: 0;
+    }
+    .plum-write-title::placeholder { color: #d1d5db; }
+
+    .plum-write-body { margin-top: 2rem; }
+    .plum-write-body lexxy-editor {
+      display: block;
+      border: 0;
+      background: transparent;
+      box-shadow: none;
+    }
+    .plum-write-body .lexxy-content,
+    .plum-write-body lexxy-editor [contenteditable] {
+      font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+      font-size: 1.3125rem;
+      line-height: 1.8;
+      color: #1f2937;
+      min-height: 55vh;
+      border: 0 !important;
+      box-shadow: none !important;
+      background: transparent !important;
+      padding: 0;
+      outline: none;
+    }
+    .plum-write-body lexxy-toolbar {
+      position: sticky;
+      top: 0;
+      opacity: 0.25;
+      transition: opacity 0.25s ease;
+      background: transparent;
+      border: 0;
+    }
+    .plum-write-body:hover lexxy-toolbar,
+    .plum-write-body:focus-within lexxy-toolbar { opacity: 1; }
+
+    .plum-write-status {
+      position: fixed;
+      right: 1.5rem;
+      bottom: 1.25rem;
+      display: flex;
+      gap: 1rem;
+      font-size: 0.75rem;
+      letter-spacing: 0.02em;
+      color: #9ca3af;
+      z-index: 10;
+    }
+  </style>
+</head>
+<body class="plum-write h-full">
+  <%= yield %>
+</body>
+</html>

@@ -1,6 +1,7 @@
 module Plum
   class Taxonomy < ApplicationRecord
     include SiteScoped
+    include StaticCacheInvalidation
 
     has_many :terms, dependent: :destroy
 

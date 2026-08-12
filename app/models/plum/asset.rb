@@ -1,6 +1,7 @@
 module Plum
   class Asset < ApplicationRecord
     include SiteScoped
+    include StaticCacheInvalidation
 
     has_one_attached :file
 

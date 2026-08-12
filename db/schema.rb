@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_08_07_160000) do
+ActiveRecord::Schema[8.0].define(version: 2026_08_11_090000) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
@@ -80,6 +80,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_08_07_160000) do
     t.string "author_gid"
     t.string "locale", default: "en", null: false
     t.integer "origin_id"
+    t.json "draft_data"
     t.index ["author_id"], name: "index_plum_entries_on_author_id"
     t.index ["content_type_id"], name: "index_plum_entries_on_content_type_id"
     t.index ["origin_id", "locale"], name: "index_plum_entries_on_origin_id_and_locale", unique: true

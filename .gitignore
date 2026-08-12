@@ -35,3 +35,11 @@
 
 /app/assets/builds/*
 !/app/assets/builds/.keep
+
+# Plum CLI local artifacts
+/plum.yml
+/plum/
+/cli/plum
+
+# Locally built gem packages
+/*.gem

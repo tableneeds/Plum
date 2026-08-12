@@ -1,6 +1,7 @@
 module Plum
   class FormDefinition < ApplicationRecord
     include SiteScoped
+    include StaticCacheInvalidation
 
     FIELD_TYPES = %w[text email textarea select checkbox].freeze
     HANDLE_PATTERN = /\A[a-z][a-z0-9_]*\z/

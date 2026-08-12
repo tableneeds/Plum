@@ -2,6 +2,10 @@ module Plum
   class PagesController < ApplicationController
     HOMEPAGE_SLUG = "home".freeze
 
+    # Search stays dynamic (query-dependent); the middleware also refuses to
+    # store any response with a query string or a non-200 status.
+    after_action :mark_static_cacheable, only: [ :home, :localized_home, :show ]
+
     def home
       @site_settings = SiteSetting.instance(current_site)
       @entry = Entry.for_site(current_site).live
@@ -90,6 +94,10 @@ module Plum
     private
 
     PER_PAGE = 12
+
+    def mark_static_cacheable
+      response.headers[Plum::StaticCache::MARKER_HEADER] = "store" if response.status == 200
+    end
 
     def render_collection(content_type)
       context = build_context

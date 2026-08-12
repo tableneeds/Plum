@@ -12,6 +12,14 @@ Plum.configure do |config|
     Plum::Engine.root.join("app/themes")
   ]
 
+  # Static page caching serves rendered pages from disk instead of hitting
+  # the database/Liquid on every request — a big win on a single server, but
+  # only correct on a single server. See docs/static-caching.md before
+  # enabling this on a multi-node/PaaS deployment (Heroku, Render, etc. with
+  # 2+ dynos or instances).
+  #
+  # config.static_cache_enabled = true
+
   # White-label the control panel:
   #
   # config.cp_name = "My Brand"

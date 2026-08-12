@@ -1,6 +1,7 @@
 module Plum
   class NavItem < ApplicationRecord
     include SiteScoped
+    include StaticCacheInvalidation
 
     belongs_to :nav_menu
     belongs_to :parent, class_name: "Plum::NavItem", optional: true

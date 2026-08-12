@@ -1,0 +1,60 @@
+<% field_handle = @field["handle"].to_s %>
+<% field_value = @entry.draft_field_value(field_handle) %>
+<% drafting = @entry.published? %>
+
+<div data-controller="plum--write"
+     data-plum--write-publish-url-value="<%= publish_draft_cp_content_type_entry_path(@content_type, @entry) %>">
+  <header class="plum-write-bar" data-plum--write-target="bar">
+    <%= link_to "&larr; Back to editor".html_safe, edit_cp_content_type_entry_path(@content_type, @entry),
+        class: "text-sm font-medium text-gray-500 hover:text-gray-900" %>
+    <div class="flex items-center gap-4">
+      <span class="plum-write-save-state" data-plum--write-target="status" data-state="idle">
+        <span data-plum--write-target="statusText"><%= @entry.has_draft? ? "Draft saved" : "Saved" %></span>
+      </span>
+      <% if drafting %>
+        <span class="text-xs text-gray-400">Published &mdash; edits save as a draft</span>
+        <%= link_to "Review changes", diff_cp_content_type_entry_path(@content_type, @entry),
+            class: "text-sm font-medium text-gray-500 hover:text-gray-900" %>
+        <button type="button" data-action="plum--write#save"
+                class="px-4 py-1.5 rounded-md text-sm font-medium text-gray-700 border border-gray-300 bg-white hover:bg-gray-50 cursor-pointer">
+          Save draft
+        </button>
+        <button type="button" data-action="plum--write#publishDraft"
+                class="px-4 py-1.5 rounded-md text-sm font-medium text-white plum-btn-primary cursor-pointer">
+          Publish changes
+        </button>
+      <% else %>
+        <span class="text-xs text-gray-400"><%= @entry.status.titleize %></span>
+        <button type="button" data-action="plum--write#save"
+                class="px-4 py-1.5 rounded-md text-sm font-medium text-white plum-btn-primary cursor-pointer">
+          Save
+        </button>
+      <% end %>
+    </div>
+  </header>
+
+  <main class="plum-write-page">
+    <%= form_with model: [:cp, @content_type, @entry], id: "write-form", data: { "plum--write-target": "form" } do |f| %>
+      <%= hidden_field_tag "entry[write_mode]", "1" %>
+      <%= f.text_area :title, rows: 1, placeholder: "Untitled", autocomplete: "off",
+          value: @entry.draft_title,
+          class: "plum-write-title",
+          data: { "plum--write-target": "title", action: "input->plum--write#titleChanged" } %>
+
+      <div class="plum-write-body">
+        <%= hidden_field_tag "entry[data][#{field_handle}]", field_value, id: "write_field_hidden" %>
+        <lexxy-editor value="<%= field_value %>"
+                      data-direct-upload-url="<%= main_app.rails_direct_uploads_url %>"
+                      data-blob-url-template="<%= main_app.rails_service_blob_url(":signed_id", ":filename") %>"
+                      data-hidden-field="write_field_hidden"
+                      data-plum--write-target="editor"
+                      class="lexxy-content"
+                      placeholder="Write something&hellip;"></lexxy-editor>
+      </div>
+    <% end %>
+  </main>
+
+  <div class="plum-write-status">
+    <span data-plum--write-target="words"></span>
+  </div>
+</div>

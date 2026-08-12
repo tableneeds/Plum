@@ -1,6 +1,7 @@
 module Plum
   class SiteSetting < ApplicationRecord
     include SiteScoped
+    include StaticCacheInvalidation
 
     before_validation :set_defaults
     after_save :sync_site_summary
