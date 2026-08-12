@@ -110,13 +110,17 @@ State left behind, deliberately:
   (that was the test). Pre-pull dev DB backup, if it matters:
   the session scratchpad's `plum-site-dev-backup.sqlite3` (temp dir, may
   be gone; nothing valuable was in it).
-- **the-final-word can't use pull at all yet**: it vendors plum 0.1.0 at
-  `vendor/plum` with an empty `lib/tasks/` — no plum rake tasks on either
-  side. Its production image needs a rebuilt vendor copy (or a switch to
-  the published gem) before pull/sync/backup work there. Its `plum.yml`
-  was found clobbered to a bare `via: kamal` (likely a connect re-run
-  hitting the detection bug, now fixed) and has been restored to the
-  correct via: once form.
+- **the-final-word is fully upgraded and pull-verified** (later that day):
+  its vendored plum was rebuilt from the current gem (gem build + unpack
+  into `vendor/plum`, Gemfile now `gem "plum-cms", path: "vendor/plum"`),
+  pushed, CI-built, and auto-deployed; `plum pull` then matched production
+  exactly (12 entries, 9 assets, 5 types — media included). Along the way:
+  the server's once auto-updater had been failing "unauthorized" for
+  private ghcr pulls because its systemd unit had no `HOME` — fixed with
+  `/etc/systemd/system/once-background.service.d/home.conf` setting
+  `Environment=HOME=/root`. Its `plum.yml` was also found clobbered to a
+  bare `via: kamal` (a connect re-run hitting the detection bug, now
+  fixed) and restored to the correct via: once form.
 
 ## Sensible next steps (none started)
 
