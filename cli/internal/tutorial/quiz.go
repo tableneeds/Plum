@@ -29,13 +29,14 @@ type quizState struct {
 	finished  bool
 
 	// physics: a wrong answer shakes the question (underdamped spring
-	// oscillating around rest), finishing earns a confetti burst
-	// (harmonica projectiles under gravity).
-	shakePos float64
-	shakeVel float64
-	shaking  bool
-	confetti []confettiParticle
-	width    int // stage width for confetti, set by the model on resize
+	// oscillating around rest), finishing earns confetti rain (harmonica
+	// projectiles drifting down the finale screen for as long as you stay).
+	shakePos   float64
+	shakeVel   float64
+	shaking    bool
+	confetti   []confettiParticle
+	confettiOn bool
+	width      int // stage width for confetti, set by the model on resize
 }
 
 type confettiParticle struct {
@@ -57,28 +58,36 @@ func (q *quizState) startShake() {
 	q.shakeVel = 55 // the kick; the spring does the rest
 }
 
-func (q *quizState) burstConfetti(width int) {
+// startConfetti begins the finale's rain; particles keep spawning at the
+// top for as long as the celebration screen is up.
+func (q *quizState) startConfetti() {
+	q.confettiOn = true
+	q.confetti = q.confetti[:0]
+	// Seed a first wave so the rain is already falling when the screen
+	// appears, staggered down the field so it doesn't arrive as one line.
+	for i := 0; i < 24; i++ {
+		q.spawnConfetti(rand.Float64() * float64(confettiRows))
+	}
+}
+
+func (q *quizState) spawnConfetti(y float64) {
+	width := q.width
 	if width < 20 {
 		width = 60
 	}
 	fps := harmonica.FPS(33)
-	q.confetti = q.confetti[:0]
-	for i := 0; i < 48; i++ {
-		x := float64(width)/2 + rand.Float64()*10 - 5
-		vx := rand.Float64()*44 - 22
-		vy := -(rand.Float64()*16 + 6) // launched upward, gravity brings them down
-		p := harmonica.NewProjectile(fps,
-			harmonica.Point{X: x, Y: 1},
-			harmonica.Vector{X: vx, Y: vy},
-			harmonica.Vector{Y: 32},
-		)
-		style := lipgloss.NewStyle().Foreground(lipgloss.Color(confettiColors[i%len(confettiColors)]))
-		q.confetti = append(q.confetti, confettiParticle{
-			proj:  p,
-			pos:   p.Position(), // render at the spawn point before the first tick
-			glyph: style.Render(confettiGlyphs[i%len(confettiGlyphs)]),
-		})
-	}
+	i := len(q.confetti)
+	p := harmonica.NewProjectile(fps,
+		harmonica.Point{X: 1 + rand.Float64()*float64(width-2), Y: y},
+		harmonica.Vector{X: rand.Float64()*4 - 2, Y: 1.5 + rand.Float64()*2.5},
+		harmonica.Vector{Y: 3 + rand.Float64()*3}, // gentle gravity: drift, don't plummet
+	)
+	style := lipgloss.NewStyle().Foreground(lipgloss.Color(confettiColors[rand.Intn(len(confettiColors))]))
+	q.confetti = append(q.confetti, confettiParticle{
+		proj:  p,
+		pos:   p.Position(), // render at the spawn point before the first tick
+		glyph: style.Render(confettiGlyphs[i%len(confettiGlyphs)]),
+	})
 }
 
 // tick advances the quiz's physics one frame.
@@ -90,15 +99,19 @@ func (q *quizState) tick() {
 			q.shakePos = 0
 		}
 	}
-	if len(q.confetti) > 0 {
+	if q.confettiOn {
 		alive := q.confetti[:0]
 		for _, p := range q.confetti {
 			p.pos = p.proj.Update()
-			if p.pos.Y < confettiRows+2 { // fell off the stage
+			if p.pos.Y < confettiRows { // fell off the stage
 				alive = append(alive, p)
 			}
 		}
 		q.confetti = alive
+		// Keep the rain steady: top up what fell off, within a budget.
+		for len(q.confetti) < 26 && rand.Float64() < 0.7 {
+			q.spawnConfetti(0)
+		}
 	}
 }
 
@@ -195,7 +208,7 @@ func (q *quizState) handle(key string) bool {
 			q.answered = false
 		} else {
 			q.finished = true
-			q.burstConfetti(q.width)
+			q.startConfetti()
 		}
 		return true
 	}
@@ -214,7 +227,7 @@ func (q *quizState) view() string {
 	b.WriteString(dimText.Render(fmt.Sprintf("question %d of %d", q.index+1, len(q.questions))) + "\n\n")
 
 	if q.finished {
-		if len(q.confetti) > 0 {
+		if q.confettiOn {
 			b.WriteString(q.confettiView(q.width) + "\n")
 		}
 		b.WriteString(quizRight.Render("✓ All three. ") + "You know Plum.\n\n")

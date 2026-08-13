@@ -282,16 +282,26 @@ func TestQuizPhysics(t *testing.T) {
 		q.handle("enter")
 	}
 	if !q.finished || len(q.confetti) == 0 {
-		t.Fatalf("finishing should burst confetti (finished=%v particles=%d)", q.finished, len(q.confetti))
+		t.Fatalf("finishing should start the confetti rain (finished=%v particles=%d)", q.finished, len(q.confetti))
 	}
 	if !strings.Contains(q.view(), "✦") && !strings.Contains(q.view(), "●") {
 		t.Fatal("confetti should be visible in the finale view")
 	}
-	for i := 0; i < 2000 && len(q.confetti) > 0; i++ {
+	// The rain is continuous while the finale is up — particles keep
+	// falling and respawning, bounded by the budget.
+	for i := 0; i < 500; i++ {
 		q.tick()
+		if len(q.confetti) > 60 {
+			t.Fatalf("confetti budget blown: %d particles", len(q.confetti))
+		}
 	}
-	if len(q.confetti) != 0 {
-		t.Fatal("gravity should eventually clear the confetti")
+	if len(q.confetti) == 0 {
+		t.Fatal("the finale rain should keep falling, not peter out")
+	}
+	// Retaking the quiz turns the rain off.
+	q.handle("r")
+	if q.confettiOn || len(q.confetti) != 0 {
+		t.Fatal("restarting the quiz should stop the confetti")
 	}
 }
 

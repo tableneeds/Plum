@@ -86,7 +86,9 @@
   throughout: the tour opens with a splash — the PLUM wordmark springs up
   letter by letter while a plum bounces across it on projectile physics —
   wrong quiz answers shake the question on an underdamped spring, and
-  finishing the quiz bursts physics confetti (projectiles under gravity).
+  finishing the quiz starts a continuous confetti rain — plum-palette
+  particles drifting down the finale on gentle projectile physics for as
+  long as you stay to enjoy it.
   The splash is a proper title screen: the show loops (the plum relaunches
   while you watch) and holds until you press a pulsing lipgloss "Start the
   tutorial ↵" button — enter begins, q quits, nothing rushes you.
