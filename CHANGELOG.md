@@ -82,7 +82,11 @@
   on harmonica spring physics under an animated gradient progress bar;
   the CLI chapters carry live demos (press `d` to watch `plum pull` or a
   connect health check type itself out, spinners included); and the tour
-  ends with a three-question interactive quiz.
+  ends with a three-question interactive quiz. Harmonica earns its name
+  throughout: the tour opens with a splash — the PLUM wordmark springs up
+  letter by letter while a plum bounces across it on projectile physics —
+  wrong quiz answers shake the question on an underdamped spring, and
+  finishing the quiz bursts physics confetti (projectiles under gravity).
 - `plum tutorial --serve [addr]` hosts the tour over SSH via charm's wish:
   `ssh -p 2222 your-server` gets the full animated tutorial with nothing
   installed. Sessions run only the tutorial (no shell, no exec, any or no

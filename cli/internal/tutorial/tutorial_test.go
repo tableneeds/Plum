@@ -70,6 +70,7 @@ func TestModelNavigationAndQuit(t *testing.T) {
 	if !m.ready {
 		t.Fatal("window size should make the model ready")
 	}
+	m.endSplash() // the intro swallows its first keypress; skip it for nav tests
 
 	key := func(r rune) tea.KeyMsg { return tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{r}} }
 
@@ -105,6 +106,7 @@ func TestModelSurvivesZeroSizedTerminal(t *testing.T) {
 	}
 	m := newModel(chapters, "dark")
 	m.Update(tea.WindowSizeMsg{Width: 0, Height: 0})
+	m.endSplash()
 	if view := m.View(); !strings.Contains(view, chapters[0].Title) {
 		t.Fatal("a zero-sized pty should still render the chapter")
 	}
@@ -186,6 +188,7 @@ func TestQuizIsTheFinalChapter(t *testing.T) {
 	}
 	m := newModel(chapters, "dark")
 	m.Update(tea.WindowSizeMsg{Width: 80, Height: 24})
+	m.endSplash()
 	m.gotoChapter(len(m.chapters) - 1)
 	if m.mode != modeQuiz {
 		t.Fatal("last chapter should enter quiz mode")
@@ -197,5 +200,76 @@ func TestQuizIsTheFinalChapter(t *testing.T) {
 	m.handleKey(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'h'}})
 	if m.mode != modeRead {
 		t.Fatal("h should leave the quiz for the previous chapter")
+	}
+}
+
+func TestSplashPlaysAndFinishes(t *testing.T) {
+	s := newSplash()
+	for i := 0; i < 1000 && !s.done; i++ {
+		s.tick()
+	}
+	if !s.done {
+		t.Fatal("the splash should end on its own")
+	}
+	if view := s.view(80, 24); !strings.Contains(view, "content like code") {
+		t.Fatalf("finished splash should show the tagline: %q", view)
+	}
+}
+
+func TestSplashIsTheOpeningModeAndAnyKeySkips(t *testing.T) {
+	chapters, err := Chapters()
+	if err != nil {
+		t.Fatal(err)
+	}
+	m := newModel(chapters, "dark")
+	m.Update(tea.WindowSizeMsg{Width: 80, Height: 24})
+	if m.mode != modeSplash {
+		t.Fatal("the tour should open on the splash")
+	}
+	m.handleKey(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'x'}})
+	if m.mode != modeRead || m.index != 0 {
+		t.Fatal("any key should skip the splash into chapter 1")
+	}
+}
+
+func TestQuizPhysics(t *testing.T) {
+	q := newQuiz()
+	q.width = 80
+	q.handle("enter") // wrong answer (cursor 0, correct 1)
+	if !q.shaking {
+		t.Fatal("a wrong answer should kick the shake spring")
+	}
+	moved := false
+	for i := 0; i < 200 && q.shaking; i++ {
+		q.tick()
+		if q.shakePos != 0 {
+			moved = true
+		}
+	}
+	if !moved {
+		t.Fatal("the shake spring never moved")
+	}
+	if q.shaking {
+		t.Fatal("the shake should settle")
+	}
+
+	// Answer everything right; the finale bursts confetti that gravity clears.
+	q.handle("enter")
+	for i := 0; i < 3; i++ {
+		q.handle("down")
+		q.handle("enter")
+		q.handle("enter")
+	}
+	if !q.finished || len(q.confetti) == 0 {
+		t.Fatalf("finishing should burst confetti (finished=%v particles=%d)", q.finished, len(q.confetti))
+	}
+	if !strings.Contains(q.view(), "✦") && !strings.Contains(q.view(), "●") {
+		t.Fatal("confetti should be visible in the finale view")
+	}
+	for i := 0; i < 2000 && len(q.confetti) > 0; i++ {
+		q.tick()
+	}
+	if len(q.confetti) != 0 {
+		t.Fatal("gravity should eventually clear the confetti")
 	}
 }

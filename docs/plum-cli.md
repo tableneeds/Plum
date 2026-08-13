@@ -54,7 +54,10 @@ markdown right in your terminal (bubbletea + glamour). Chapters slide in
 on spring physics (harmonica), a gradient progress bar tracks where you
 are, the CLI chapters have **live demos** — press `d` and watch
 `plum pull` or a connect health check type itself out, spinners and all —
-and the tour ends with a three-question quiz. Navigate with ←/→, scroll
+and the tour ends with a three-question quiz. Harmonica does real work:
+a splash intro drops a bouncing plum across the springing wordmark,
+wrong quiz answers shake on an underdamped spring, and finishing the
+quiz bursts projectile-physics confetti. Navigate with ←/→, scroll
 with ↑/↓, jump with 1–9, quit with q. Piped, it prints the chapters as
 plain markdown.
 

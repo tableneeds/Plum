@@ -50,7 +50,8 @@ type frameMsg time.Time
 type mode int
 
 const (
-	modeRead mode = iota
+	modeSplash mode = iota
+	modeRead
 	modeDemo
 	modeQuiz
 )
@@ -74,6 +75,7 @@ type model struct {
 	progress progress.Model
 	player   *demoPlayer
 	quiz     quizState
+	splash   *splash
 
 	width  int
 	height int
@@ -93,6 +95,8 @@ func newModel(chapters []Chapter, style string) *model {
 		spring:   harmonica.NewSpring(harmonica.FPS(int(time.Second/frameInterval)), 7.0, 0.8),
 		progress: bar,
 		quiz:     newQuiz(),
+		splash:   newSplash(),
+		mode:     modeSplash,
 	}
 }
 
@@ -125,12 +129,23 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.viewport.Width, m.viewport.Height = m.width, bodyHeight
 		}
 		m.progress.Width = min(m.width-4, 40)
+		m.quiz.width = min(m.width, 100)
 		m.rebuildRenderer()
 		m.showChapter(false)
 		return m, m.progress.SetPercent(m.progressValue())
 
 	case frameMsg:
 		cmds := []tea.Cmd{frameTick()}
+		if m.mode == modeSplash {
+			m.splash.tick()
+			if m.splash.done {
+				m.endSplash()
+			}
+			return m, tea.Batch(cmds...)
+		}
+		if m.mode == modeQuiz {
+			m.quiz.tick()
+		}
 		if m.sliding {
 			m.slidePos, m.slideVel = m.spring.Update(m.slidePos, m.slideVel, 0)
 			if math.Abs(m.slidePos) < 0.5 && math.Abs(m.slideVel) < 0.5 {
@@ -163,6 +178,12 @@ func (m *model) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 
 	if key == "q" || key == "ctrl+c" || key == "esc" {
 		return m, tea.Quit
+	}
+
+	// The splash takes any key as "yes yes, the show's great, teach me".
+	if m.mode == modeSplash {
+		m.endSplash()
+		return m, nil
 	}
 
 	// Demo playback: d replays, everything else returns to reading.
@@ -210,6 +231,13 @@ func (m *model) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	return m, cmd
 }
 
+// endSplash drops out of the intro into chapter one, sliding it in.
+func (m *model) endSplash() {
+	m.mode = modeRead
+	m.splash.done = true
+	m.showChapter(true)
+}
+
 func (m *model) gotoChapter(index int) (tea.Model, tea.Cmd) {
 	if index < 0 || index >= len(m.chapters) || index == m.index {
 		return m, nil
@@ -236,13 +264,18 @@ func (m *model) View() string {
 	if !m.ready {
 		return "loading..."
 	}
+	if m.mode == modeSplash {
+		return m.padToWindow(m.splash.view(m.width, m.height))
+	}
+
 	title := headerStyle.Render(m.chapters[m.index].Title)
 	place := dimText.Render(fmt.Sprintf("  chapter %d of %d", m.index+1, len(m.chapters)))
 	header := " " + title + place
 
 	body := m.viewport.View()
 	if m.mode == modeQuiz {
-		body = m.padToViewport("\n" + indent(m.quiz.view(), max(2, int(math.Round(m.slidePos))+2)))
+		offset := 2 + int(math.Round(m.slidePos)) + int(math.Round(m.quiz.shakePos))
+		body = m.padToViewport("\n" + indent(m.quiz.view(), max(0, offset)))
 	}
 
 	hints := "←/→ chapters · ↑/↓ scroll · 1-9 jump · q quit"
@@ -252,6 +285,18 @@ func (m *model) View() string {
 	footer := " " + m.progress.View() + dimText.Render("  "+hints)
 
 	return header + "\n\n" + body + "\n" + footer
+}
+
+// padToWindow fills the whole terminal so the splash owns the screen.
+func (m *model) padToWindow(body string) string {
+	lines := strings.Split(body, "\n")
+	for len(lines) < m.height {
+		lines = append(lines, "")
+	}
+	if len(lines) > m.height {
+		lines = lines[:m.height]
+	}
+	return strings.Join(lines, "\n")
 }
 
 // padToViewport gives non-viewport bodies (the quiz) the same height as the
