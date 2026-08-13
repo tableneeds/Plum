@@ -9,7 +9,7 @@ plum push        # apply plum/ config-as-code files to the remote
 plum check       # fail if the remote drifted from plum/ (CI-friendly)
 ```
 
-**Press `d` to watch `plum pull` run.**
+**Press `d` to watch `plum pull` run — or `t` to type it yourself.**
 
 `pull` exports a portable site archive on the server, downloads it, and
 swaps your local site for it — entries, assets, everything. It works

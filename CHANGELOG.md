@@ -90,6 +90,18 @@
   The splash is a proper title screen: the show loops (the plum relaunches
   while you watch) and holds until you press a pulsing lipgloss "Start the
   tutorial ↵" button — enter begins, q quits, nothing rushes you.
+- Gamified the tutorial. Progress persists to ~/.config/plum/tutorial.json:
+  chapters check off as read, demos as watched, and the tour resumes where
+  you left off (the title button becomes "Continue the tutorial"). Reading,
+  watching, typing, and passing the quiz earn XP, with plum-themed ranks
+  climbing in the header (Seedling → Sprout → Sapling → Grower →
+  Orchardist). CLI chapters gained typing challenges: press `t` and type
+  the real command with strict per-character feedback — typos flash and
+  sting but don't land — and nailing it banks XP and rolls the demo as
+  your reward. And the title screen hides Plum Drop (`p`): an arcade game
+  of catching falling plums (harmonica projectiles) with an arrow-key
+  basket, combo multipliers, five misses to a game over, and a persisted
+  high score. SSH-served sessions play everything with an ephemeral save.
 - `plum tutorial --serve [addr]` hosts the tour over SSH via charm's wish:
   `ssh -p 2222 your-server` gets the full animated tutorial with nothing
   installed. Sessions run only the tutorial (no shell, no exec, any or no

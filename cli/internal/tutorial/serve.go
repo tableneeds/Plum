@@ -37,7 +37,7 @@ func Serve(addr, hostKeyPath string) error {
 				// No way to query a remote terminal's background from
 				// here; dark is the safe guess for people ssh-ing into
 				// tutorials.
-				return newModel(chapters, "dark"), []tea.ProgramOption{tea.WithAltScreen()}
+				return newModel(chapters, "dark", newProgress("")), []tea.ProgramOption{tea.WithAltScreen()}
 			}),
 			activeterm.Middleware(), // reject sessions with no pty (scp, port scans)
 			logging.Middleware(),

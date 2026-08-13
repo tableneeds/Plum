@@ -57,7 +57,15 @@ are, the CLI chapters have **live demos** — press `d` and watch
 and the tour ends with a three-question quiz. Harmonica does real work:
 a splash intro drops a bouncing plum across the springing wordmark,
 wrong quiz answers shake on an underdamped spring, and finishing the
-quiz bursts projectile-physics confetti. Navigate with ←/→, scroll
+quiz bursts projectile-physics confetti.
+
+It's also a game. Progress persists (chapters read, demos watched, quiz
+passed) so the tour resumes where you left off; everything earns XP with
+plum-themed ranks in the header (Seedling through Orchardist). CLI
+chapters have typing challenges — press `t` and type the real command
+with per-character feedback; success rolls the demo. And the title
+screen hides **Plum Drop** (press `p`): catch falling plums with an
+arrow-key basket, chase combos, and defend a persisted high score. Navigate with ←/→, scroll
 with ↑/↓, jump with 1–9, quit with q. Piped, it prints the chapters as
 plain markdown.
 

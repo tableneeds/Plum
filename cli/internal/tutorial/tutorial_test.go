@@ -1,6 +1,7 @@
 package tutorial
 
 import (
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -65,7 +66,7 @@ func TestModelNavigationAndQuit(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	m := newModel(chapters, "dark")
+	m := newModel(chapters, "dark", newProgress(""))
 	m.Update(tea.WindowSizeMsg{Width: 80, Height: 24})
 	if !m.ready {
 		t.Fatal("window size should make the model ready")
@@ -104,7 +105,7 @@ func TestModelSurvivesZeroSizedTerminal(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	m := newModel(chapters, "dark")
+	m := newModel(chapters, "dark", newProgress(""))
 	m.Update(tea.WindowSizeMsg{Width: 0, Height: 0})
 	m.endSplash()
 	if view := m.View(); !strings.Contains(view, chapters[0].Title) {
@@ -186,7 +187,7 @@ func TestQuizIsTheFinalChapter(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	m := newModel(chapters, "dark")
+	m := newModel(chapters, "dark", newProgress(""))
 	m.Update(tea.WindowSizeMsg{Width: 80, Height: 24})
 	m.endSplash()
 	m.gotoChapter(len(m.chapters) - 1)
@@ -237,7 +238,7 @@ func TestSplashOnlyEnterStartsTheTour(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	m := newModel(chapters, "dark")
+	m := newModel(chapters, "dark", newProgress(""))
 	m.Update(tea.WindowSizeMsg{Width: 80, Height: 24})
 	if m.mode != modeSplash {
 		t.Fatal("the tour should open on the splash")
@@ -291,5 +292,157 @@ func TestQuizPhysics(t *testing.T) {
 	}
 	if len(q.confetti) != 0 {
 		t.Fatal("gravity should eventually clear the confetti")
+	}
+}
+
+func TestProgressRoundTripsAndRanks(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "tutorial.json")
+	p := newProgress(path)
+	if p.xp() != 0 || p.rank() != "Seedling" {
+		t.Fatalf("fresh progress should be a Seedling with 0xp, got %s %dxp", p.rank(), p.xp())
+	}
+	p.markChapter("Welcome to Plum")
+	p.markChapter("Welcome to Plum") // idempotent
+	p.markDemo("Everyday commands")
+	p.markTyping("Everyday commands")
+	p.markQuiz()
+	p.rememberChapter(5)
+	if !p.recordScore(42) {
+		t.Fatal("first score should be a new best")
+	}
+	if p.recordScore(10) {
+		t.Fatal("a lower score is not a new best")
+	}
+
+	want := xpChapter + xpDemo + xpTyping + xpQuiz // 10+15+25+50 = 100
+	if p.xp() != want {
+		t.Fatalf("expected %dxp, got %d", want, p.xp())
+	}
+	if p.rank() != "Sapling" {
+		t.Fatalf("100xp should rank Sapling, got %s", p.rank())
+	}
+
+	reloaded := newProgress(path)
+	if reloaded.xp() != want || reloaded.LastChapter != 5 || reloaded.HighScore != 42 || !reloaded.QuizPassed {
+		t.Fatalf("progress did not survive the round trip: %+v", reloaded)
+	}
+}
+
+func TestTypingChallengeStrictInput(t *testing.T) {
+	c := &typeChallenge{target: "plum pull"}
+	for _, k := range []string{"p", "l", "u", "m", " "} {
+		if c.key(k) {
+			t.Fatal("challenge finished early")
+		}
+	}
+	if c.typed != 5 {
+		t.Fatalf("expected 5 correct chars, got %d", c.typed)
+	}
+	c.key("x") // wrong: rejected, counted, flashed
+	if c.typed != 5 || c.misses != 1 || c.flash == 0 {
+		t.Fatalf("wrong key should be rejected with a flash: typed=%d misses=%d", c.typed, c.misses)
+	}
+	c.key("backspace")
+	if c.typed != 4 {
+		t.Fatalf("backspace should rewind, typed=%d", c.typed)
+	}
+	done := false
+	for _, k := range []string{" ", "p", "u", "l", "l"} {
+		done = c.key(k)
+	}
+	if !done || !c.done {
+		t.Fatal("finishing the command should complete the challenge")
+	}
+	if !strings.Contains(c.view(), "rolling the demo") {
+		t.Fatal("completion should promise the demo")
+	}
+}
+
+func TestTypingTargetsMatchDemoChapters(t *testing.T) {
+	d := demos()
+	for title := range typingTargets() {
+		if _, ok := d[title]; !ok {
+			t.Fatalf("typing chapter %q has no demo to roll afterwards", title)
+		}
+	}
+}
+
+func TestPlumDropCatchesMissesAndEnds(t *testing.T) {
+	g := newPlumDrop(60, 20)
+	// Run long enough to spawn and resolve plenty of plums with the basket
+	// chasing the nearest one — some get caught.
+	for i := 0; i < 3000 && !g.over; i++ {
+		if len(g.plums) > 0 {
+			target := g.plums[0].pos.X
+			if g.basketX < target {
+				g.move(1.5)
+			} else {
+				g.move(-1.5)
+			}
+		}
+		g.tick()
+	}
+	if g.caught == 0 {
+		t.Fatal("a basket chasing plums should catch at least one")
+	}
+	// Park the basket in a corner and let everything miss: game must end.
+	g2 := newPlumDrop(60, 20)
+	for i := 0; i < 10000 && !g2.over; i++ {
+		g2.move(-99)
+		g2.tick()
+	}
+	if !g2.over {
+		t.Fatal("five misses should end the game")
+	}
+	if !strings.Contains(g2.view(0), "GAME OVER") {
+		t.Fatal("the game over screen should say so")
+	}
+}
+
+func TestModelWiringForGameAndTyping(t *testing.T) {
+	chapters, err := Chapters()
+	if err != nil {
+		t.Fatal(err)
+	}
+	m := newModel(chapters, "dark", newProgress(""))
+	m.Update(tea.WindowSizeMsg{Width: 80, Height: 24})
+
+	// p on the title screen opens the arcade; q concedes back to it.
+	m.handleKey(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'p'}})
+	if m.mode != modeGame || m.game == nil {
+		t.Fatal("p on the splash should start Plum Drop")
+	}
+	m.handleKey(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'q'}})
+	if m.mode != modeSplash {
+		t.Fatal("q in the game should return to the title screen")
+	}
+
+	// t on a typing chapter starts the challenge; typing it out lands in
+	// the demo and banks the XP.
+	m.endSplash()
+	for i, ch := range m.chapters {
+		if ch.Title == "Everyday commands" {
+			m.gotoChapter(i)
+		}
+	}
+	m.handleKey(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'t'}})
+	if m.mode != modeType || m.typing == nil {
+		t.Fatal("t should start the typing challenge")
+	}
+	for _, r := range "plum pull" {
+		if r == ' ' {
+			m.handleKey(tea.KeyMsg{Type: tea.KeySpace})
+		} else {
+			m.handleKey(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{r}})
+		}
+	}
+	if !m.prog.TypingDone["Everyday commands"] {
+		t.Fatal("completing the challenge should bank typing progress")
+	}
+	for i := 0; i < 60 && m.mode == modeType; i++ {
+		m.Update(frameMsg{})
+	}
+	if m.mode != modeDemo {
+		t.Fatal("the victory lap should roll into the demo")
 	}
 }

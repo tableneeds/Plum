@@ -42,9 +42,10 @@ type splash struct {
 	ballDone    bool
 	respawnWait int
 
-	frame  int
-	showUI bool // letters have settled; tagline + button are up
-	done   bool
+	frame       int
+	showUI      bool   // letters have settled; tagline + button are up
+	buttonLabel string // overridden to "Continue..." when a save exists
+	done        bool
 }
 
 func newSplash() *splash {
@@ -138,7 +139,7 @@ func (s *splash) reballistic(pos harmonica.Point, vel harmonica.Vector) {
 var (
 	splashBall    = lipgloss.NewStyle().Foreground(plumColor).Bold(true).Render("●")
 	splashTagline = dimText.Render("content like code — a Rails-native CMS")
-	splashQuit    = dimText.Render("q to quit")
+	splashQuit    = dimText.Render("q to quit · p for a game")
 
 	// The button breathes through the plum shades while the screen waits.
 	buttonShades = []string{"#8E4585", "#A55BA3", "#BC6FC5", "#A55BA3"}
@@ -146,13 +147,17 @@ var (
 
 // button renders the start button, pulsing with the frame clock.
 func (s *splash) button() string {
+	label := s.buttonLabel
+	if label == "" {
+		label = "Start the tutorial  ↵"
+	}
 	shade := buttonShades[(s.frame/14)%len(buttonShades)]
 	return lipgloss.NewStyle().
 		Foreground(lipgloss.Color("#FFFDF5")).
 		Background(lipgloss.Color(shade)).
 		Padding(0, 4).
 		Bold(true).
-		Render("Start the tutorial  ↵")
+		Render(label)
 }
 
 // view composes the frame: sky with the bouncing plum, the rising

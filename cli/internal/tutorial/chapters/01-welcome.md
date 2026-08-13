@@ -23,6 +23,10 @@ them. It's a quick read — each chapter is a screenful or two.
 - **↑/↓** (or `j`/`k`) — scroll within a chapter
 - **1–9** — jump straight to a chapter
 - **d** — on CLI chapters: watch the command run
+- **t** — on CLI chapters: type the command yourself
 - **q** — quit
 
-There's a short quiz at the end. Press **→** to begin.
+Reading, watching, typing, and the quiz at the end all earn XP — your
+rank climbs in the header, and your progress is saved, so the tour
+resumes where you left off. (There's also a game hiding on the title
+screen.) Press **→** to begin.

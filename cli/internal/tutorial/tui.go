@@ -27,7 +27,7 @@ func Run() error {
 	if lipgloss.HasDarkBackground() {
 		style = "dark"
 	}
-	m := newModel(chapters, style)
+	m := newModel(chapters, style, newProgress(DefaultProgressPath()))
 	_, err = tea.NewProgram(m, tea.WithAltScreen()).Run()
 	return err
 }
@@ -54,6 +54,8 @@ const (
 	modeRead
 	modeDemo
 	modeQuiz
+	modeType
+	modeGame
 )
 
 type model struct {
@@ -76,26 +78,36 @@ type model struct {
 	player   *demoPlayer
 	quiz     quizState
 	splash   *splash
+	prog     *Progress
+	typing   *typeChallenge
+	targets  map[string]string
+	game     *plumDrop
 
 	width  int
 	height int
 	ready  bool
 }
 
-func newModel(chapters []Chapter, style string) *model {
+func newModel(chapters []Chapter, style string, prog *Progress) *model {
 	chapters = append(chapters, Chapter{Title: quizTitle})
 	bar := progress.New(
 		progress.WithGradient("#8E4585", "#D183E8"),
 		progress.WithoutPercentage(),
 	)
+	sp := newSplash()
+	if prog.xp() > 0 || prog.LastChapter > 0 {
+		sp.buttonLabel = "Continue the tutorial  ↵"
+	}
 	return &model{
 		chapters: chapters,
 		demos:    demos(),
+		targets:  typingTargets(),
 		style:    style,
 		spring:   harmonica.NewSpring(harmonica.FPS(int(time.Second/frameInterval)), 7.0, 0.8),
 		progress: bar,
 		quiz:     newQuiz(),
-		splash:   newSplash(),
+		splash:   sp,
+		prog:     prog,
 		mode:     modeSplash,
 	}
 }
@@ -143,6 +155,20 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if m.mode == modeQuiz {
 			m.quiz.tick()
 		}
+		if m.mode == modeGame && m.game != nil {
+			wasOver := m.game.over
+			m.game.tick()
+			if m.game.over && !wasOver {
+				m.game.newBest = m.prog.recordScore(m.game.score)
+			}
+		}
+		if m.mode == modeType && m.typing != nil {
+			if !m.typing.tick() {
+				// victory lap over — reward with the demo
+				m.mode = modeDemo
+				m.player = newDemoPlayer(m.demos[m.chapters[m.index].Title])
+			}
+		}
 		if m.sliding {
 			m.slidePos, m.slideVel = m.spring.Update(m.slidePos, m.slideVel, 0)
 			if math.Abs(m.slidePos) < 0.5 && math.Abs(m.slideVel) < 0.5 {
@@ -151,7 +177,11 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.applySlide()
 		}
 		if m.mode == modeDemo && m.player != nil {
+			wasDone := m.player.done
 			m.player.tick()
+			if m.player.done && !wasDone {
+				m.prog.markDemo(m.chapters[m.index].Title)
+			}
 			m.viewport.SetContent("\n" + m.player.view())
 		}
 		return m, tea.Batch(cmds...)
@@ -173,15 +203,56 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m *model) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	key := msg.String()
 
-	if key == "q" || key == "ctrl+c" || key == "esc" {
+	if key == "ctrl+c" {
+		return m, tea.Quit
+	}
+
+	// Plum Drop owns its keys: arrows steer, q/esc concedes, and after a
+	// game over any key returns to the title screen.
+	if m.mode == modeGame {
+		switch {
+		case m.game == nil || m.game.over:
+			m.mode = modeSplash
+			m.game = nil
+		case key == "left" || key == "h":
+			m.game.move(-3)
+		case key == "right" || key == "l":
+			m.game.move(3)
+		case key == "q" || key == "esc":
+			m.mode = modeSplash
+			m.game = nil
+		}
+		return m, nil
+	}
+
+	// A typing challenge eats printable keys; esc backs out to the chapter.
+	if m.mode == modeType && m.typing != nil {
+		if key == "esc" {
+			m.mode = modeRead
+			m.typing = nil
+			m.showChapter(false)
+			return m, nil
+		}
+		if m.typing.key(key) {
+			m.prog.markTyping(m.chapters[m.index].Title)
+		}
+		return m, nil
+	}
+
+	if key == "q" || key == "esc" {
 		return m, tea.Quit
 	}
 
 	// The splash is a title screen: it holds until the start button is
-	// pressed (enter/space). Everything else just enjoys the show.
+	// pressed (enter/space); p opens the arcade. Everything else just
+	// enjoys the show.
 	if m.mode == modeSplash {
-		if key == "enter" || key == " " {
+		switch key {
+		case "enter", " ":
 			m.endSplash()
+		case "p":
+			m.mode = modeGame
+			m.game = newPlumDrop(m.width, m.height)
 		}
 		return m, nil
 	}
@@ -199,8 +270,14 @@ func (m *model) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 
 	// The quiz consumes its own keys (arrows, enter, r) but chapter
 	// navigation still works so nobody gets trapped in school.
-	if m.mode == modeQuiz && m.quiz.handle(key) {
-		return m, nil
+	if m.mode == modeQuiz {
+		wasFinished := m.quiz.finished
+		if m.quiz.handle(key) {
+			if m.quiz.finished && !wasFinished {
+				m.prog.markQuiz()
+			}
+			return m, nil
+		}
 	}
 
 	switch key {
@@ -212,6 +289,12 @@ func (m *model) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		if _, ok := m.demos[m.chapters[m.index].Title]; ok {
 			m.mode = modeDemo
 			m.player = newDemoPlayer(m.demos[m.chapters[m.index].Title])
+			return m, nil
+		}
+	case "t":
+		if target, ok := m.targets[m.chapters[m.index].Title]; ok {
+			m.mode = modeType
+			m.typing = &typeChallenge{title: m.chapters[m.index].Title, target: target}
 			return m, nil
 		}
 	case "g", "home":
@@ -231,10 +314,21 @@ func (m *model) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	return m, cmd
 }
 
-// endSplash drops out of the intro into chapter one, sliding it in.
+// endSplash drops out of the intro — into chapter one on a fresh save,
+// or back to wherever the last session left off.
 func (m *model) endSplash() {
-	m.mode = modeRead
 	m.splash.done = true
+	target := m.prog.LastChapter
+	if target < 0 || target >= len(m.chapters) {
+		target = 0
+	}
+	m.index = target
+	if m.chapters[m.index].Title == quizTitle {
+		m.mode = modeQuiz
+	} else {
+		m.mode = modeRead
+	}
+	m.prog.markChapter(m.chapters[m.index].Title)
 	m.showChapter(true)
 }
 
@@ -244,11 +338,14 @@ func (m *model) gotoChapter(index int) (tea.Model, tea.Cmd) {
 	}
 	m.index = index
 	m.player = nil
+	m.typing = nil
 	if m.chapters[m.index].Title == quizTitle {
 		m.mode = modeQuiz
 	} else {
 		m.mode = modeRead
 	}
+	m.prog.markChapter(m.chapters[m.index].Title)
+	m.prog.rememberChapter(m.index)
 	m.showChapter(true)
 	return m, m.progress.SetPercent(m.progressValue())
 }
@@ -267,20 +364,39 @@ func (m *model) View() string {
 	if m.mode == modeSplash {
 		return m.padToWindow(m.splash.view(m.width, m.height))
 	}
+	if m.mode == modeGame && m.game != nil {
+		return m.padToWindow(m.game.view(m.prog.HighScore))
+	}
 
 	title := headerStyle.Render(m.chapters[m.index].Title)
 	place := dimText.Render(fmt.Sprintf("  chapter %d of %d", m.index+1, len(m.chapters)))
-	header := " " + title + place
+	read := ""
+	if m.prog.ChaptersRead[m.chapters[m.index].Title] || m.chapters[m.index].Title == quizTitle && m.prog.QuizPassed {
+		read = quizRight.Render(" ✓")
+	}
+	standing := dimText.Render("  ·  ") + headerStyle.Render(m.prog.rank()) + dimText.Render(fmt.Sprintf(" %dxp", m.prog.xp()))
+	header := " " + title + place + read + standing
 
 	body := m.viewport.View()
-	if m.mode == modeQuiz {
+	switch m.mode {
+	case modeQuiz:
 		offset := 2 + int(math.Round(m.slidePos)) + int(math.Round(m.quiz.shakePos))
 		body = m.padToViewport("\n" + indent(m.quiz.view(), max(0, offset)))
+	case modeType:
+		if m.typing != nil {
+			body = m.padToViewport("\n" + indent(m.typing.view(), 2))
+		}
 	}
 
 	hints := "←/→ chapters · ↑/↓ scroll · 1-9 jump · q quit"
-	if _, ok := m.demos[m.chapters[m.index].Title]; ok && m.mode == modeRead {
-		hints = "d watch it run · " + hints
+	if m.mode == modeRead {
+		title := m.chapters[m.index].Title
+		if _, ok := m.targets[title]; ok {
+			hints = "t type it yourself · " + hints
+		}
+		if _, ok := m.demos[title]; ok {
+			hints = "d watch it run · " + hints
+		}
 	}
 	footer := " " + m.progress.View() + dimText.Render("  "+hints)
 

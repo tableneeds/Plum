@@ -22,7 +22,7 @@ config, deployed apps are discovered from the server itself, and on an
 **already-configured project** `plum connect` asks *nothing* — it becomes
 a health check that verifies your setup still works.
 
-**Press `d` to watch a connect health check run.**
+**Press `d` to watch a connect health check run — or `t` to type it yourself.**
 
 ## Transports
 
