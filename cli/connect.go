@@ -440,25 +440,29 @@ func onceBinOrDefault(rem config.Remote) string {
 }
 
 // askHost asks which server to connect to. A fresh project isn't really a
-// blank slate: any plum-* aliases in ~/.ssh/config are servers this CLI
-// already set up, so they're offered as a pick-list first. Reconfigures
-// prefill the stored host instead.
+// blank slate: every server the CLI has touched before — plum-* aliases in
+// ~/.ssh/config, plus the hosts of every registered project's remotes —
+// is offered as a pick-list first. Reconfigures prefill the stored host.
 func askHost(previous, sshConfigPath string) (string, error) {
 	if previous != "" {
 		return ui.Input("Server IP or hostname", previous)
 	}
-	aliases := sshsetup.KnownAliases(sshConfigPath)
-	if len(aliases) == 0 {
+	servers := knownServers(sshConfigPath)
+	if len(servers) == 0 {
 		return ui.Input("Server IP or hostname", "")
 	}
 
 	const newServer = "new"
-	choices := make([]ui.Choice, 0, len(aliases)+1)
-	for _, alias := range aliases {
-		choices = append(choices, ui.Choice{Label: alias, Value: alias})
+	choices := make([]ui.Choice, 0, len(servers)+1)
+	for _, s := range servers {
+		label := s.host
+		if s.usedBy != "" {
+			label += " — used by " + s.usedBy
+		}
+		choices = append(choices, ui.Choice{Label: label, Value: s.host})
 	}
 	choices = append(choices, ui.Choice{Label: "a new server (type its ip or hostname)", Value: newServer})
-	picked, err := ui.Select("Which server?", choices, aliases[0])
+	picked, err := ui.Select("Which server?", choices, servers[0].host)
 	if err != nil {
 		return "", err
 	}
@@ -466,6 +470,51 @@ func askHost(previous, sshConfigPath string) (string, error) {
 		return ui.Input("Server IP or hostname", "")
 	}
 	return picked, nil
+}
+
+type knownServer struct {
+	host   string
+	usedBy string // comma list of registered projects on this server
+}
+
+// knownServers gathers every server the CLI already knows: plum-* SSH
+// aliases it wrote, and the host of each registered project's remotes —
+// so a server appears in the pick-list even when its alias was declined.
+func knownServers(sshConfigPath string) []knownServer {
+	seen := map[string]int{}
+	var servers []knownServer
+	add := func(host, usedBy string) {
+		if host == "" || host == "local" {
+			return
+		}
+		if i, ok := seen[host]; ok {
+			if usedBy != "" {
+				if servers[i].usedBy != "" {
+					servers[i].usedBy += ", "
+				}
+				servers[i].usedBy += usedBy
+			}
+			return
+		}
+		seen[host] = len(servers)
+		servers = append(servers, knownServer{host: host, usedBy: usedBy})
+	}
+
+	for _, alias := range sshsetup.KnownAliases(sshConfigPath) {
+		add(alias, "")
+	}
+	if reg, err := project.Load(); err == nil {
+		for _, name := range reg.Names() {
+			cfg, err := config.LoadOrEmpty(reg.Projects[name].Path)
+			if err != nil {
+				continue
+			}
+			for _, rem := range cfg.Remotes {
+				add(rem.Host, name)
+			}
+		}
+	}
+	return servers
 }
 
 // registerProject adds the just-connected directory to the global project

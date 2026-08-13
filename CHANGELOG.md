@@ -7,6 +7,10 @@
   or with --reconfigure, rewrite — a different project's connection).
   Connect now always means "set up the current directory"; only an
   explicit `--project NAME` redirects it.
+- Connect's server pick-list now knows every stored server, not just the
+  plum-* SSH aliases: hosts from every registered project's remotes are
+  merged in (annotated "— used by <project>"), so a server appears even
+  when its alias offer was declined.
 - Added `plum new NAME`: scaffold a deploy-ready Plum site in one command
   — rails new, the plum-cms gem, the install generator mounted at `/`, a
   prepared database, and a git history. Bootstraps its own toolchain:

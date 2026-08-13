@@ -131,3 +131,38 @@ func TestConnectDirNeverFallsBackToActiveProject(t *testing.T) {
 		t.Fatal("an unknown --project should error, not fall through")
 	}
 }
+
+func TestKnownServersMergesAliasesAndRegistryHosts(t *testing.T) {
+	cfgHome := t.TempDir()
+	t.Setenv("XDG_CONFIG_HOME", cfgHome)
+
+	// A registered project whose remote host has no plum-* alias.
+	site := t.TempDir()
+	if err := os.WriteFile(filepath.Join(site, config.FileName),
+		[]byte("default: production\nremotes:\n    production:\n        via: once\n        host: 203.0.113.9\n        once_app: a.example.com\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.MkdirAll(filepath.Join(cfgHome, "plum"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(cfgHome, "plum", "config.yml"),
+		[]byte("projects:\n    mysite:\n        path: "+site+"\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	sshConfig := filepath.Join(t.TempDir(), "config")
+	if err := os.WriteFile(sshConfig, []byte("Host plum-production\n  HostName 147.182.221.134\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+
+	servers := knownServers(sshConfig)
+	if len(servers) != 2 {
+		t.Fatalf("expected alias + registry host, got %+v", servers)
+	}
+	if servers[0].host != "plum-production" {
+		t.Fatalf("aliases should come first, got %+v", servers)
+	}
+	if servers[1].host != "203.0.113.9" || servers[1].usedBy != "mysite" {
+		t.Fatalf("registry hosts should carry their project name, got %+v", servers)
+	}
+}
