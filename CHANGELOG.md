@@ -7,6 +7,13 @@
   or with --reconfigure, rewrite — a different project's connection).
   Connect now always means "set up the current directory"; only an
   explicit `--project NAME` redirects it.
+- Untangled project vs. remote in connect's wording: the wizard now asks
+  for an "Environment name" (production, staging — plum.yml's remotes)
+  with a line explaining the concept, and the closing hint no longer
+  prints the nonsensical `plum pull --project production` — it points at
+  `plum pull` from the directory, or `--project <site>` from anywhere.
+  Terminology now spelled out in docs/plum-cli.md: projects are sites,
+  remotes are environments.
 - Connect's server pick-list now knows every stored server, not just the
   plum-* SSH aliases: hosts from every registered project's remotes are
   merged in (annotated "— used by <project>"), so a server appears even

@@ -141,7 +141,11 @@ func cmdConnect(args []string) error {
 	if defaultName == "" {
 		defaultName = "production"
 	}
-	remoteName, err := ui.Input("Name for this remote", defaultName)
+	// "Remote" is plum.yml's word for an environment of this site —
+	// production, staging — not to be confused with the project (the site
+	// itself), which is what --project and the registry refer to.
+	fmt.Println(ui.Dim("A site can have several environments (production, staging, ...); each is a remote in plum.yml."))
+	remoteName, err := ui.Input("Environment name", defaultName)
 	if err != nil {
 		return err
 	}
@@ -204,7 +208,7 @@ func cmdConnect(args []string) error {
 	if !sshProbe(target, "true") {
 		ui.Warn("Can't reach the server over SSH yet, so skipping the server checks — re-run `plum connect` once login works.")
 		ui.Blank()
-		ui.Success("Done. Try: %s", ui.Bold("plum pull --project "+remoteName))
+		ui.Success("Done. Try: %s %s", ui.Bold("plum pull"), ui.Dim("from this directory"))
 		return nil
 	}
 
@@ -237,7 +241,8 @@ func cmdConnect(args []string) error {
 	}
 
 	ui.Blank()
-	ui.Success("Done. Try: %s %s", ui.Bold("plum pull --project "+remoteName), ui.Dim("(or just `plum pull` from "+dir+")"))
+	projectName := filepath.Base(absOrDot(dir))
+	ui.Success("Done. Try: %s %s", ui.Bold("plum pull"), ui.Dim("from this directory — or `plum pull --project "+projectName+"` from anywhere"))
 	return nil
 }
 

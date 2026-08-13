@@ -121,6 +121,17 @@ This mirrors the Firebase CLI's model deliberately, because it solves the
 same two problems: "how does this directory reach its server" and "how do I
 work with a project without cd-ing into its directory first."
 
+Two words, two meanings — keep them straight:
+
+- A **project** is a site: `the-final-word`, `client-site`. That's what
+  the registry, `plum use`, and `--project NAME` refer to.
+- A **remote** is one *environment* of a site: `production`, `staging`.
+  That's the positional argument on commands — `plum pull production`,
+  `plum logs staging` — and the keys under `remotes:` in plum.yml.
+
+So `plum pull --project client-site staging` means "the staging
+environment of the client-site project."
+
 1. **`plum.yml`** — lives in a site's own repo, defines its **remotes**
    (servers). This is the source of truth for how to reach that one site.
 2. **The global project registry** (`~/.config/plum/config.yml`, or
