@@ -29,6 +29,8 @@ type usageEntry struct{ invocation, description string }
 
 var siteCommands = []usageEntry{
 	{"plum tutorial [--serve [addr]]", "Interactive guided tour (--serve hosts it over SSH)"},
+	{"plum new NAME", "Create a deploy-ready Plum site (installs Ruby/Rails if needed)"},
+	{"plum deploy [remote]", "Build locally, ship over SSH, go live — no registry"},
 	{"plum connect [ip-or-host]", "Guided setup: SSH key, server access, plum.yml"},
 	{"plum init", "Create a starter plum.yml here (manual editing)"},
 	{"plum pull [remote] [--yes]", "Replace your local site with the remote's"},
@@ -83,6 +85,10 @@ func main() {
 	switch os.Args[1] {
 	case "tutorial", "learn":
 		err = cmdTutorial(os.Args[2:])
+	case "new":
+		err = cmdNew(os.Args[2:])
+	case "deploy":
+		err = cmdDeploy(os.Args[2:])
 	case "connect":
 		err = cmdConnect(os.Args[2:])
 	case "init":

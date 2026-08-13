@@ -251,7 +251,9 @@ ergonomics for self-hosted Plum sites:
 
 ```sh
 plum tutorial              # interactive guided tour, right in the terminal
+plum new client-site       # scaffold a deploy-ready site (installs Rails if needed)
 plum connect 203.0.113.5   # guided setup: SSH keys, server tooling, plum.yml
+plum deploy                # build locally, ship over SSH — no registry, no CI
 plum connect               # already configured? verifies the setup instead
 plum pull                  # replace your local site with production's content
 plum push                  # apply plum/ config-as-code files to the remote
@@ -265,7 +267,9 @@ A Firebase-style project registry (`plum use`, `--project`) manages a fleet
 of sites from one machine. Every command degrades to plain, script-friendly
 output when piped or under `NO_COLOR`. See [the CLI guide](docs/plum-cli.md)
 for transports (`via: ssh|kamal|once`), fleet management, and how `pull`
-works across database engines.
+works across database engines — and [the zero-to-agency
+guide](docs/zero-to-agency.md) for running client sites on a single
+cheap VPS with no registry, CI, or PaaS.
 
 ## Content API
 

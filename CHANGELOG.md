@@ -1,5 +1,22 @@
 # Changelog
 
+## Unreleased
+
+- Added `plum new NAME`: scaffold a deploy-ready Plum site in one command
+  — rails new, the plum-cms gem, the install generator mounted at `/`, a
+  prepared database, and a git history. Bootstraps its own toolchain:
+  missing Ruby or Rails are offered for install (mise → ruby → rails),
+  each step confirm-gated. Refuses clearly when run inside an existing
+  Rails app, and registers the new project in the global registry.
+- Added `plum deploy [remote]`: registry-free deploys — build the image
+  locally for linux/amd64, stream it to the server over SSH
+  (docker save | docker load; no registry, no CI, no accounts), roll the
+  Once app to it, and wait for the container health check. Auto-update is
+  disabled for these apps: deploys are explicit, never by surprise.
+- Added docs/zero-to-agency.md and a matching tutorial chapter: empty
+  directory → client sites on a $6 DigitalOcean droplet with `plum new`,
+  `plum connect`, `plum deploy`, and the pull/push/backup rhythm.
+
 ## 0.2.2 — 2026-08-13
 
 ### Fixed

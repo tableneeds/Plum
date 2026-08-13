@@ -84,6 +84,37 @@ accepted since the content is public. The host key persists at
 `~/.config/plum/tutorial_host_ed25519` so returning visitors don't get
 host-key warnings.
 
+## plum new — zero to running site
+
+```
+plum new client-site
+```
+
+Scaffolds a deploy-ready Plum site: `rails new`, the plum-cms gem, the
+install generator mounted at `/`, a prepared database, and a git history.
+It bootstraps its own toolchain the way connect bootstraps a server — no
+Ruby? It offers to install mise, then Ruby, then Rails, each step
+confirm-gated. It also refuses (clearly) to run inside an existing Rails
+app, and registers the new project in the global registry.
+
+## plum deploy — no registry, no CI
+
+```
+plum deploy [remote]
+```
+
+Ships the site with nothing but local Docker and SSH: builds the image
+locally (`--platform linux/amd64`), streams it to the server through the
+SSH connection (`docker save | gzip | ssh docker load` — no registry
+account anywhere), then has Once roll the app to it (`once update
+--image`, or `once deploy --host <once_app>` on first deploy) and waits
+for the container's health check to go green. Auto-update is switched
+off for these apps: there's no registry to poll, so the site changes
+when you deploy it — never by surprise. Currently `via: once` remotes.
+
+The full story — one droplet, several client sites, honest costs — is
+[the zero-to-agency guide](zero-to-agency.md).
+
 ## Two layers of configuration
 
 This mirrors the Firebase CLI's model deliberately, because it solves the
