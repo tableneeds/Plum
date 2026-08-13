@@ -52,6 +52,11 @@
   file detection), and for Once remotes it asks the server itself — `once
   list` over the just-verified SSH connection — offering the deployed apps
   as a pick-list instead of a blank hostname prompt.
+- On an already-configured project, bare `plum connect` skips the interview
+  entirely and becomes a health check: it prints the stored connection and
+  verifies SSH login, server tooling, and that the app is deployed, exiting
+  nonzero on failure (CI-friendly). The wizard runs only on first setup,
+  with `--reconfigure`, or when a new ip/host is passed explicitly.
 - Added a Firebase-CLI-style global project registry (`plum projects
   add/list/remove`, `plum use`, `--project`) so a fleet of Plum sites can be
   managed from one dev machine without `cd`-ing into each repo — a local

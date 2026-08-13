@@ -77,12 +77,18 @@ gets asked for the app's path on the server; a Once remote gets asked for
 the app's hostname (`once_app`) instead, since the app lives in a container
 rather than at a path; a Kamal remote needs neither.
 
-Connect asks as little as it can get away with. **Re-runs prefill every
-prompt from the existing plum.yml** — Enter through everything and you
-reproduce the current setup. And for Once remotes, once SSH login works it
-**asks the server itself** (`once list`) and offers the deployed apps as a
-pick-list — with your previous choice highlighted — instead of a blank
-hostname prompt.
+Connect asks as little as it can get away with — ideally nothing.
+**On an already-configured project, bare `plum connect` skips the interview
+entirely**: it shows what plum.yml says and verifies it still works (SSH
+login, server tooling, the app actually deployed), exiting nonzero if a
+check fails — a doctor, usable from CI. The wizard only runs on first
+setup, with `--reconfigure`, or when you pass a new ip/host explicitly.
+
+When the wizard does run, **re-runs prefill every prompt from the existing
+plum.yml** — Enter through everything and you reproduce the current setup.
+And for Once remotes, once SSH login works it **asks the server itself**
+(`once list`) and offers the deployed apps as a pick-list — with your
+previous choice highlighted — instead of a blank hostname prompt.
 
 For Kamal and Once shapes it then **checks the server's tooling** — Docker
 Engine for both, plus the `once` binary for Once — and offers to install

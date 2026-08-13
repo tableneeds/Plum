@@ -64,3 +64,35 @@ func TestExistingRemoteIsEmptyWithoutConfig(t *testing.T) {
 		t.Fatalf("expected zero values, got %q %+v", name, rem)
 	}
 }
+
+// A configured project's bare `plum connect` is a health check, not an
+// interview: with every ssh probe succeeding it must pass without reading
+// a single prompt answer (stdin is empty here — any prompt would EOF into
+// defaults and change behavior, so success proves no questions were asked).
+func TestConnectStatusChecksWithoutPrompting(t *testing.T) {
+	dir := t.TempDir()
+	script := filepath.Join(dir, "ssh")
+	if err := os.WriteFile(script, []byte("#!/bin/sh\nexit 0\n"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	t.Setenv("PATH", dir+string(os.PathListSeparator)+os.Getenv("PATH"))
+
+	rem := config.Remote{Via: config.ViaOnce, Host: "plum-production", OnceApp: "finalwordsports.com"}
+	if err := connectStatus("production", rem); err != nil {
+		t.Fatalf("expected all checks to pass, got %v", err)
+	}
+}
+
+func TestConnectStatusFailsWhenServerUnreachable(t *testing.T) {
+	dir := t.TempDir()
+	script := filepath.Join(dir, "ssh")
+	if err := os.WriteFile(script, []byte("#!/bin/sh\nexit 255\n"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	t.Setenv("PATH", dir+string(os.PathListSeparator)+os.Getenv("PATH"))
+
+	rem := config.Remote{Via: config.ViaOnce, Host: "gone", OnceApp: "app.example.com"}
+	if err := connectStatus("production", rem); err == nil {
+		t.Fatal("expected an error when SSH is unreachable")
+	}
+}

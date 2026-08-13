@@ -32,6 +32,14 @@ func cmdConnect(args []string) error {
 	// Enter-through-everything reproduces the current setup.
 	existing, existingName := existingRemote(dir)
 
+	// Better yet: an already-configured project doesn't need the interview
+	// at all. Bare `plum connect` there means "check my setup still works" —
+	// the wizard only runs on first setup, with --reconfigure, or when a new
+	// host is given explicitly.
+	if existingName != "" && p.remote == "" && !p.flags["reconfigure"] {
+		return connectStatus(existingName, existing)
+	}
+
 	host := p.remote // parseArgs treats the first bare argument as `remote`; here that's the host/IP.
 	if host == "" {
 		if host, err = ui.Input("Server IP or hostname", existing.Host); err != nil {
@@ -312,6 +320,104 @@ func bootstrapServer(target string, via config.Via) error {
 		}
 	}
 	return nil
+}
+
+// connectStatus is what a bare `plum connect` does on an already-configured
+// project: show what plum.yml says and verify it still works, instead of
+// asking questions whose answers are already on disk. Reports every failed
+// check but only errors when one fails, so CI can use it as a doctor.
+func connectStatus(name string, rem config.Remote) error {
+	desc := "via " + ui.Bold(string(viaOrSSH(rem.Via)))
+	if rem.Host != "" {
+		desc += ", host " + ui.Bold(rem.Host)
+	}
+	switch {
+	case rem.OnceApp != "":
+		desc += ", app " + ui.Bold(rem.OnceApp)
+	case rem.Path != "":
+		desc += ", path " + ui.Bold(rem.Path)
+	}
+	fmt.Printf("This project is already connected to %q (%s).\n", name, desc)
+	fmt.Println(ui.Dim("Checking it still works — reconfigure with `plum connect --reconfigure`, or `plum connect <ip-or-host>` for a new server."))
+	ui.Blank()
+
+	if viaOrSSH(rem.Via) == config.ViaKamal {
+		// Kamal remotes store no host — the only thing to verify locally is
+		// that the kamal binary this transport shells out to exists.
+		if _, err := exec.LookPath("kamal"); err != nil {
+			if _, statErr := os.Stat(filepath.Join("bin", "kamal")); statErr != nil {
+				ui.Warn("No kamal binary found locally — via: kamal shells out to it (`gem install kamal`).")
+				return fmt.Errorf("kamal binary not found")
+			}
+		}
+		ui.Success("kamal binary found — Kamal owns the server connection from config/deploy.yml.")
+		return nil
+	}
+
+	target := rem.Host
+	if rem.User != "" {
+		target = rem.User + "@" + rem.Host
+	}
+
+	ok := ui.Check("Key-based SSH login to "+target, func() bool {
+		return sshProbe(target, "true")
+	})
+	if !ok {
+		fmt.Println(ui.Dim("Fix SSH access first (or `plum connect --reconfigure` to walk through it again)."))
+		return fmt.Errorf("can't reach %s over SSH", target)
+	}
+
+	failed := false
+	switch viaOrSSH(rem.Via) {
+	case config.ViaOnce:
+		if !ui.Check("Docker Engine installed", func() bool {
+			return sshProbe(target, "docker --version >/dev/null 2>&1")
+		}) {
+			failed = true
+		}
+		if !ui.Check("once installed", func() bool {
+			return sshProbe(target, onceBinOrDefault(rem)+" version >/dev/null 2>&1")
+		}) {
+			failed = true
+		}
+		if !ui.Check("once lists "+rem.OnceApp, func() bool {
+			return sshProbe(target, onceBinOrDefault(rem)+" list 2>/dev/null | grep -qF "+shellQuote(rem.OnceApp))
+		}) {
+			failed = true
+		}
+	default: // plain ssh
+		path := rem.Path
+		if path == "" {
+			path = "."
+		}
+		if !ui.Check("bin/rails exists at "+path, func() bool {
+			return sshProbe(target, "test -x "+shellQuote(path+"/bin/rails"))
+		}) {
+			failed = true
+		}
+	}
+
+	ui.Blank()
+	if failed {
+		ui.Warn("Some checks failed — see above. Reconfigure with `plum connect --reconfigure`.")
+		return fmt.Errorf("connection checks failed for %q", name)
+	}
+	ui.Success("Everything looks good.")
+	return nil
+}
+
+func viaOrSSH(v config.Via) config.Via {
+	if v == "" {
+		return config.ViaSSH
+	}
+	return v
+}
+
+func onceBinOrDefault(rem config.Remote) string {
+	if rem.OnceBin != "" {
+		return rem.OnceBin
+	}
+	return "once"
 }
 
 // existingRemote returns the default remote from an existing plum.yml (and
