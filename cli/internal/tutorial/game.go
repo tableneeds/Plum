@@ -12,10 +12,10 @@ import (
 
 // Plum Drop: the title screen's arcade cabinet. Plums fall on harmonica
 // projectile physics; you slide a basket to catch them. Streaks multiply,
-// five misses end the run, and the high score outlives the session.
+// misses just break the streak — the game runs for as long as you feel
+// like catching plums — and the high score outlives the session.
 
 const (
-	gameMisses     = 5
 	basketHalf     = 2 // basket is 5 cells wide: \___/
 	gameSpawnStart = 40
 	gameSpawnFloor = 14 // frames between plums at maximum chaos
@@ -38,7 +38,7 @@ type plumDrop struct {
 	popup         string // "+3" floater after a catch
 	popupX        int
 	popupTTL      int
-	over          bool
+	startingBest  int // the record to beat when this run began
 	newBest       bool
 }
 
@@ -68,9 +68,6 @@ func (g *plumDrop) spawnEvery() int {
 }
 
 func (g *plumDrop) tick() {
-	if g.over {
-		return
-	}
 	g.sinceSpawn++
 	if g.sinceSpawn >= g.spawnEvery() {
 		g.sinceSpawn = 0
@@ -101,9 +98,6 @@ func (g *plumDrop) tick() {
 			} else {
 				g.misses++
 				g.combo = 0
-				if g.misses >= gameMisses {
-					g.over = true
-				}
 			}
 			continue
 		}
@@ -135,25 +129,18 @@ var (
 func (g *plumDrop) view(highScore int) string {
 	var b strings.Builder
 
-	lives := strings.Repeat("●", gameMisses-g.misses) + strings.Repeat("○", g.misses)
 	head := fmt.Sprintf(" score %d", g.score)
 	if g.combo > 1 {
 		head += dimText.Render("  ·  ") + gamePopup.Render(fmt.Sprintf("combo ×%d", g.combo))
 	}
-	head += dimText.Render(fmt.Sprintf("  ·  best %d  ·  ", highScore)) + lives
-	b.WriteString(head + "\n\n")
-
-	if g.over {
-		b.WriteString("\n\n" + indent(gameOver.Render("GAME OVER"), g.width/2-5) + "\n\n")
-		line := fmt.Sprintf("you caught %d plums for %d points", g.caught, g.score)
-		if g.newBest {
-			line += " — a new best!"
-		}
-		b.WriteString(indent(line, max(0, (g.width-len(line))/2)) + "\n\n")
-		hint := "any key for the title screen"
-		b.WriteString(indent(dimText.Render(hint), max(0, (g.width-len(hint))/2)))
-		return b.String()
+	head += dimText.Render(fmt.Sprintf("  ·  best %d", highScore))
+	if g.newBest {
+		head += "  " + gameOver.Render("★ new best!")
 	}
+	if g.misses > 0 {
+		head += dimText.Render(fmt.Sprintf("  ·  %d dropped", g.misses))
+	}
+	b.WriteString(head + "\n\n")
 
 	rows := g.stageRows()
 	grid := make([][]string, rows)
@@ -192,6 +179,6 @@ func (g *plumDrop) view(highScore int) string {
 	for r := range grid {
 		b.WriteString(strings.TrimRight(strings.Join(grid[r], ""), " ") + "\n")
 	}
-	b.WriteString(dimText.Render(" ←/→ move · q back to title"))
+	b.WriteString(dimText.Render(" ←/→ move · catch streaks for combos · q back to title, whenever"))
 	return b.String()
 }

@@ -65,7 +65,8 @@ plum-themed ranks in the header (Seedling through Orchardist). CLI
 chapters have typing challenges — press `t` and type the real command
 with per-character feedback; success rolls the demo. And the title
 screen hides **Plum Drop** (press `p`): catch falling plums with an
-arrow-key basket, chase combos, and defend a persisted high score. Navigate with ←/→, scroll
+arrow-key basket, chase combos, and defend a persisted high score — it's
+endless, so play until you've had enough. Navigate with ←/→, scroll
 with ↑/↓, jump with 1–9, quit with q. Piped, it prints the chapters as
 plain markdown.
 

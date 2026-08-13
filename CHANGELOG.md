@@ -100,8 +100,9 @@
   sting but don't land — and nailing it banks XP and rolls the demo as
   your reward. And the title screen hides Plum Drop (`p`): an arcade game
   of catching falling plums (harmonica projectiles) with an arrow-key
-  basket, combo multipliers, five misses to a game over, and a persisted
-  high score. SSH-served sessions play everything with an ephemeral save.
+  basket, combo multipliers, and a persisted high score. It's endless —
+  misses just break your streak, new bests are celebrated the moment they
+  happen, and you play until you quit. SSH-served sessions play everything with an ephemeral save.
 - `plum tutorial --serve [addr]` hosts the tour over SSH via charm's wish:
   `ssh -p 2222 your-server` gets the full animated tutorial with nothing
   installed. Sessions run only the tutorial (no shell, no exec, any or no

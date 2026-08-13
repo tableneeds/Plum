@@ -367,11 +367,11 @@ func TestTypingTargetsMatchDemoChapters(t *testing.T) {
 	}
 }
 
-func TestPlumDropCatchesMissesAndEnds(t *testing.T) {
+func TestPlumDropIsEndless(t *testing.T) {
 	g := newPlumDrop(60, 20)
 	// Run long enough to spawn and resolve plenty of plums with the basket
 	// chasing the nearest one — some get caught.
-	for i := 0; i < 3000 && !g.over; i++ {
+	for i := 0; i < 3000; i++ {
 		if len(g.plums) > 0 {
 			target := g.plums[0].pos.X
 			if g.basketX < target {
@@ -385,17 +385,21 @@ func TestPlumDropCatchesMissesAndEnds(t *testing.T) {
 	if g.caught == 0 {
 		t.Fatal("a basket chasing plums should catch at least one")
 	}
-	// Park the basket in a corner and let everything miss: game must end.
+	// Park the basket in a corner and let everything drop: the game keeps
+	// going forever — misses only break the streak.
 	g2 := newPlumDrop(60, 20)
-	for i := 0; i < 10000 && !g2.over; i++ {
+	for i := 0; i < 5000; i++ {
 		g2.move(-99)
 		g2.tick()
 	}
-	if !g2.over {
-		t.Fatal("five misses should end the game")
+	if g2.misses == 0 {
+		t.Fatal("an abandoned basket should be dropping plums")
 	}
-	if !strings.Contains(g2.view(0), "GAME OVER") {
-		t.Fatal("the game over screen should say so")
+	if g2.combo != 0 {
+		t.Fatal("misses should break the combo")
+	}
+	if !strings.Contains(g2.view(0), "dropped") {
+		t.Fatal("the header should own up to the dropped plums")
 	}
 }
 
@@ -412,9 +416,13 @@ func TestModelWiringForGameAndTyping(t *testing.T) {
 	if m.mode != modeGame || m.game == nil {
 		t.Fatal("p on the splash should start Plum Drop")
 	}
+	m.game.score = 7 // leaving the game must bank the run's score
 	m.handleKey(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'q'}})
 	if m.mode != modeSplash {
 		t.Fatal("q in the game should return to the title screen")
+	}
+	if m.prog.HighScore != 7 {
+		t.Fatalf("quitting the game should bank the high score, got %d", m.prog.HighScore)
 	}
 
 	// t on a typing chapter starts the challenge; typing it out lands in

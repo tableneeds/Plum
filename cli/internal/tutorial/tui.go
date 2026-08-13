@@ -156,10 +156,12 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.quiz.tick()
 		}
 		if m.mode == modeGame && m.game != nil {
-			wasOver := m.game.over
 			m.game.tick()
-			if m.game.over && !wasOver {
-				m.game.newBest = m.prog.recordScore(m.game.score)
+			// Celebrate (and bank) records the moment they happen — an
+			// endless game has no final screen to do it on.
+			if m.game.score > m.game.startingBest {
+				m.game.newBest = true
+				m.prog.recordScore(m.game.score)
 			}
 		}
 		if m.mode == modeType && m.typing != nil {
@@ -207,18 +209,18 @@ func (m *model) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		return m, tea.Quit
 	}
 
-	// Plum Drop owns its keys: arrows steer, q/esc concedes, and after a
-	// game over any key returns to the title screen.
+	// Plum Drop owns its keys: arrows steer, q/esc returns to the title
+	// screen whenever you've had enough — the game itself never ends.
 	if m.mode == modeGame {
 		switch {
-		case m.game == nil || m.game.over:
+		case m.game == nil:
 			m.mode = modeSplash
-			m.game = nil
 		case key == "left" || key == "h":
 			m.game.move(-3)
 		case key == "right" || key == "l":
 			m.game.move(3)
 		case key == "q" || key == "esc":
+			m.prog.recordScore(m.game.score)
 			m.mode = modeSplash
 			m.game = nil
 		}
@@ -253,6 +255,7 @@ func (m *model) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		case "p":
 			m.mode = modeGame
 			m.game = newPlumDrop(m.width, m.height)
+			m.game.startingBest = m.prog.HighScore
 		}
 		return m, nil
 	}
