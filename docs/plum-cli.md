@@ -41,6 +41,19 @@ go build -o plum .
 mv plum ~/.local/bin/plum
 ```
 
+## The built-in tutorial
+
+```
+plum tutorial
+```
+
+An interactive, full-screen tour of Plum and the CLI — eight short
+chapters covering the content model, themes, writing mode and drafts,
+static caching, config as code, and every CLI command, rendered as styled
+markdown right in your terminal (bubbletea + glamour). Navigate with
+←/→, scroll with ↑/↓, jump with 1–9, quit with q. Piped, it prints the
+chapters as plain markdown.
+
 ## Two layers of configuration
 
 This mirrors the Firebase CLI's model deliberately, because it solves the

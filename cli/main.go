@@ -19,6 +19,7 @@ import (
 	"github.com/tableneeds/Plum/cli/internal/config"
 	"github.com/tableneeds/Plum/cli/internal/project"
 	"github.com/tableneeds/Plum/cli/internal/remote"
+	"github.com/tableneeds/Plum/cli/internal/tutorial"
 	"github.com/tableneeds/Plum/cli/internal/ui"
 )
 
@@ -27,6 +28,7 @@ const version = "0.1.0"
 type usageEntry struct{ invocation, description string }
 
 var siteCommands = []usageEntry{
+	{"plum tutorial", "Interactive guided tour of Plum and this CLI"},
 	{"plum connect [ip-or-host]", "Guided setup: SSH key, server access, plum.yml"},
 	{"plum init", "Create a starter plum.yml here (manual editing)"},
 	{"plum pull [remote] [--yes]", "Replace your local site with the remote's"},
@@ -79,6 +81,8 @@ func main() {
 
 	var err error
 	switch os.Args[1] {
+	case "tutorial", "learn":
+		err = cmdTutorial()
 	case "connect":
 		err = cmdConnect(os.Args[2:])
 	case "init":
@@ -186,6 +190,25 @@ func runner(explicitProject, remoteName string) (*remote.Runner, string, error) 
 		return nil, "", err
 	}
 	return &remote.Runner{Name: name, Remote: rem}, dir, nil
+}
+
+// cmdTutorial runs the full-screen tour on a terminal; piped, it prints
+// the chapters as plain markdown so the content is still reachable.
+func cmdTutorial() error {
+	if !ui.Interactive() {
+		chapters, err := tutorial.Chapters()
+		if err != nil {
+			return err
+		}
+		for i, ch := range chapters {
+			if i > 0 {
+				fmt.Print("\n---\n\n")
+			}
+			fmt.Println(strings.TrimSpace(ch.Body))
+		}
+		return nil
+	}
+	return tutorial.Run()
 }
 
 func cmdInit() error {

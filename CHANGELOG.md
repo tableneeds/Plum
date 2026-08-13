@@ -74,6 +74,11 @@
   Rails log text passes through untouched, and piped output stays raw so
   `plum logs | jq` keeps working. The CLI is now documented in the README
   alongside the engine features.
+- Added `plum tutorial`: a built-in, full-screen interactive tour of Plum
+  and the CLI (bubbletea + glamour). Eight chapters — content model,
+  themes, writing mode and drafts, static caching, config as code, and
+  the CLI workflow — as styled markdown with ←/→ chapter navigation,
+  1–9 jumps, and a plain-markdown fallback when piped.
 - Added a Firebase-CLI-style global project registry (`plum projects
   add/list/remove`, `plum use`, `--project`) so a fleet of Plum sites can be
   managed from one dev machine without `cd`-ing into each repo — a local

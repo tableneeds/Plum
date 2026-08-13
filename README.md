@@ -250,6 +250,7 @@ production backup guidance.
 ergonomics for self-hosted Plum sites:
 
 ```sh
+plum tutorial              # interactive guided tour, right in the terminal
 plum connect 203.0.113.5   # guided setup: SSH keys, server tooling, plum.yml
 plum connect               # already configured? verifies the setup instead
 plum pull                  # replace your local site with production's content
