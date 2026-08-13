@@ -96,3 +96,38 @@ func TestConnectStatusFailsWhenServerUnreachable(t *testing.T) {
 		t.Fatal("expected an error when SSH is unreachable")
 	}
 }
+
+// Regression: running connect in a fresh directory while another project
+// was globally active used to silently target the active project.
+func TestConnectDirNeverFallsBackToActiveProject(t *testing.T) {
+	cfgHome := t.TempDir()
+	t.Setenv("XDG_CONFIG_HOME", cfgHome)
+	registered := t.TempDir()
+	if err := os.MkdirAll(filepath.Join(cfgHome, "plum"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	registry := "active: elsewhere\nprojects:\n    elsewhere:\n        path: " + registered + "\n"
+	if err := os.WriteFile(filepath.Join(cfgHome, "plum", "config.yml"), []byte(registry), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	dir, err := connectDir("")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if dir != "." {
+		t.Fatalf("bare connect must target the current directory, got %q", dir)
+	}
+
+	dir, err = connectDir("elsewhere")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if dir != registered {
+		t.Fatalf("--project should resolve through the registry, got %q", dir)
+	}
+
+	if _, err := connectDir("nope"); err == nil {
+		t.Fatal("an unknown --project should error, not fall through")
+	}
+}

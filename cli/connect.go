@@ -21,11 +21,9 @@ import (
 func cmdConnect(args []string) error {
 	p := parseArgs(args)
 
-	dir, err := projectDir(p.project)
+	dir, err := connectDir(p.project)
 	if err != nil {
-		// connect is also how a brand-new project gets its first plum.yml —
-		// "no plum.yml yet" here just means "use the current directory."
-		dir = "."
+		return err
 	}
 
 	// Re-runs shouldn't start from scratch: whatever the default remote in
@@ -324,6 +322,23 @@ func bootstrapServer(target string, via config.Via) error {
 		}
 	}
 	return nil
+}
+
+// connectDir decides which directory connect operates on. Connect means
+// "set up THIS directory" — unlike pull/push/logs it must never fall back
+// to the globally active project, or running it in a fresh repo would
+// silently target (and reconfigure!) whatever project happens to be
+// active. Only an explicit --project redirects it.
+func connectDir(explicitProject string) (string, error) {
+	if explicitProject == "" {
+		return ".", nil
+	}
+	reg, err := project.Load()
+	if err != nil {
+		return "", err
+	}
+	_, dir, err := reg.Resolve(explicitProject)
+	return dir, err
 }
 
 // connectStatus is what a bare `plum connect` does on an already-configured

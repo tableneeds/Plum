@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Fixed `plum connect` in a directory with no plum.yml silently targeting
+  the globally active project (running it from a fresh repo could show —
+  or with --reconfigure, rewrite — a different project's connection).
+  Connect now always means "set up the current directory"; only an
+  explicit `--project NAME` redirects it.
 - Added `plum new NAME`: scaffold a deploy-ready Plum site in one command
   — rails new, the plum-cms gem, the install generator mounted at `/`, a
   prepared database, and a git history. Bootstraps its own toolchain:
