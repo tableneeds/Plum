@@ -77,6 +77,13 @@ gets asked for the app's path on the server; a Once remote gets asked for
 the app's hostname (`once_app`) instead, since the app lives in a container
 rather than at a path; a Kamal remote needs neither.
 
+Connect asks as little as it can get away with. **Re-runs prefill every
+prompt from the existing plum.yml** — Enter through everything and you
+reproduce the current setup. And for Once remotes, once SSH login works it
+**asks the server itself** (`once list`) and offers the deployed apps as a
+pick-list — with your previous choice highlighted — instead of a blank
+hostname prompt.
+
 For Kamal and Once shapes it then **checks the server's tooling** — Docker
 Engine for both, plus the `once` binary for Once — and offers to install
 whatever's missing (`curl -fsSL https://get.docker.com | sh`, `curl

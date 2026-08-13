@@ -46,6 +46,12 @@
   Everything degrades to the old plain sequential output when piped, in
   CI, under `NO_COLOR`, or with `TERM=dumb` — scripted stdin answers and
   log parsing are unaffected; Ctrl-C at any prompt exits quietly (130).
+- `plum connect` now answers its own questions where it can: re-runs
+  prefill every prompt from the existing plum.yml (Enter-through-everything
+  reproduces the current setup, and the stored deployment type outranks
+  file detection), and for Once remotes it asks the server itself — `once
+  list` over the just-verified SSH connection — offering the deployed apps
+  as a pick-list instead of a blank hostname prompt.
 - Added a Firebase-CLI-style global project registry (`plum projects
   add/list/remove`, `plum use`, `--project`) so a fleet of Plum sites can be
   managed from one dev machine without `cd`-ing into each repo — a local

@@ -27,9 +27,14 @@ func cmdConnect(args []string) error {
 		dir = "."
 	}
 
+	// Re-runs shouldn't start from scratch: whatever the default remote in
+	// an existing plum.yml already says becomes each prompt's default, so
+	// Enter-through-everything reproduces the current setup.
+	existing, existingName := existingRemote(dir)
+
 	host := p.remote // parseArgs treats the first bare argument as `remote`; here that's the host/IP.
 	if host == "" {
-		if host, err = ui.Input("Server IP or hostname", ""); err != nil {
+		if host, err = ui.Input("Server IP or hostname", existing.Host); err != nil {
 			return err
 		}
 		if host == "" {
@@ -37,7 +42,11 @@ func cmdConnect(args []string) error {
 		}
 	}
 
-	user, err := ui.Input("SSH user", "root")
+	defaultUser := existing.User
+	if defaultUser == "" {
+		defaultUser = "root"
+	}
+	user, err := ui.Input("SSH user", defaultUser)
 	if err != nil {
 		return err
 	}
@@ -47,9 +56,10 @@ func cmdConnect(args []string) error {
 		return err
 	}
 
-	if !ui.Check(fmt.Sprintf("Key-based login to %s@%s already works", user, host), func() bool {
+	loginOK := ui.Check(fmt.Sprintf("Key-based login to %s@%s already works", user, host), func() bool {
 		return canConnect(user, host)
-	}) {
+	})
+	if !loginOK {
 		fmt.Println(ui.Dim("That's normal for a server you haven't connected to before."))
 		copyKey, cerr := ui.Confirm("Copy your public key to the server now with ssh-copy-id? It'll ask for the server's password.", true)
 		if cerr != nil {
@@ -60,6 +70,7 @@ func cmdConnect(args []string) error {
 				ui.Fail("ssh-copy-id failed: %v — you can copy the key manually and re-run `plum connect`.", err)
 			} else if canConnect(user, host) {
 				ui.Success("Key-based login now works.")
+				loginOK = true
 			} else {
 				ui.Warn("Login still isn't passwordless — double check the server accepted the key.")
 			}
@@ -76,6 +87,10 @@ func cmdConnect(args []string) error {
 	if detected.Via != "" {
 		fmt.Println(ui.Dim(fmt.Sprintf("This repo has %s — that usually means a %s deployment.", detected.Evidence, detected.Via)))
 		defaultVia = string(detected.Via)
+	}
+	if existing.Via != "" {
+		// What the user chose last time beats what the repo's files suggest.
+		defaultVia = string(existing.Via)
 	}
 	viaAnswer, err := ui.Select("Deployment type", []ui.Choice{
 		{Label: "ssh — the app lives at a path on the server", Value: "ssh"},
@@ -95,12 +110,15 @@ func cmdConnect(args []string) error {
 	var path, onceApp string
 	switch via {
 	case config.ViaSSH:
-		defaultPath := sshsetup.DefaultAppPath(filepath.Base(absOrDot(dir)))
+		defaultPath := existing.Path
+		if defaultPath == "" {
+			defaultPath = sshsetup.DefaultAppPath(filepath.Base(absOrDot(dir)))
+		}
 		if path, err = ui.Input("Path to the Plum app on the server", defaultPath); err != nil {
 			return err
 		}
 	case config.ViaOnce:
-		if onceApp, err = ui.Input("App hostname (the --host you gave `once deploy`)", ""); err != nil {
+		if onceApp, err = askOnceApp(user, host, existing.OnceApp, loginOK); err != nil {
 			return err
 		}
 		if onceApp == "" {
@@ -110,7 +128,11 @@ func cmdConnect(args []string) error {
 
 	ui.Blank()
 	sshConfigPath := filepath.Join(homeOrDot(), ".ssh", "config")
-	remoteName, err := ui.Input("Name for this remote", "production")
+	defaultName := existingName
+	if defaultName == "" {
+		defaultName = "production"
+	}
+	remoteName, err := ui.Input("Name for this remote", defaultName)
 	if err != nil {
 		return err
 	}
@@ -290,6 +312,131 @@ func bootstrapServer(target string, via config.Via) error {
 		}
 	}
 	return nil
+}
+
+// existingRemote returns the default remote from an existing plum.yml (and
+// its name) so re-running connect prefills instead of interrogating from
+// scratch. A missing or unreadable file just means no defaults.
+func existingRemote(dir string) (config.Remote, string) {
+	cfg, err := config.LoadOrEmpty(dir)
+	if err != nil || cfg.Default == "" {
+		return config.Remote{}, ""
+	}
+	rem, ok := cfg.Remotes[cfg.Default]
+	if !ok {
+		return config.Remote{}, ""
+	}
+	return rem, cfg.Default
+}
+
+// askOnceApp resolves which once app this repo is. The server already knows
+// the answer — `once list` names every deployed app — so when login works
+// this asks the server and offers a pick-list instead of a blank prompt.
+// Falls back to free text (prefilled from plum.yml) when the server can't
+// be asked or runs nothing yet.
+func askOnceApp(user, host, previous string, loginOK bool) (string, error) {
+	var apps []string
+	if loginOK {
+		ui.Check("Asking the server which once apps it runs", func() bool {
+			out, ok := sshCapture(user+"@"+host, "once list 2>/dev/null")
+			if ok {
+				apps = parseOnceList(out)
+			}
+			return len(apps) > 0
+		})
+	}
+
+	if len(apps) == 0 {
+		return ui.Input("App hostname (the --host you gave `once deploy`)", previous)
+	}
+
+	const other = "other" // no real app hostname is bare "other"; typed hostnames pass through anyway
+	choices := make([]ui.Choice, 0, len(apps)+1)
+	def := ""
+	for _, app := range apps {
+		choices = append(choices, ui.Choice{Label: app, Value: app})
+		if app == previous {
+			def = app
+		}
+	}
+	if def == "" {
+		def = apps[0]
+	}
+	choices = append(choices, ui.Choice{Label: "something else (type it in)", Value: other})
+	picked, err := ui.Select("Which app is this repo?", choices, def)
+	if err != nil {
+		return "", err
+	}
+	if picked == other {
+		return ui.Input("App hostname (the --host you gave `once deploy`)", previous)
+	}
+	return picked, nil
+}
+
+// parseOnceList extracts each app's primary hostname from `once list`
+// output, which arrives dressed in color and OSC 8 hyperlink escapes:
+//
+//	\x1b]8;;https://finalwordsports.com\x1b\\\x1b[94mfinalwordsports.com,www.finalwordsports.com\x1b[m\x1b]8;;\x1b\\ (running)
+//
+// The app identifier once wants is any of its hostnames; the first in the
+// comma list is the one the user passed to `once deploy --host`.
+func parseOnceList(out string) []string {
+	var apps []string
+	for _, line := range strings.Split(stripTerminalEscapes(out), "\n") {
+		line = strings.TrimSpace(line)
+		if line == "" {
+			continue
+		}
+		hosts := strings.Fields(line)[0]
+		app := strings.TrimSpace(strings.Split(hosts, ",")[0])
+		if app != "" {
+			apps = append(apps, app)
+		}
+	}
+	return apps
+}
+
+// stripTerminalEscapes removes CSI sequences (colors) and OSC sequences
+// (hyperlinks) so parsers see the plain text a human would.
+func stripTerminalEscapes(s string) string {
+	var b strings.Builder
+	for i := 0; i < len(s); {
+		if s[i] != 0x1b {
+			b.WriteByte(s[i])
+			i++
+			continue
+		}
+		i++ // consume ESC
+		if i >= len(s) {
+			break
+		}
+		switch s[i] {
+		case '[': // CSI ... final byte in @-~
+			i++
+			for i < len(s) && (s[i] < 0x40 || s[i] > 0x7e) {
+				i++
+			}
+			i++ // final byte
+		case ']': // OSC ... terminated by BEL or ESC \
+			i++
+			for i < len(s) {
+				if s[i] == 0x07 {
+					i++
+					break
+				}
+				if s[i] == 0x1b && i+1 < len(s) && s[i+1] == '\\' {
+					i += 2
+					break
+				}
+				i++
+			}
+		case '\\': // stray string terminator
+			i++
+		default: // two-byte escape (ESC c etc.)
+			i++
+		}
+	}
+	return b.String()
 }
 
 // canConnect probes key-based login without ever risking a password prompt
