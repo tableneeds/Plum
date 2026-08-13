@@ -130,10 +130,19 @@ State left behind, deliberately:
    path), and production reported no drift. Every CLI command has now run
    against real infrastructure. plum-site's production still runs gem
    0.2.1 (no config tasks) — blocked on the release below.
-2. **Release plum-cms 0.2.2** so plum-site can go back to a gem version
-   (see above), and consider updating the-final-word's vendored copy.
-   Note: the CLI has since gained push/logs/tutorial and a full charm UI —
-   see docs/plum-cli.md and the CHANGELOG for the current state.
+2. ~~Release plum-cms 0.2.2~~ — **done 2026-08-13**: published to
+   rubygems.org (Ben authed via WebAuthn), plum-site back on `~> 0.2.2`
+   and deployed to production (rolled explicitly with `once update` —
+   the server's once-background auto-updater died that day: timer stops
+   firing, survives restarts broken; see memory/once-server-facts. Apps
+   shipped via the new `plum deploy` never depend on it).
+   The CLI has since gained push/logs/tutorial/new/deploy and a full
+   charm UI — see docs/plum-cli.md and the CHANGELOG. The zero-to-agency
+   arc (plum new → connect → deploy, docs/zero-to-agency.md) is built;
+   `plum new` verified end-to-end, deploy's registry-free image pipeline
+   (build → ssh-stream → docker load) verified against the live server.
+   Remaining: one full first-deploy of a fresh app via `plum deploy`
+   (needs a hostname from Ben).
 3. **`via: kamal` against a real Kamal fleet** — argv is unit-tested against
    fake binaries only.
 4. **`plum deploy`** — Ben wants heroku-like ergonomics eventually; scope so
