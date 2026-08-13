@@ -243,6 +243,29 @@ bin/rails plum:backup:restore ARCHIVE=/var/backups/plum/site.plum.zip
 See [the portability guide](docs/portability.md) for archive guarantees and
 production backup guidance.
 
+## The Plum CLI
+
+`cli/` ships a Go command line that wraps the engine's rake tasks over SSH,
+[Kamal](https://kamalmanual.com), or [Once](https://once.com) — heroku-style
+ergonomics for self-hosted Plum sites:
+
+```sh
+plum connect 203.0.113.5   # guided setup: SSH keys, server tooling, plum.yml
+plum connect               # already configured? verifies the setup instead
+plum pull                  # replace your local site with production's content
+plum push                  # apply plum/ config-as-code files to the remote
+plum check                 # fail if the remote drifted from plum/ (CI-friendly)
+plum logs --follow         # tail the app's logs, pretty-printed on a TTY
+plum backup                # timestamped site archive on the server
+plum run -- TASK           # any rake task, any remote
+```
+
+A Firebase-style project registry (`plum use`, `--project`) manages a fleet
+of sites from one machine. Every command degrades to plain, script-friendly
+output when piped or under `NO_COLOR`. See [the CLI guide](docs/plum-cli.md)
+for transports (`via: ssh|kamal|once`), fleet management, and how `pull`
+works across database engines.
+
 ## Content API
 
 Published entries are available through a read-only, site-scoped JSON API:

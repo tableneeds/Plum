@@ -102,7 +102,10 @@ stops short of deploying the app itself: pushing images and registry
 credentials stay in your hands. Finally it verifies what it can — that
 `bin/rails` exists at the path you gave (ssh), or that `once list` shows
 your app (once) — so you find out immediately if something's off instead of
-on your first `plum pull`.
+on your first `plum pull`. Along the way it registers the project in the
+global registry under the directory's name (and makes it the active project
+if none is set), so `plum use <name>` and `--project <name>` work without a
+separate `plum projects add`.
 
 `plum connect` (with no IP) prompts for the host interactively too. Run it
 again to add a second remote (e.g. staging) to an existing plum.yml — it
@@ -153,7 +156,7 @@ plum use table-needs
 plum pull              # pulls TableNeeds' production data into TableNeeds' local site
 ```
 
-Resolution order for any command (`pull`, `sync`, `check`, `backup`, `run`):
+Resolution order for any command (`pull`, `push`, `check`, `backup`, `logs`, `run`):
 
 1. `--project NAME` on the command itself — always wins.
 2. A `plum.yml` in the **current directory** — so working inside a repo
@@ -185,7 +188,7 @@ SQLite locally works fine; see `docs/config-as-code.md` and the site archive
 format). Prompts for confirmation unless `--yes` is passed.
 
 ```
-plum sync [remote] [--prune] [--force]
+plum push [remote] [--prune] [--force]
 plum check [remote]
 ```
 Upload the local `plum/` config-as-code directory (see
@@ -193,6 +196,12 @@ Upload the local `plum/` config-as-code directory (see
 and apply or verify it against the remote. `check`'s exit code is nonzero on
 drift — wire it into CI. `--prune` deletes content types missing from the
 files; `--force` allows that even when they still have entries.
+
+Push moves *structure* (content types, fieldsets), pull moves *content* —
+the same asymmetry as "push code, pull data", because in Plum's model your
+content model **is** code. Neither touches entry data on the other side.
+(`plum sync` still works as an alias for push; it was renamed because sync
+sounded two-way.)
 
 ```
 plum backup [remote]
@@ -204,10 +213,17 @@ server; doesn't download it — that's what `pull` is for).
 plum logs [remote] [--follow]
 ```
 Shows the app's recent logs; `--follow` (or `--tail`) streams them until you
-Ctrl-C, heroku-style. What "the logs" means depends on the transport: plain
-ssh tails `log/production.log` under the app path, Kamal runs `kamal app
-logs` (all hosts, not just the primary), and Once streams `docker logs` from
-the app's container on the server.
+Ctrl-C, heroku-style. On a terminal, structured JSON log lines (the
+slog/thruster shape modern Rails containers emit) are prettified — dim
+local-time stamps, color-coded levels and HTTP statuses, request lines
+compacted to `GET /up 200 (2ms)` with the noisy fields dropped — while
+plain Rails log text passes through untouched. Piped or under `NO_COLOR`
+you get the raw bytes the server sent, so `plum logs | jq` still works.
+
+What "the logs" means depends on the transport: plain ssh tails
+`log/production.log` under the app path, Kamal runs `kamal app logs` (all
+hosts, not just the primary), and Once streams `docker logs` from the app's
+container on the server.
 
 ```
 plum run [remote] -- TASK [ENV=value ...]

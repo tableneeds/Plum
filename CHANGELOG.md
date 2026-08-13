@@ -61,6 +61,19 @@
   have: plum-* aliases from ~/.ssh/config (the ones `plum connect` itself
   wrote) appear as a pick-list, so connecting a second site to the same
   VPS never re-asks for the IP.
+- Renamed `plum sync` to `plum push`: push moves structure up, pull moves
+  content down — the familiar "push code, pull data" asymmetry, since in
+  Plum's model the content model is code. `plum sync` keeps working as an
+  alias with a gentle pointer to the new name.
+- `plum connect` now registers the project in the global registry under
+  the directory's name (activating it when nothing is active), so
+  `plum use`/`--project` work without a separate `plum projects add`.
+- `plum logs` prettifies structured JSON log lines on a terminal: dim
+  local-time stamps, color-coded levels and HTTP statuses, and request
+  lines compacted to `GET /up 200 (2ms)` with noisy fields dropped. Plain
+  Rails log text passes through untouched, and piped output stays raw so
+  `plum logs | jq` keeps working. The CLI is now documented in the README
+  alongside the engine features.
 - Added a Firebase-CLI-style global project registry (`plum projects
   add/list/remove`, `plum use`, `--project`) so a fleet of Plum sites can be
   managed from one dev machine without `cd`-ing into each repo — a local

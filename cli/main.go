@@ -30,7 +30,7 @@ var siteCommands = []usageEntry{
 	{"plum connect [ip-or-host]", "Guided setup: SSH key, server access, plum.yml"},
 	{"plum init", "Create a starter plum.yml here (manual editing)"},
 	{"plum pull [remote] [--yes]", "Replace your local site with the remote's"},
-	{"plum sync [remote] [--prune] [--force]", "Apply plum/ config files to the remote"},
+	{"plum push [remote] [--prune] [--force]", "Push plum/ config files to the remote"},
 	{"plum check [remote]", "Fail if the remote drifted from plum/ files"},
 	{"plum backup [remote]", "Create a timestamped site backup remotely"},
 	{"plum logs [remote] [--follow]", "Show recent logs (--follow to tail)"},
@@ -85,8 +85,11 @@ func main() {
 		err = cmdInit()
 	case "pull":
 		err = cmdPull(os.Args[2:])
-	case "sync":
-		err = cmdSync(os.Args[2:])
+	case "push":
+		err = cmdPush(os.Args[2:])
+	case "sync": // the old name for push; kept working, quietly steered
+		fmt.Println(ui.Dim("(plum sync is now plum push — same command, clearer name)"))
+		err = cmdPush(os.Args[2:])
 	case "check":
 		err = cmdCheck(os.Args[2:])
 	case "backup":
@@ -262,9 +265,11 @@ func cmdPull(args []string) error {
 	return nil
 }
 
-// cmdSync uploads the project's plum/ config directory and applies it
-// remotely.
-func cmdSync(args []string) error {
+// cmdPush uploads the project's plum/ config directory and applies it
+// remotely — push structure up, pull content down, the same asymmetry as
+// "push code, pull data". The engine task keeps its plum:config:sync name;
+// renaming the CLI verb doesn't change what runs on the server.
+func cmdPush(args []string) error {
 	p := parseArgs(args)
 	return withUploadedConfig(p.project, p.remote, func(r *remote.Runner, remoteDir string) error {
 		taskArgs := []string{"plum:config:sync", "DIR=" + remoteDir}
@@ -333,7 +338,11 @@ func cmdLogs(args []string) error {
 	if err != nil {
 		return err
 	}
-	return r.Logs(p.flags["follow"] || p.flags["tail"])
+	follow := p.flags["follow"] || p.flags["tail"]
+	if follow {
+		fmt.Println(ui.Dim(fmt.Sprintf("Streaming logs from %s — Ctrl-C to stop", r.Name)))
+	}
+	return r.LogsTo(ui.LogWriter(os.Stdout), follow)
 }
 
 func cmdRun(args []string) error {

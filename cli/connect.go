@@ -9,6 +9,7 @@ import (
 
 	"github.com/tableneeds/Plum/cli/internal/config"
 	"github.com/tableneeds/Plum/cli/internal/detect"
+	"github.com/tableneeds/Plum/cli/internal/project"
 	"github.com/tableneeds/Plum/cli/internal/sshsetup"
 	"github.com/tableneeds/Plum/cli/internal/ui"
 )
@@ -37,6 +38,7 @@ func cmdConnect(args []string) error {
 	// the wizard only runs on first setup, with --reconfigure, or when a new
 	// host is given explicitly.
 	if existingName != "" && p.remote == "" && !p.flags["reconfigure"] {
+		registerProject(dir) // configured-but-unregistered projects get picked up here
 		return connectStatus(existingName, existing)
 	}
 
@@ -192,6 +194,7 @@ func cmdConnect(args []string) error {
 		return err
 	}
 	ui.Success("Wrote %s", filepath.Join(dir, config.FileName))
+	registerProject(dir)
 
 	target := remoteHost
 	if remoteUser != "" {
@@ -448,6 +451,41 @@ func askHost(previous, sshConfigPath string) (string, error) {
 		return ui.Input("Server IP or hostname", "")
 	}
 	return picked, nil
+}
+
+// registerProject adds the just-connected directory to the global project
+// registry under its basename, so `plum use <name>` and `--project <name>`
+// work immediately — nobody should have to run `plum projects add` for a
+// project they just walked through connect for. Best-effort: a registry
+// problem never fails the connect that got this far.
+func registerProject(dir string) {
+	abs := absOrDot(dir)
+	reg, err := project.Load()
+	if err != nil {
+		return
+	}
+	for _, p := range reg.Projects {
+		if absOrDot(p.Path) == abs {
+			return // already registered, under whatever name the user chose
+		}
+	}
+	name := filepath.Base(abs)
+	if _, taken := reg.Projects[name]; taken {
+		return // name collision with a different path — leave it to `plum projects add`
+	}
+	if err := reg.Add(name, abs); err != nil {
+		return
+	}
+	activated := ""
+	if reg.Active == "" {
+		if err := reg.SetActive(name); err == nil {
+			activated = " and made it the active project"
+		}
+	}
+	if err := reg.Save(); err != nil {
+		return
+	}
+	ui.Success("Registered project %q%s %s", name, activated, ui.Dim("(plum use "+name+")"))
 }
 
 // existingRemote returns the default remote from an existing plum.yml (and

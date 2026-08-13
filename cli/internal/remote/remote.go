@@ -65,7 +65,13 @@ func (r *Runner) RemoveFile(path string) {
 // Logs streams the app's logs (following them when follow is true) until
 // the process is interrupted or the connection drops.
 func (r *Runner) Logs(follow bool) error {
-	return r.strategy().logs(follow, os.Stdout)
+	return r.LogsTo(os.Stdout, follow)
+}
+
+// LogsTo is Logs with the output stream redirected — used by the CLI to
+// route log lines through its prettifier on a terminal.
+func (r *Runner) LogsTo(out io.Writer, follow bool) error {
+	return r.strategy().logs(follow, out)
 }
 
 // strategy is the interface each Via implements; runner.go dispatches to it.
