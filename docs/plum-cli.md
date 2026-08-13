@@ -235,8 +235,11 @@ plum push [remote] [--prune] [--force]
 plum check [remote]
 ```
 Upload the local `plum/` config-as-code directory (see
-`docs/config-as-code.md`; generate it with `bin/rails plum:config:export`)
-and apply or verify it against the remote. `check`'s exit code is nonzero on
+`docs/config-as-code.md`) and apply or verify it against the remote. On a
+project with no `plum/` yet, both commands offer to run
+`bin/rails plum:config:export` for you on the spot (interactively only —
+scripts and CI still get a hard error, since a fresh export would make
+the drift check meaningless). `check`'s exit code is nonzero on
 drift — wire it into CI. `--prune` deletes content types missing from the
 files; `--force` allows that even when they still have entries.
 

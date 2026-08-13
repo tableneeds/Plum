@@ -342,7 +342,27 @@ func withUploadedConfig(explicitProject, remoteName string, apply func(*remote.R
 	}
 	localConfigDir := filepath.Join(dir, "plum")
 	if _, err := os.Stat(localConfigDir); err != nil {
-		return fmt.Errorf("no plum/ config directory in %s — run `bin/rails plum:config:export` there first", dir)
+		// First run in a project: the CLI knows exactly how to create the
+		// missing directory, so offer to — but only interactively. In CI a
+		// fresh export would just compare the remote against whatever local
+		// database happens to exist, which isn't the drift check anyone
+		// wanted; scripts keep the hard, deterministic error.
+		if !ui.Interactive() {
+			return fmt.Errorf("no plum/ config directory in %s — run `bin/rails plum:config:export` there first", dir)
+		}
+		ui.Warn("No plum/ config directory in %s yet — that's the content model as YAML, exported from your local app.", dir)
+		exportNow, cerr := ui.Confirm("Export it now? (runs bin/rails plum:config:export)", true)
+		if cerr != nil {
+			return cerr
+		}
+		if !exportNow {
+			return fmt.Errorf("check and push need plum/ — run `bin/rails plum:config:export` when ready")
+		}
+		local := &remote.Runner{Name: "local", Remote: config.Remote{Via: config.ViaSSH, Host: "local", Rails: "bin/rails", Path: dir}}
+		ui.Step("Exporting content model to plum/")
+		if err := local.RunRailsTo(ui.StreamWriter(os.Stdout), "plum:config:export"); err != nil {
+			return err
+		}
 	}
 
 	remoteDir := "/tmp/plum-config-" + time.Now().UTC().Format("20060102150405")

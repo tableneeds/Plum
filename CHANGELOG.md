@@ -61,6 +61,13 @@
   have: plum-* aliases from ~/.ssh/config (the ones `plum connect` itself
   wrote) appear as a pick-list, so connecting a second site to the same
   VPS never re-asks for the IP.
+- `plum check`/`plum push` bootstrap themselves on first run: with no
+  plum/ directory in the project they offer to run
+  `bin/rails plum:config:export` right there (interactive sessions only;
+  scripts keep the hard error). Verified live: a first-time `plum check`
+  exported the content model, uploaded it through `once exec`'s stdin tar
+  pipe — the last transport path that had never run against a real
+  server — and production reported no drift.
 - Renamed `plum sync` to `plum push`: push moves structure up, pull moves
   content down — the familiar "push code, pull data" asymmetry, since in
   Plum's model the content model is code. `plum sync` keeps working as an

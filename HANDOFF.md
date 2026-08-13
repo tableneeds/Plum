@@ -124,12 +124,16 @@ State left behind, deliberately:
 
 ## Sensible next steps (none started)
 
-1. **`plum check`/`plum sync` live** — `sync`'s upload path relies on
-   `once exec` passing stdin through to the container (tar pipe) —
-   plausible but **unconfirmed live**; test `check` (read-only) before
-   trusting `sync --prune`. Requires a `plum/` config export locally first.
+1. ~~`plum check`/`plum push` live~~ — **done 2026-08-13**: first-time
+   `plum check` in the-final-word exported the content model, uploaded it
+   through `once exec`'s stdin tar pipe (the last unverified transport
+   path), and production reported no drift. Every CLI command has now run
+   against real infrastructure. plum-site's production still runs gem
+   0.2.1 (no config tasks) — blocked on the release below.
 2. **Release plum-cms 0.2.2** so plum-site can go back to a gem version
    (see above), and consider updating the-final-word's vendored copy.
+   Note: the CLI has since gained push/logs/tutorial and a full charm UI —
+   see docs/plum-cli.md and the CHANGELOG for the current state.
 3. **`via: kamal` against a real Kamal fleet** — argv is unit-tested against
    fake binaries only.
 4. **`plum deploy`** — Ben wants heroku-like ergonomics eventually; scope so
