@@ -83,6 +83,11 @@
   the CLI chapters carry live demos (press `d` to watch `plum pull` or a
   connect health check type itself out, spinners included); and the tour
   ends with a three-question interactive quiz.
+- `plum tutorial --serve [addr]` hosts the tour over SSH via charm's wish:
+  `ssh -p 2222 your-server` gets the full animated tutorial with nothing
+  installed. Sessions run only the tutorial (no shell, no exec, any or no
+  key accepted); the host key persists under ~/.config/plum so returning
+  visitors aren't warned.
 - Added a Firebase-CLI-style global project registry (`plum projects
   add/list/remove`, `plum use`, `--project`) so a fleet of Plum sites can be
   managed from one dev machine without `cd`-ing into each repo — a local

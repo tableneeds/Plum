@@ -58,6 +58,20 @@ and the tour ends with a three-question quiz. Navigate with ←/→, scroll
 with ↑/↓, jump with 1–9, quit with q. Piped, it prints the chapters as
 plain markdown.
 
+And because it's bubbletea, it also serves over SSH (charm's wish):
+
+```
+plum tutorial --serve            # listens on :2222
+plum tutorial --serve :2345      # or wherever
+```
+
+Anyone who can reach the port gets the full animated tour with nothing
+installed — `ssh -p 2222 your-server` and they're in. Sessions run only
+the tutorial program (no shell, no exec); any or no public key is
+accepted since the content is public. The host key persists at
+`~/.config/plum/tutorial_host_ed25519` so returning visitors don't get
+host-key warnings.
+
 ## Two layers of configuration
 
 This mirrors the Firebase CLI's model deliberately, because it solves the

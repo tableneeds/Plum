@@ -28,7 +28,7 @@ const version = "0.1.0"
 type usageEntry struct{ invocation, description string }
 
 var siteCommands = []usageEntry{
-	{"plum tutorial", "Interactive guided tour of Plum and this CLI"},
+	{"plum tutorial [--serve [addr]]", "Interactive guided tour (--serve hosts it over SSH)"},
 	{"plum connect [ip-or-host]", "Guided setup: SSH key, server access, plum.yml"},
 	{"plum init", "Create a starter plum.yml here (manual editing)"},
 	{"plum pull [remote] [--yes]", "Replace your local site with the remote's"},
@@ -82,7 +82,7 @@ func main() {
 	var err error
 	switch os.Args[1] {
 	case "tutorial", "learn":
-		err = cmdTutorial()
+		err = cmdTutorial(os.Args[2:])
 	case "connect":
 		err = cmdConnect(os.Args[2:])
 	case "init":
@@ -193,8 +193,18 @@ func runner(explicitProject, remoteName string) (*remote.Runner, string, error) 
 }
 
 // cmdTutorial runs the full-screen tour on a terminal; piped, it prints
-// the chapters as plain markdown so the content is still reachable.
-func cmdTutorial() error {
+// the chapters as plain markdown so the content is still reachable. With
+// --serve it instead hosts the tour over SSH (wish) so `ssh -p 2222 host`
+// gets the tutorial with nothing installed.
+func cmdTutorial(args []string) error {
+	p := parseArgs(args)
+	if p.flags["serve"] {
+		addr := p.remote // first bare argument, e.g. ":2222" or "0.0.0.0:2222"
+		if addr == "" {
+			addr = ":2222"
+		}
+		return tutorial.Serve(addr, tutorial.DefaultHostKeyPath())
+	}
 	if !ui.Interactive() {
 		chapters, err := tutorial.Chapters()
 		if err != nil {
