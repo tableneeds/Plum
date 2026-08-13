@@ -41,7 +41,7 @@ var fleetCommands = []usageEntry{
 	{"plum projects add NAME [path]", "Register a project (default path: .)"},
 	{"plum projects list", "List registered projects"},
 	{"plum projects remove NAME", "Forget a registered project"},
-	{"plum use NAME", "Set the active project"},
+	{"plum use [NAME]", "Show or set the active project"},
 }
 
 func renderUsage() string {
@@ -366,10 +366,10 @@ func cmdUse(args []string) error {
 			return err
 		}
 		if reg.Active == "" {
-			fmt.Println("No active project. Usage: plum use NAME")
+			fmt.Println("No active project." + ui.Dim(" Set one with `plum use NAME` — see `plum projects list`."))
 			return nil
 		}
-		fmt.Println(reg.Active)
+		fmt.Println(ui.Accent("● ") + ui.Bold(reg.Active) + "  " + ui.Dim(reg.Projects[reg.Active].Path))
 		return nil
 	}
 
