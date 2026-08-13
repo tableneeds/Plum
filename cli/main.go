@@ -9,7 +9,6 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
 	"os"
 	"os/exec"
@@ -20,37 +19,61 @@ import (
 	"github.com/tableneeds/Plum/cli/internal/config"
 	"github.com/tableneeds/Plum/cli/internal/project"
 	"github.com/tableneeds/Plum/cli/internal/remote"
+	"github.com/tableneeds/Plum/cli/internal/ui"
 )
 
 const version = "0.1.0"
 
-const usage = `plum %s — the Plum CMS command line
+type usageEntry struct{ invocation, description string }
 
-Site commands (run from a project directory, or use --project/plum use):
-  plum connect [ip-or-host]       Guided setup: SSH key, server access, plum.yml
-  plum init                       Create a starter plum.yml here (manual editing)
-  plum pull [remote] [--yes]      Replace your local site with the remote's
-  plum sync [remote] [--prune] [--force]
-                                  Apply plum/ config files to the remote
-  plum check [remote]             Fail if the remote drifted from plum/ files
-  plum backup [remote]            Create a timestamped site backup remotely
-  plum logs [remote] [--follow]   Show recent logs (--follow to tail)
-  plum run [remote] -- TASK ...   Run any rake task on the remote
+var siteCommands = []usageEntry{
+	{"plum connect [ip-or-host]", "Guided setup: SSH key, server access, plum.yml"},
+	{"plum init", "Create a starter plum.yml here (manual editing)"},
+	{"plum pull [remote] [--yes]", "Replace your local site with the remote's"},
+	{"plum sync [remote] [--prune] [--force]", "Apply plum/ config files to the remote"},
+	{"plum check [remote]", "Fail if the remote drifted from plum/ files"},
+	{"plum backup [remote]", "Create a timestamped site backup remotely"},
+	{"plum logs [remote] [--follow]", "Show recent logs (--follow to tail)"},
+	{"plum run [remote] -- TASK ...", "Run any rake task on the remote"},
+}
 
-Fleet commands (work from anywhere on this machine):
-  plum projects add NAME [path]   Register a project (default path: .)
-  plum projects list              List registered projects
-  plum projects remove NAME       Forget a registered project
-  plum use NAME                   Set the active project
+var fleetCommands = []usageEntry{
+	{"plum projects add NAME [path]", "Register a project (default path: .)"},
+	{"plum projects list", "List registered projects"},
+	{"plum projects remove NAME", "Forget a registered project"},
+	{"plum use NAME", "Set the active project"},
+}
 
-Every command accepts --project NAME to target a registered project without
+func renderUsage() string {
+	width := 0
+	for _, e := range append(append([]usageEntry{}, siteCommands...), fleetCommands...) {
+		if len(e.invocation) > width {
+			width = len(e.invocation)
+		}
+	}
+	section := func(b *strings.Builder, title, hint string, entries []usageEntry) {
+		b.WriteString(ui.Bold(title) + " " + ui.Dim(hint) + "\n")
+		for _, e := range entries {
+			// Pad before styling: ANSI codes would break %-*s width math.
+			padded := fmt.Sprintf("%-*s", width, e.invocation)
+			b.WriteString("  " + ui.Accent(padded) + "  " + e.description + "\n")
+		}
+	}
+
+	var b strings.Builder
+	b.WriteString(ui.Bold("plum") + " " + ui.Dim(version) + " — the Plum CMS command line\n\n")
+	section(&b, "Site commands", "(run from a project directory, or use --project / plum use)", siteCommands)
+	b.WriteString("\n")
+	section(&b, "Fleet commands", "(work from anywhere on this machine)", fleetCommands)
+	b.WriteString("\n" + ui.Dim(`Every command accepts --project NAME to target a registered project without
 switching the active one. Remotes are named in each project's plum.yml;
-omit the remote name to use its default (or its only remote).
-`
+omit the remote name to use its default (or its only remote).`) + "\n")
+	return b.String()
+}
 
 func main() {
 	if len(os.Args) < 2 {
-		fmt.Printf(usage, version)
+		fmt.Print(renderUsage())
 		os.Exit(2)
 	}
 
@@ -79,10 +102,10 @@ func main() {
 	case "version", "--version", "-v":
 		fmt.Println("plum " + version)
 	case "help", "--help", "-h":
-		fmt.Printf(usage, version)
+		fmt.Print(renderUsage())
 	default:
 		fmt.Fprintf(os.Stderr, "unknown command %q\n\n", os.Args[1])
-		fmt.Printf(usage, version)
+		fmt.Print(renderUsage())
 		os.Exit(2)
 	}
 
@@ -90,7 +113,10 @@ func main() {
 		if exit, ok := err.(*exec.ExitError); ok {
 			os.Exit(exit.ExitCode())
 		}
-		fmt.Fprintln(os.Stderr, "plum: "+err.Error())
+		if ui.Aborted(err) {
+			os.Exit(130) // user hit Ctrl-C at a prompt; nothing to explain
+		}
+		ui.Error(err)
 		os.Exit(1)
 	}
 }
@@ -177,16 +203,18 @@ remotes:
     # via: kamal                          # shells out to a local Kamal binary,
     #                                      # which already knows your servers
     #                                      # from config/deploy.yml
-    # via: once                           # shells out to a local 'once' binary
-    # host: your-app.example.com          # (once addresses apps by hostname)
+    # via: once                           # 37signals Once — its CLI runs ON
+    # host: my-vps                        #  the server, so host is how to ssh
+    # once_app: your-app.example.com      #  in and once_app is the hostname
+    #                                      #  given to 'once deploy --host'
 
     # ssh_args: ["-p", "2222"]
 `
 	if err := os.WriteFile(config.FileName, []byte(starter), 0o644); err != nil {
 		return err
 	}
-	fmt.Println("Wrote " + config.FileName + " — edit it to point at your server")
-	fmt.Println("Tip: `plum projects add <name>` registers this directory so `plum use <name>` works from anywhere.")
+	ui.Success("Wrote %s — edit it to point at your server", config.FileName)
+	fmt.Println(ui.Dim("Tip: `plum projects add <name>` registers this directory so `plum use <name>` works from anywhere."))
 	return nil
 }
 
@@ -201,10 +229,11 @@ func cmdPull(args []string) error {
 	}
 
 	if !p.flags["yes"] {
-		fmt.Printf("Replace the local site in %s with the one on %q? All local content is overwritten. [y/N] ", dir, r.Name)
-		reader := bufio.NewReader(os.Stdin)
-		answer, _ := reader.ReadString('\n')
-		if !strings.HasPrefix(strings.ToLower(strings.TrimSpace(answer)), "y") {
+		ok, cerr := ui.Confirm(fmt.Sprintf("Replace the local site in %s with the one on %q? All local content is overwritten.", dir, r.Name), false)
+		if cerr != nil {
+			return cerr
+		}
+		if !ok {
 			return fmt.Errorf("aborted")
 		}
 	}
@@ -215,20 +244,21 @@ func cmdPull(args []string) error {
 	defer r.RemoveFile(remoteArchive)
 	defer os.Remove(localArchive)
 
-	fmt.Printf("==> Exporting site on %s\n", r.Name)
-	if err := r.RunRails("plum:site:export", "ARCHIVE="+remoteArchive); err != nil {
+	ui.Step("Exporting site on %s", r.Name)
+	if err := r.RunRailsTo(ui.StreamWriter(os.Stdout), "plum:site:export", "ARCHIVE="+remoteArchive); err != nil {
 		return err
 	}
-	fmt.Println("==> Downloading archive")
-	if err := r.Download(remoteArchive, localArchive); err != nil {
+	if err := ui.Spin("Downloading archive", func() error {
+		return r.Download(remoteArchive, localArchive)
+	}); err != nil {
 		return err
 	}
-	fmt.Println("==> Replacing local site")
+	ui.Step("Replacing local site")
 	local := &remote.Runner{Name: "local", Remote: config.Remote{Via: config.ViaSSH, Host: "local", Rails: "bin/rails", Path: dir}}
-	if err := local.RunRails("plum:site:replace", "ARCHIVE="+localArchive); err != nil {
+	if err := local.RunRailsTo(ui.StreamWriter(os.Stdout), "plum:site:replace", "ARCHIVE="+localArchive); err != nil {
 		return err
 	}
-	fmt.Println("==> Done — your local site now matches " + r.Name)
+	ui.Success("Your local site now matches %s", r.Name)
 	return nil
 }
 
@@ -244,7 +274,12 @@ func cmdSync(args []string) error {
 		if p.flags["force"] {
 			taskArgs = append(taskArgs, "FORCE=1")
 		}
-		return r.RunRails(taskArgs...)
+		ui.Step("Applying plum/ config on %s", r.Name)
+		if err := r.RunRailsTo(ui.StreamWriter(os.Stdout), taskArgs...); err != nil {
+			return err
+		}
+		ui.Success("Config applied on %s", r.Name)
+		return nil
 	})
 }
 
@@ -253,7 +288,12 @@ func cmdSync(args []string) error {
 func cmdCheck(args []string) error {
 	p := parseArgs(args)
 	return withUploadedConfig(p.project, p.remote, func(r *remote.Runner, remoteDir string) error {
-		return r.RunRails("plum:config:check", "DIR="+remoteDir)
+		ui.Step("Checking config drift on %s", r.Name)
+		if err := r.RunRailsTo(ui.StreamWriter(os.Stdout), "plum:config:check", "DIR="+remoteDir); err != nil {
+			return err
+		}
+		ui.Success("No drift — %s matches plum/", r.Name)
+		return nil
 	})
 }
 
@@ -268,8 +308,9 @@ func withUploadedConfig(explicitProject, remoteName string, apply func(*remote.R
 	}
 
 	remoteDir := "/tmp/plum-config-" + time.Now().UTC().Format("20060102150405")
-	fmt.Printf("==> Uploading plum/ to %s\n", r.Name)
-	if err := r.UploadDir(localConfigDir, remoteDir); err != nil {
+	if err := ui.Spin(fmt.Sprintf("Uploading plum/ to %s", r.Name), func() error {
+		return r.UploadDir(localConfigDir, remoteDir)
+	}); err != nil {
 		return err
 	}
 	defer r.RemoveFile(remoteDir)
@@ -282,10 +323,8 @@ func cmdBackup(args []string) error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("==> Backing up site on %s\n", r.Name)
-	out, err := r.CaptureRails("plum:backup:create")
-	fmt.Print(out)
-	return err
+	ui.Step("Backing up site on %s", r.Name)
+	return r.RunRailsTo(ui.StreamWriter(os.Stdout), "plum:backup:create")
 }
 
 func cmdLogs(args []string) error {
@@ -335,7 +374,7 @@ func cmdUse(args []string) error {
 	if err := reg.Save(); err != nil {
 		return err
 	}
-	fmt.Printf("Now using %q (%s)\n", args[0], reg.Projects[args[0]].Path)
+	ui.Success("Now using %q %s", args[0], ui.Dim("("+reg.Projects[args[0]].Path+")"))
 	return nil
 }
 
@@ -357,12 +396,20 @@ func cmdProjects(args []string) error {
 			fmt.Println("No registered projects. Add one with `plum projects add NAME [path]`.")
 			return nil
 		}
+		width := 0
 		for _, name := range reg.Names() {
-			marker := "  "
-			if name == reg.Active {
-				marker = "* "
+			if len(name) > width {
+				width = len(name)
 			}
-			fmt.Printf("%s%s\t%s\n", marker, name, reg.Projects[name].Path)
+		}
+		for _, name := range reg.Names() {
+			// Pad before styling: ANSI codes would break %-*s width math.
+			padded := fmt.Sprintf("%-*s", width, name)
+			if name == reg.Active {
+				fmt.Println(ui.Accent("● ") + ui.Bold(padded) + "  " + ui.Dim(reg.Projects[name].Path))
+			} else {
+				fmt.Println("  " + padded + "  " + ui.Dim(reg.Projects[name].Path))
+			}
 		}
 		return nil
 
@@ -381,7 +428,7 @@ func cmdProjects(args []string) error {
 		if err := reg.Save(); err != nil {
 			return err
 		}
-		fmt.Printf("Registered %q -> %s\n", name, reg.Projects[name].Path)
+		ui.Success("Registered %q → %s", name, reg.Projects[name].Path)
 		return nil
 
 	case "remove", "rm":
@@ -394,7 +441,7 @@ func cmdProjects(args []string) error {
 		if err := reg.Save(); err != nil {
 			return err
 		}
-		fmt.Printf("Removed %q\n", args[0])
+		ui.Success("Removed %q", args[0])
 		return nil
 
 	default:

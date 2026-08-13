@@ -38,6 +38,14 @@
   `kamal app logs`, Once streams `docker logs` from the app's container
   (resolved by Once's own container label; the Rails image logs to stdout,
   not a file).
+- Gave the CLI a heroku-style voice: `▸` step headers, animated spinners
+  that settle into timed `✓ ... (700ms)` result lines, remote rake output
+  framed behind a dim `│` gutter, arrow-key selects and styled prompts in
+  `plum connect`, a colorized help screen and projects list, and a plum
+  accent color adaptive to light/dark terminals (via lipgloss + huh).
+  Everything degrades to the old plain sequential output when piped, in
+  CI, under `NO_COLOR`, or with `TERM=dumb` — scripted stdin answers and
+  log parsing are unaffected; Ctrl-C at any prompt exits quietly (130).
 - Added a Firebase-CLI-style global project registry (`plum projects
   add/list/remove`, `plum use`, `--project`) so a fleet of Plum sites can be
   managed from one dev machine without `cd`-ing into each repo — a local

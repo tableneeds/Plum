@@ -28,7 +28,14 @@ type Runner struct {
 // RunRails runs the given rails task (with ENV=value arguments) on the
 // remote, streaming output to stdout/stderr.
 func (r *Runner) RunRails(taskAndEnv ...string) error {
-	return r.strategy().runRails(taskAndEnv, os.Stdout)
+	return r.RunRailsTo(os.Stdout, taskAndEnv...)
+}
+
+// RunRailsTo is RunRails with the stdout stream redirected — used by
+// commands that frame remote output (spinners, gutters) instead of letting
+// it interleave raw.
+func (r *Runner) RunRailsTo(out io.Writer, taskAndEnv ...string) error {
+	return r.strategy().runRails(taskAndEnv, out)
 }
 
 // CaptureRails is RunRails but returns stdout, for commands whose output the

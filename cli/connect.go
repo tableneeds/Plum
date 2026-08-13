@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
 	"os"
 	"os/exec"
@@ -11,6 +10,7 @@ import (
 	"github.com/tableneeds/Plum/cli/internal/config"
 	"github.com/tableneeds/Plum/cli/internal/detect"
 	"github.com/tableneeds/Plum/cli/internal/sshsetup"
+	"github.com/tableneeds/Plum/cli/internal/ui"
 )
 
 // cmdConnect is the guided setup `plum init` doesn't try to be: given just
@@ -19,7 +19,6 @@ import (
 // to hand-edit YAML or remember ssh-keygen/ssh-copy-id flags to get started.
 func cmdConnect(args []string) error {
 	p := parseArgs(args)
-	in := bufio.NewReader(os.Stdin)
 
 	dir, err := projectDir(p.project)
 	if err != nil {
@@ -30,31 +29,39 @@ func cmdConnect(args []string) error {
 
 	host := p.remote // parseArgs treats the first bare argument as `remote`; here that's the host/IP.
 	if host == "" {
-		host = ask(in, "Server IP or hostname: ", "")
+		if host, err = ui.Input("Server IP or hostname", ""); err != nil {
+			return err
+		}
 		if host == "" {
 			return fmt.Errorf("a server IP or hostname is required")
 		}
 	}
 
-	user := ask(in, "SSH user", "root")
-
-	fmt.Println()
-	if err := ensureLocalSSHKey(in); err != nil {
+	user, err := ui.Input("SSH user", "root")
+	if err != nil {
 		return err
 	}
 
-	fmt.Printf("\nChecking whether key-based login to %s@%s already works...\n", user, host)
-	if canConnect(user, host) {
-		fmt.Println("✓ It does.")
-	} else {
-		fmt.Println("Not yet — that's normal for a server you haven't connected to before.")
-		if confirm(in, "Copy your public key to the server now with ssh-copy-id? It'll ask for the server's password.", true) {
+	ui.Blank()
+	if err := ensureLocalSSHKey(); err != nil {
+		return err
+	}
+
+	if !ui.Check(fmt.Sprintf("Key-based login to %s@%s already works", user, host), func() bool {
+		return canConnect(user, host)
+	}) {
+		fmt.Println(ui.Dim("That's normal for a server you haven't connected to before."))
+		copyKey, cerr := ui.Confirm("Copy your public key to the server now with ssh-copy-id? It'll ask for the server's password.", true)
+		if cerr != nil {
+			return cerr
+		}
+		if copyKey {
 			if err := runInteractive("ssh-copy-id", "-o", "StrictHostKeyChecking=accept-new", user+"@"+host); err != nil {
-				fmt.Fprintf(os.Stderr, "ssh-copy-id failed: %v\nYou can copy the key manually and re-run `plum connect`.\n", err)
+				ui.Fail("ssh-copy-id failed: %v — you can copy the key manually and re-run `plum connect`.", err)
 			} else if canConnect(user, host) {
-				fmt.Println("✓ Key-based login now works.")
+				ui.Success("Key-based login now works.")
 			} else {
-				fmt.Println("Login still isn't passwordless — double check the server accepted the key.")
+				ui.Warn("Login still isn't passwordless — double check the server accepted the key.")
 			}
 		}
 	}
@@ -63,14 +70,22 @@ func cmdConnect(args []string) error {
 	// remote needs a filesystem path, a once remote needs the app hostname
 	// instead (the app lives in a container, not at a path), and a kamal
 	// remote needs neither (config/deploy.yml already knows the servers).
-	fmt.Println()
+	ui.Blank()
 	detected := detect.Deployment(dir)
 	defaultVia := string(config.ViaSSH)
 	if detected.Via != "" {
-		fmt.Printf("This repo has %s — that usually means a %s deployment.\n", detected.Evidence, detected.Via)
+		fmt.Println(ui.Dim(fmt.Sprintf("This repo has %s — that usually means a %s deployment.", detected.Evidence, detected.Via)))
 		defaultVia = string(detected.Via)
 	}
-	via := config.Via(strings.ToLower(ask(in, "Deployment type (ssh, kamal, once)", defaultVia)))
+	viaAnswer, err := ui.Select("Deployment type", []ui.Choice{
+		{Label: "ssh — the app lives at a path on the server", Value: "ssh"},
+		{Label: "kamal — deployed with Kamal (config/deploy.yml)", Value: "kamal"},
+		{Label: "once — deployed with 37signals Once", Value: "once"},
+	}, defaultVia)
+	if err != nil {
+		return err
+	}
+	via := config.Via(strings.ToLower(viaAnswer))
 	switch via {
 	case config.ViaSSH, config.ViaKamal, config.ViaOnce:
 	default:
@@ -80,31 +95,40 @@ func cmdConnect(args []string) error {
 	var path, onceApp string
 	switch via {
 	case config.ViaSSH:
-		fmt.Println()
 		defaultPath := sshsetup.DefaultAppPath(filepath.Base(absOrDot(dir)))
-		path = ask(in, "Path to the Plum app on the server", defaultPath)
+		if path, err = ui.Input("Path to the Plum app on the server", defaultPath); err != nil {
+			return err
+		}
 	case config.ViaOnce:
-		fmt.Println()
-		onceApp = ask(in, "App hostname (the --host you gave `once deploy`)", "")
+		if onceApp, err = ui.Input("App hostname (the --host you gave `once deploy`)", ""); err != nil {
+			return err
+		}
 		if onceApp == "" {
 			return fmt.Errorf("via: once needs the app's hostname to run `once exec` against")
 		}
 	}
 
-	fmt.Println()
+	ui.Blank()
 	sshConfigPath := filepath.Join(homeOrDot(), ".ssh", "config")
-	remoteName := ask(in, "Name for this remote", "production")
+	remoteName, err := ui.Input("Name for this remote", "production")
+	if err != nil {
+		return err
+	}
 	alias := "plum-" + remoteName
 	remoteHost, remoteUser := host, user
-	if confirm(in, fmt.Sprintf("Add a %q alias to ~/.ssh/config so `ssh %s` also works?", alias, alias), true) {
+	addAlias, err := ui.Confirm(fmt.Sprintf("Add a %q alias to ~/.ssh/config so `ssh %s` also works?", alias, alias), true)
+	if err != nil {
+		return err
+	}
+	if addAlias {
 		added, err := sshsetup.AppendAlias(sshConfigPath, alias, host, user)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "couldn't write ~/.ssh/config: %v\n", err)
+			ui.Fail("couldn't write ~/.ssh/config: %v", err)
 		} else if added {
-			fmt.Printf("✓ Added %q to %s\n", alias, sshConfigPath)
+			ui.Success("Added %q to %s", alias, sshConfigPath)
 			remoteHost, remoteUser = alias, ""
 		} else {
-			fmt.Printf("%q is already defined in %s — leaving it as-is.\n", alias, sshConfigPath)
+			ui.Warn("%q is already defined in %s — leaving it as-is.", alias, sshConfigPath)
 			remoteHost, remoteUser = alias, ""
 		}
 	}
@@ -136,7 +160,7 @@ func cmdConnect(args []string) error {
 	if err := cfg.Save(dir); err != nil {
 		return err
 	}
-	fmt.Printf("\n✓ Wrote %s\n", filepath.Join(dir, config.FileName))
+	ui.Success("Wrote %s", filepath.Join(dir, config.FileName))
 
 	target := remoteHost
 	if remoteUser != "" {
@@ -146,88 +170,58 @@ func cmdConnect(args []string) error {
 	// Everything past this point talks to the server; if login doesn't work
 	// yet, "docker isn't installed" would just be misreading a dead probe.
 	if !sshProbe(target, "true") {
-		fmt.Println("\nCan't reach the server over SSH yet, so skipping the server checks — re-run `plum connect` once login works.")
-		fmt.Printf("\nDone. Try: plum pull --project %s (or just `plum pull` from %s)\n", remoteName, dir)
+		ui.Warn("Can't reach the server over SSH yet, so skipping the server checks — re-run `plum connect` once login works.")
+		ui.Blank()
+		ui.Success("Done. Try: %s", ui.Bold("plum pull --project "+remoteName))
 		return nil
 	}
 
 	if via != config.ViaSSH {
-		bootstrapServer(in, target, via)
+		if err := bootstrapServer(target, via); err != nil {
+			return err
+		}
 	}
 
+	ui.Blank()
 	switch via {
 	case config.ViaSSH:
-		fmt.Println("\nChecking for a Plum app at that path...")
-		if sshProbe(target, "test -x "+shellQuote(path+"/bin/rails")) {
-			fmt.Println("✓ Found bin/rails there.")
-		} else {
-			fmt.Println("Couldn't confirm bin/rails at that path yet — fine if you haven't deployed there yet, otherwise double-check the path.")
+		if !ui.Check("bin/rails exists at that path", func() bool {
+			return sshProbe(target, "test -x "+shellQuote(path+"/bin/rails"))
+		}) {
+			fmt.Println(ui.Dim("Fine if you haven't deployed there yet — otherwise double-check the path."))
 		}
 	case config.ViaOnce:
-		fmt.Println("\nChecking once knows about that app...")
-		if sshProbe(target, "once list 2>/dev/null | grep -qF "+shellQuote(onceApp)) {
-			fmt.Printf("✓ once lists %s.\n", onceApp)
-		} else {
-			fmt.Printf("once doesn't list %s yet — deploy it with `once deploy <image> --host %s` and you're set.\n", onceApp, onceApp)
+		if !ui.Check(fmt.Sprintf("once lists %s", onceApp), func() bool {
+			return sshProbe(target, "once list 2>/dev/null | grep -qF "+shellQuote(onceApp))
+		}) {
+			fmt.Println(ui.Dim(fmt.Sprintf("Deploy it with `once deploy <image> --host %s` and you're set.", onceApp)))
 		}
 	case config.ViaKamal:
 		if _, err := exec.LookPath("kamal"); err != nil {
 			if _, statErr := os.Stat(filepath.Join(dir, "bin", "kamal")); statErr != nil {
-				fmt.Println("\nNote: no kamal binary found locally — via: kamal shells out to it (`gem install kamal`).")
+				ui.Warn("No kamal binary found locally — via: kamal shells out to it (`gem install kamal`).")
 			}
 		}
 	}
 
-	fmt.Printf("\nDone. Try: plum pull --project %s (or just `plum pull` from %s)\n", remoteName, dir)
+	ui.Blank()
+	ui.Success("Done. Try: %s %s", ui.Bold("plum pull --project "+remoteName), ui.Dim("(or just `plum pull` from "+dir+")"))
 	return nil
 }
 
-// bootstrapServer checks the server has the tooling its deployment shape
-// needs — Docker Engine for both Kamal and Once, plus the once binary for
-// Once — and offers to install what's missing. It never deploys the app
-// itself: pushing images and registry credentials stay in the user's hands.
-func bootstrapServer(in *bufio.Reader, target string, via config.Via) {
-	fmt.Println("\nChecking the server's tooling...")
-
-	if out, ok := sshCapture(target, "docker --version"); ok {
-		fmt.Printf("✓ Docker: %s\n", strings.TrimSpace(out))
-	} else {
-		fmt.Println("Docker isn't installed on the server — both Kamal and Once run apps as Docker containers.")
-		if confirm(in, "Install Docker Engine now (runs `curl -fsSL https://get.docker.com | sh` on the server)?", true) {
-			if err := runInteractive("ssh", target, "curl -fsSL https://get.docker.com | sh"); err != nil {
-				fmt.Fprintf(os.Stderr, "Docker install failed: %v\nInstall it manually and re-run `plum connect`.\n", err)
-			} else {
-				fmt.Println("✓ Docker installed.")
-			}
-		}
-	}
-
-	if via != config.ViaOnce {
-		return
-	}
-	if out, ok := sshCapture(target, "once version"); ok {
-		fmt.Printf("✓ once: %s\n", strings.TrimSpace(out))
-	} else {
-		fmt.Println("The once binary isn't installed on the server.")
-		if confirm(in, "Install it now (runs `curl https://get.once.com | sh` on the server)?", true) {
-			if err := runInteractive("ssh", target, "curl -fsSL https://get.once.com | sh"); err != nil {
-				fmt.Fprintf(os.Stderr, "once install failed: %v\nInstall it manually and re-run `plum connect`.\n", err)
-			} else {
-				fmt.Println("✓ once installed.")
-			}
-		}
-	}
-}
-
-func ensureLocalSSHKey(in *bufio.Reader) error {
+func ensureLocalSSHKey() error {
 	sshDir := filepath.Join(homeOrDot(), ".ssh")
 	if path, found := sshsetup.HasKey(sshDir); found {
-		fmt.Printf("Using existing SSH key: %s\n", path)
+		ui.Success("Using existing SSH key %s", ui.Dim("("+path+")"))
 		return nil
 	}
 
-	fmt.Println("No local SSH key found.")
-	if !confirm(in, "Generate one now (ssh-keygen)?", true) {
+	ui.Warn("No local SSH key found.")
+	generate, err := ui.Confirm("Generate one now (ssh-keygen)?", true)
+	if err != nil {
+		return err
+	}
+	if !generate {
 		return fmt.Errorf("an SSH key is required — generate one with ssh-keygen and re-run `plum connect`")
 	}
 	keyPath := sshsetup.DefaultKeyPath(sshDir)
@@ -237,7 +231,64 @@ func ensureLocalSSHKey(in *bufio.Reader) error {
 	if err := runInteractive("ssh-keygen", "-t", "ed25519", "-f", keyPath); err != nil {
 		return fmt.Errorf("ssh-keygen failed: %w", err)
 	}
-	fmt.Printf("✓ Generated %s\n", keyPath)
+	ui.Success("Generated %s", keyPath)
+	return nil
+}
+
+// bootstrapServer checks the server has the tooling its deployment shape
+// needs — Docker Engine for both Kamal and Once, plus the once binary for
+// Once — and offers to install what's missing. It never deploys the app
+// itself: pushing images and registry credentials stay in the user's hands.
+func bootstrapServer(target string, via config.Via) error {
+	ui.Blank()
+	ui.Step("Checking the server's tooling")
+
+	var dockerVersion string
+	if ui.Check("Docker Engine installed", func() bool {
+		out, ok := sshCapture(target, "docker --version")
+		dockerVersion = strings.TrimSpace(out)
+		return ok
+	}) {
+		fmt.Println(ui.Dim("  " + dockerVersion))
+	} else {
+		ui.Warn("Docker isn't installed on the server — both Kamal and Once run apps as Docker containers.")
+		install, err := ui.Confirm("Install Docker Engine now (runs `curl -fsSL https://get.docker.com | sh` on the server)?", true)
+		if err != nil {
+			return err
+		}
+		if install {
+			if err := runInteractive("ssh", target, "curl -fsSL https://get.docker.com | sh"); err != nil {
+				ui.Fail("Docker install failed: %v — install it manually and re-run `plum connect`.", err)
+			} else {
+				ui.Success("Docker installed.")
+			}
+		}
+	}
+
+	if via != config.ViaOnce {
+		return nil
+	}
+	var onceVersion string
+	if ui.Check("once installed", func() bool {
+		out, ok := sshCapture(target, "once version")
+		onceVersion = strings.TrimSpace(out)
+		return ok
+	}) {
+		fmt.Println(ui.Dim("  " + onceVersion))
+	} else {
+		ui.Warn("The once binary isn't installed on the server.")
+		install, err := ui.Confirm("Install it now (runs `curl https://get.once.com | sh` on the server)?", true)
+		if err != nil {
+			return err
+		}
+		if install {
+			if err := runInteractive("ssh", target, "curl -fsSL https://get.once.com | sh"); err != nil {
+				ui.Fail("once install failed: %v — install it manually and re-run `plum connect`.", err)
+			} else {
+				ui.Success("once installed.")
+			}
+		}
+	}
 	return nil
 }
 
@@ -278,34 +329,6 @@ func runInteractive(name string, args ...string) error {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	return cmd.Run()
-}
-
-func ask(in *bufio.Reader, prompt, def string) string {
-	if def != "" {
-		fmt.Printf("%s [%s]: ", prompt, def)
-	} else {
-		fmt.Printf("%s: ", prompt)
-	}
-	line, _ := in.ReadString('\n')
-	line = strings.TrimSpace(line)
-	if line == "" {
-		return def
-	}
-	return line
-}
-
-func confirm(in *bufio.Reader, prompt string, def bool) bool {
-	suffix := "[Y/n]"
-	if !def {
-		suffix = "[y/N]"
-	}
-	fmt.Printf("%s %s: ", prompt, suffix)
-	line, _ := in.ReadString('\n')
-	line = strings.ToLower(strings.TrimSpace(line))
-	if line == "" {
-		return def
-	}
-	return line == "y" || line == "yes"
 }
 
 func homeOrDot() string {

@@ -16,6 +16,20 @@ argument-building is unit-tested against fake binaries and smoke-tested
 against the real `kamal` executable's argument parser, but hasn't been run
 against a real Kamal fleet yet.
 
+## Look and feel
+
+On a terminal, the CLI speaks heroku-style: `▸` step headers, animated
+spinners that settle into timed `✓ Downloading archive (700ms)` lines,
+remote rake output framed behind a dim `│` gutter (so the server's chatter
+reads as quoted material, not the CLI's own voice), and arrow-key prompts
+in `plum connect`. The accent color is, naturally, plum — adaptive to
+light and dark backgrounds.
+
+All of it degrades automatically: pipe any command, run it in CI, set
+`NO_COLOR`, or use `TERM=dumb`, and you get plain sequential text with the
+classic `Prompt [default]:` stdin reads — scripted answers and log parsing
+keep working unchanged.
+
 ## Install
 
 No published binary yet — build from source:
