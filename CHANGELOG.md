@@ -87,6 +87,9 @@
   letter by letter while a plum bounces across it on projectile physics —
   wrong quiz answers shake the question on an underdamped spring, and
   finishing the quiz bursts physics confetti (projectiles under gravity).
+  The splash is a proper title screen: the show loops (the plum relaunches
+  while you watch) and holds until you press a pulsing lipgloss "Start the
+  tutorial ↵" button — enter begins, q quits, nothing rushes you.
 - `plum tutorial --serve [addr]` hosts the tour over SSH via charm's wish:
   `ssh -p 2222 your-server` gets the full animated tutorial with nothing
   installed. Sessions run only the tutorial (no shell, no exec, any or no

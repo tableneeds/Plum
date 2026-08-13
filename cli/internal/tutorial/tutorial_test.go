@@ -203,20 +203,36 @@ func TestQuizIsTheFinalChapter(t *testing.T) {
 	}
 }
 
-func TestSplashPlaysAndFinishes(t *testing.T) {
+func TestSplashHoldsAsATitleScreen(t *testing.T) {
 	s := newSplash()
-	for i := 0; i < 1000 && !s.done; i++ {
+	for i := 0; i < 1000; i++ {
 		s.tick()
 	}
-	if !s.done {
-		t.Fatal("the splash should end on its own")
+	if s.done {
+		t.Fatal("the splash must not end on its own — it's a title screen")
 	}
-	if view := s.view(80, 24); !strings.Contains(view, "content like code") {
-		t.Fatalf("finished splash should show the tagline: %q", view)
+	view := s.view(80, 24)
+	if !strings.Contains(view, "content like code") {
+		t.Fatalf("settled splash should show the tagline: %q", view)
+	}
+	if !strings.Contains(view, "Start the tutorial") {
+		t.Fatalf("settled splash should show the start button: %q", view)
+	}
+	// The show loops: after settling, the plum relaunches for another run.
+	sawBallAgain := false
+	for i := 0; i < 200; i++ {
+		s.tick()
+		if !s.ballDone {
+			sawBallAgain = true
+			break
+		}
+	}
+	if !sawBallAgain {
+		t.Fatal("the bouncing plum should relaunch while the title screen waits")
 	}
 }
 
-func TestSplashIsTheOpeningModeAndAnyKeySkips(t *testing.T) {
+func TestSplashOnlyEnterStartsTheTour(t *testing.T) {
 	chapters, err := Chapters()
 	if err != nil {
 		t.Fatal(err)
@@ -227,8 +243,12 @@ func TestSplashIsTheOpeningModeAndAnyKeySkips(t *testing.T) {
 		t.Fatal("the tour should open on the splash")
 	}
 	m.handleKey(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'x'}})
+	if m.mode != modeSplash {
+		t.Fatal("random keys must not leave the title screen")
+	}
+	m.handleKey(tea.KeyMsg{Type: tea.KeyEnter})
 	if m.mode != modeRead || m.index != 0 {
-		t.Fatal("any key should skip the splash into chapter 1")
+		t.Fatal("enter should press the start button into chapter 1")
 	}
 }
 

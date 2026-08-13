@@ -138,9 +138,6 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		cmds := []tea.Cmd{frameTick()}
 		if m.mode == modeSplash {
 			m.splash.tick()
-			if m.splash.done {
-				m.endSplash()
-			}
 			return m, tea.Batch(cmds...)
 		}
 		if m.mode == modeQuiz {
@@ -180,9 +177,12 @@ func (m *model) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		return m, tea.Quit
 	}
 
-	// The splash takes any key as "yes yes, the show's great, teach me".
+	// The splash is a title screen: it holds until the start button is
+	// pressed (enter/space). Everything else just enjoys the show.
 	if m.mode == modeSplash {
-		m.endSplash()
+		if key == "enter" || key == " " {
+			m.endSplash()
+		}
 		return m, nil
 	}
 

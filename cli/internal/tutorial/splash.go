@@ -21,10 +21,10 @@ var splashFont = map[rune][]string{
 }
 
 const (
-	splashWord     = "PLUM"
-	splashFontRows = 5
-	splashBallRows = 6  // sky above the wordmark the ball bounces through
-	splashAutoOff  = 40 // frames the finished splash lingers before moving on
+	splashWord       = "PLUM"
+	splashFontRows   = 5
+	splashBallRows   = 6  // sky above the wordmark the ball bounces through
+	splashRelaunchIn = 50 // frames of rest before the plum bounces again
 )
 
 // letterShades run darker→brighter across the wordmark.
@@ -36,13 +36,14 @@ type splash struct {
 	vels    []float64
 	started []int // frame each letter's spring wakes up
 
-	ball     *harmonica.Projectile
-	ballPos  harmonica.Point
-	bounces  int
-	ballDone bool
+	ball        *harmonica.Projectile
+	ballPos     harmonica.Point
+	bounces     int
+	ballDone    bool
+	respawnWait int
 
 	frame  int
-	linger int
+	showUI bool // letters have settled; tagline + button are up
 	done   bool
 }
 
@@ -58,15 +59,26 @@ func newSplash() *splash {
 		s.offsets[i] = float64(splashFontRows + 2) // start fully sunk
 		s.started[i] = i * 4                       // staggered entrance
 	}
-	// The plum arcs in from the left with a rightward drift and gravity;
-	// it bounces on the wordmark's roofline, losing bounce each time.
+	s.launchBall()
+	return s
+}
+
+// launchBall arcs the plum in from the left with a rightward drift and
+// gravity; it bounces on the wordmark's roofline, losing bounce each time.
+// The splash is a title screen now, so the show loops: the ball relaunches
+// after a short rest for as long as the screen is up.
+func (s *splash) launchBall() {
+	fps := int(1e9 / frameInterval.Nanoseconds())
 	s.ball = harmonica.NewProjectile(
 		harmonica.FPS(fps),
 		harmonica.Point{X: -2, Y: 0},
 		harmonica.Vector{X: 11, Y: 2},
 		harmonica.Vector{Y: 36},
 	)
-	return s
+	s.ballPos = s.ball.Position()
+	s.bounces = 0
+	s.ballDone = false
+	s.respawnWait = 0
 }
 
 // tick advances one frame; sets done once the show is over.
@@ -82,7 +94,12 @@ func (s *splash) tick() {
 		}
 	}
 
-	if !s.ballDone {
+	if s.ballDone {
+		s.respawnWait++
+		if s.respawnWait >= splashRelaunchIn {
+			s.launchBall()
+		}
+	} else {
 		s.ballPos = s.ball.Update()
 		floor := float64(splashBallRows - 1)
 		if s.ballPos.Y >= floor && s.ball.Velocity().Y > 0 {
@@ -101,17 +118,14 @@ func (s *splash) tick() {
 		}
 	}
 
-	settled := s.ballDone
-	for i := range s.offsets {
-		if math.Abs(s.offsets[i]) > 0.3 || math.Abs(s.vels[i]) > 0.3 {
-			settled = false
+	if !s.showUI {
+		settled := true
+		for i := range s.offsets {
+			if math.Abs(s.offsets[i]) > 0.3 || math.Abs(s.vels[i]) > 0.3 {
+				settled = false
+			}
 		}
-	}
-	if settled {
-		s.linger++
-		if s.linger >= splashAutoOff {
-			s.done = true
-		}
+		s.showUI = settled
 	}
 }
 
@@ -124,8 +138,22 @@ func (s *splash) reballistic(pos harmonica.Point, vel harmonica.Vector) {
 var (
 	splashBall    = lipgloss.NewStyle().Foreground(plumColor).Bold(true).Render("●")
 	splashTagline = dimText.Render("content like code — a Rails-native CMS")
-	splashHint    = dimText.Render("press any key")
+	splashQuit    = dimText.Render("q to quit")
+
+	// The button breathes through the plum shades while the screen waits.
+	buttonShades = []string{"#8E4585", "#A55BA3", "#BC6FC5", "#A55BA3"}
 )
+
+// button renders the start button, pulsing with the frame clock.
+func (s *splash) button() string {
+	shade := buttonShades[(s.frame/14)%len(buttonShades)]
+	return lipgloss.NewStyle().
+		Foreground(lipgloss.Color("#FFFDF5")).
+		Background(lipgloss.Color(shade)).
+		Padding(0, 4).
+		Bold(true).
+		Render("Start the tutorial  ↵")
+}
 
 // view composes the frame: sky with the bouncing plum, the rising
 // wordmark, then (once things settle) the tagline.
@@ -163,8 +191,8 @@ func (s *splash) view(width, height int) string {
 	}
 
 	b.WriteString("\n")
-	if s.linger > 0 || s.done {
-		b.WriteString(splashTagline + "\n\n" + splashHint)
+	if s.showUI {
+		b.WriteString(splashTagline + "\n\n" + s.button() + "\n\n" + splashQuit)
 	}
 
 	// Center the whole block horizontally-ish.
