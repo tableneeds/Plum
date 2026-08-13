@@ -57,6 +57,10 @@
   verifies SSH login, server tooling, and that the app is deployed, exiting
   nonzero on failure (CI-friendly). The wizard runs only on first setup,
   with `--reconfigure`, or when a new ip/host is passed explicitly.
+- A brand-new project's host prompt now offers the servers you already
+  have: plum-* aliases from ~/.ssh/config (the ones `plum connect` itself
+  wrote) appear as a pick-list, so connecting a second site to the same
+  VPS never re-asks for the IP.
 - Added a Firebase-CLI-style global project registry (`plum projects
   add/list/remove`, `plum use`, `--project`) so a fleet of Plum sites can be
   managed from one dev machine without `cd`-ing into each repo — a local

@@ -86,9 +86,13 @@ setup, with `--reconfigure`, or when you pass a new ip/host explicitly.
 
 When the wizard does run, **re-runs prefill every prompt from the existing
 plum.yml** — Enter through everything and you reproduce the current setup.
-And for Once remotes, once SSH login works it **asks the server itself**
-(`once list`) and offers the deployed apps as a pick-list — with your
-previous choice highlighted — instead of a blank hostname prompt.
+Even a brand-new project isn't a blank slate: **the host prompt offers the
+plum-* aliases already in your ~/.ssh/config** (servers this CLI set up
+before) as a pick-list, so connecting a second site to the same VPS is all
+Enter keys. And for Once remotes, once SSH login works it **asks the
+server itself** (`once list`) and offers the deployed apps as a pick-list —
+with your previous choice highlighted — instead of a blank hostname
+prompt.
 
 For Kamal and Once shapes it then **checks the server's tooling** — Docker
 Engine for both, plus the `once` binary for Once — and offers to install

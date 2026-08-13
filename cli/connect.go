@@ -40,9 +40,11 @@ func cmdConnect(args []string) error {
 		return connectStatus(existingName, existing)
 	}
 
+	sshConfigPath := filepath.Join(homeOrDot(), ".ssh", "config")
+
 	host := p.remote // parseArgs treats the first bare argument as `remote`; here that's the host/IP.
 	if host == "" {
-		if host, err = ui.Input("Server IP or hostname", existing.Host); err != nil {
+		if host, err = askHost(existing.Host, sshConfigPath); err != nil {
 			return err
 		}
 		if host == "" {
@@ -135,7 +137,6 @@ func cmdConnect(args []string) error {
 	}
 
 	ui.Blank()
-	sshConfigPath := filepath.Join(homeOrDot(), ".ssh", "config")
 	defaultName := existingName
 	if defaultName == "" {
 		defaultName = "production"
@@ -418,6 +419,35 @@ func onceBinOrDefault(rem config.Remote) string {
 		return rem.OnceBin
 	}
 	return "once"
+}
+
+// askHost asks which server to connect to. A fresh project isn't really a
+// blank slate: any plum-* aliases in ~/.ssh/config are servers this CLI
+// already set up, so they're offered as a pick-list first. Reconfigures
+// prefill the stored host instead.
+func askHost(previous, sshConfigPath string) (string, error) {
+	if previous != "" {
+		return ui.Input("Server IP or hostname", previous)
+	}
+	aliases := sshsetup.KnownAliases(sshConfigPath)
+	if len(aliases) == 0 {
+		return ui.Input("Server IP or hostname", "")
+	}
+
+	const newServer = "new"
+	choices := make([]ui.Choice, 0, len(aliases)+1)
+	for _, alias := range aliases {
+		choices = append(choices, ui.Choice{Label: alias, Value: alias})
+	}
+	choices = append(choices, ui.Choice{Label: "a new server (type its ip or hostname)", Value: newServer})
+	picked, err := ui.Select("Which server?", choices, aliases[0])
+	if err != nil {
+		return "", err
+	}
+	if picked == newServer {
+		return ui.Input("Server IP or hostname", "")
+	}
+	return picked, nil
 }
 
 // existingRemote returns the default remote from an existing plum.yml (and

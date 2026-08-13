@@ -98,3 +98,24 @@ func TestHasAliasIsCaseInsensitiveAndMissingFileIsNotAnError(t *testing.T) {
 		t.Fatalf("expected a case-insensitive match: %v %v", found, err)
 	}
 }
+
+func TestKnownAliasesFindsPlumHosts(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "config")
+	content := "Host github.com\n  User git\n\nHost plum-production\n  HostName 147.182.221.134\n  User root\n\nHost plum-staging other-box\n  User root\n\nHost plum-*\n  ForwardAgent no\n"
+	if err := os.WriteFile(path, []byte(content), 0o600); err != nil {
+		t.Fatal(err)
+	}
+
+	got := KnownAliases(path)
+	want := []string{"plum-production", "plum-staging"}
+	if len(got) != len(want) || got[0] != want[0] || got[1] != want[1] {
+		t.Fatalf("expected %v (no wildcards, no non-plum hosts), got %v", want, got)
+	}
+}
+
+func TestKnownAliasesMissingFileIsEmpty(t *testing.T) {
+	if got := KnownAliases(filepath.Join(t.TempDir(), "config")); got != nil {
+		t.Fatalf("expected nil for a missing file, got %v", got)
+	}
+}

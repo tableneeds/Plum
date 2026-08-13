@@ -72,6 +72,30 @@ func HasAlias(configPath, alias string) (bool, error) {
 	return false, nil
 }
 
+// KnownAliases returns the plum-* Host aliases defined in ~/.ssh/config —
+// the servers `plum connect` itself has set up before. A new project's
+// host prompt offers these instead of starting from a blank field.
+func KnownAliases(configPath string) []string {
+	raw, err := os.ReadFile(configPath)
+	if err != nil {
+		return nil
+	}
+	var aliases []string
+	for _, line := range strings.Split(string(raw), "\n") {
+		fields := strings.Fields(line)
+		if len(fields) < 2 || !strings.EqualFold(fields[0], "Host") {
+			continue
+		}
+		// A Host line may name several patterns; wildcards aren't servers.
+		for _, name := range fields[1:] {
+			if strings.HasPrefix(name, "plum-") && !strings.ContainsAny(name, "*?") {
+				aliases = append(aliases, name)
+			}
+		}
+	}
+	return aliases
+}
+
 // AppendAlias adds a Host block to ~/.ssh/config, creating the file (and its
 // directory) with the permissions ssh requires if it doesn't exist yet.
 // Returns false without writing if the alias is already defined.
