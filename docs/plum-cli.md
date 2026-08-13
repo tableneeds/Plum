@@ -50,9 +50,13 @@ plum tutorial
 An interactive, full-screen tour of Plum and the CLI — eight short
 chapters covering the content model, themes, writing mode and drafts,
 static caching, config as code, and every CLI command, rendered as styled
-markdown right in your terminal (bubbletea + glamour). Navigate with
-←/→, scroll with ↑/↓, jump with 1–9, quit with q. Piped, it prints the
-chapters as plain markdown.
+markdown right in your terminal (bubbletea + glamour). Chapters slide in
+on spring physics (harmonica), a gradient progress bar tracks where you
+are, the CLI chapters have **live demos** — press `d` and watch
+`plum pull` or a connect health check type itself out, spinners and all —
+and the tour ends with a three-question quiz. Navigate with ←/→, scroll
+with ↑/↓, jump with 1–9, quit with q. Piped, it prints the chapters as
+plain markdown.
 
 ## Two layers of configuration
 

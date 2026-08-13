@@ -22,6 +22,7 @@ them. It's a quick read — each chapter is a screenful or two.
 - **←/→** (or `h`/`l`) — previous / next chapter
 - **↑/↓** (or `j`/`k`) — scroll within a chapter
 - **1–9** — jump straight to a chapter
+- **d** — on CLI chapters: watch the command run
 - **q** — quit
 
-Press **→** to begin.
+There's a short quiz at the end. Press **→** to begin.

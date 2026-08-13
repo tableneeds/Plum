@@ -65,7 +65,7 @@ func TestModelNavigationAndQuit(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	m := &model{chapters: chapters}
+	m := newModel(chapters, "dark")
 	m.Update(tea.WindowSizeMsg{Width: 80, Height: 24})
 	if !m.ready {
 		t.Fatal("window size should make the model ready")
@@ -103,9 +103,99 @@ func TestModelSurvivesZeroSizedTerminal(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	m := &model{chapters: chapters}
+	m := newModel(chapters, "dark")
 	m.Update(tea.WindowSizeMsg{Width: 0, Height: 0})
 	if view := m.View(); !strings.Contains(view, chapters[0].Title) {
 		t.Fatal("a zero-sized pty should still render the chapter")
+	}
+}
+
+func TestDemosAttachToRealChapters(t *testing.T) {
+	chapters, err := Chapters()
+	if err != nil {
+		t.Fatal(err)
+	}
+	titles := map[string]bool{}
+	for _, ch := range chapters {
+		titles[ch.Title] = true
+	}
+	for title := range demos() {
+		if !titles[title] {
+			t.Fatalf("demo attached to nonexistent chapter %q", title)
+		}
+	}
+}
+
+func TestDemoPlayerPlaysToCompletion(t *testing.T) {
+	for title, d := range demos() {
+		p := newDemoPlayer(d)
+		for i := 0; i < 10000 && !p.done; i++ {
+			p.tick()
+		}
+		if !p.done {
+			t.Fatalf("demo %q never finishes", title)
+		}
+		final := p.view()
+		if !strings.Contains(final, d.command) {
+			t.Fatalf("demo %q final frame missing its command", title)
+		}
+		if !strings.Contains(final, "demo over") {
+			t.Fatalf("demo %q final frame missing the replay hint", title)
+		}
+	}
+}
+
+func TestQuizAnswerFlow(t *testing.T) {
+	q := newQuiz()
+	// Wrong answer: cursor starts on option 0, correct is 1 everywhere.
+	q.handle("enter")
+	if q.right {
+		t.Fatal("option 0 should be wrong")
+	}
+	q.handle("enter") // acknowledges, back to choosing
+	q.handle("down")
+	q.handle("enter")
+	if !q.right {
+		t.Fatal("option 1 should be right")
+	}
+	q.handle("enter") // next question
+	if q.index != 1 {
+		t.Fatalf("expected question 2, got %d", q.index+1)
+	}
+	for i := 0; i < 2; i++ {
+		q.handle("down")
+		q.handle("enter")
+		q.handle("enter")
+	}
+	if !q.finished {
+		t.Fatal("answering all three should finish the quiz")
+	}
+	if !strings.Contains(q.view(), "plum connect") {
+		t.Fatal("the finale should point at plum connect")
+	}
+	q.handle("r")
+	if q.finished || q.index != 0 {
+		t.Fatal("r should restart the quiz")
+	}
+}
+
+func TestQuizIsTheFinalChapter(t *testing.T) {
+	chapters, err := Chapters()
+	if err != nil {
+		t.Fatal(err)
+	}
+	m := newModel(chapters, "dark")
+	m.Update(tea.WindowSizeMsg{Width: 80, Height: 24})
+	m.gotoChapter(len(m.chapters) - 1)
+	if m.mode != modeQuiz {
+		t.Fatal("last chapter should enter quiz mode")
+	}
+	if view := m.View(); !strings.Contains(view, "question 1 of") {
+		t.Fatal("quiz view should render the first question")
+	}
+	// Navigation must still rescue people from the quiz.
+	m.handleKey(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'h'}})
+	if m.mode != modeRead {
+		t.Fatal("h should leave the quiz for the previous chapter")
 	}
 }

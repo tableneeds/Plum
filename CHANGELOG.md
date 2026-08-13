@@ -78,7 +78,11 @@
   and the CLI (bubbletea + glamour). Eight chapters — content model,
   themes, writing mode and drafts, static caching, config as code, and
   the CLI workflow — as styled markdown with ←/→ chapter navigation,
-  1–9 jumps, and a plain-markdown fallback when piped.
+  1–9 jumps, and a plain-markdown fallback when piped. Chapters slide in
+  on harmonica spring physics under an animated gradient progress bar;
+  the CLI chapters carry live demos (press `d` to watch `plum pull` or a
+  connect health check type itself out, spinners included); and the tour
+  ends with a three-question interactive quiz.
 - Added a Firebase-CLI-style global project registry (`plum projects
   add/list/remove`, `plum use`, `--project`) so a fleet of Plum sites can be
   managed from one dev machine without `cd`-ing into each repo — a local
