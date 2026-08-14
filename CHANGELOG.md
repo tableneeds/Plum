@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- `plum deploy` now preflights DNS on first deploys: Once verifies
+  https://<hostname> as its final step and rolls the app back when the
+  domain doesn't reach the server, so the CLI checks A records against
+  the server's addresses before building anything and asks before
+  proceeding (proxied DNS like Cloudflare legitimately mismatches, hence
+  a confirm rather than a refusal).
 - Fixed the install generator mounting Plum ABOVE the app's own routes:
   Rails' `route` helper prepends, so an at-"/" mount shadowed everything
   below it — including `get "up"`, the health check that load balancers

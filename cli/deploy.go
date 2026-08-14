@@ -4,6 +4,7 @@ import (
 	"compress/gzip"
 	"fmt"
 	"io"
+	"net"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -46,6 +47,25 @@ func runDeploy(rem config.Remote, remoteName, dir string) error {
 	if rem.User != "" {
 		target = rem.User + "@" + rem.Host
 	}
+
+	// Once's first-deploy verification curls https://<once_app> from the
+	// server — if DNS doesn't route there yet, the deploy builds, ships,
+	// boots healthy... and then gets torn down at the finish line. Check
+	// up front instead of after 200MB. (Proxied DNS — Cloudflare — resolves
+	// elsewhere but still routes correctly, hence a confirm, not a block.)
+	firstDeploy := !sshProbe(target, onceBinOrDefault(rem)+" list 2>/dev/null | grep -qF "+shellQuote(rem.OnceApp))
+	if firstDeploy && !dnsPointsAtServer(rem.OnceApp, target) {
+		ui.Warn("%s doesn't resolve to this server yet — Once verifies https://%s at the end of a first deploy and will roll it back.", rem.OnceApp, rem.OnceApp)
+		fmt.Println(ui.Dim("Point the domain's A record at the server first (or use a staging hostname you control). Proxied DNS (Cloudflare) is fine to continue with."))
+		proceed, cerr := ui.Confirm("Deploy anyway?", false)
+		if cerr != nil {
+			return cerr
+		}
+		if !proceed {
+			return fmt.Errorf("deploy stopped — point DNS at the server and re-run")
+		}
+	}
+
 	appName := filepath.Base(absOrDot(dir))
 	image := fmt.Sprintf("%s:plum-%s", strings.ToLower(appName), time.Now().UTC().Format("20060102-150405"))
 
@@ -83,8 +103,7 @@ func runDeploy(rem config.Remote, remoteName, dir string) error {
 		return fmt.Errorf("staging the image on the server failed: %w", err)
 	}
 
-	deployed := sshProbe(target, onceBinOrDefault(rem)+" list 2>/dev/null | grep -qF "+shellQuote(rem.OnceApp))
-	if deployed {
+	if !firstDeploy {
 		ui.Step("Rolling %s to the new image", rem.OnceApp)
 		if err := sshRun(rem, target, onceBinOrDefault(rem)+" update "+shellQuote(rem.OnceApp)+" --image "+shellQuote(localRef)+" --auto-update=false", nil); err != nil {
 			return fmt.Errorf("once update failed: %w", err)
@@ -152,6 +171,33 @@ func sshRun(rem config.Remote, target, command string, stdin io.Reader) error {
 	cmd.Stdout = nil
 	cmd.Stderr = os.Stderr
 	return cmd.Run()
+}
+
+// dnsPointsAtServer reports whether host's A records intersect the
+// server's addresses — the "will Once's verification even reach us?"
+// preflight. Unresolvable answers false; proxied DNS answers false too,
+// which is why callers confirm rather than refuse.
+func dnsPointsAtServer(host, target string) bool {
+	ips, err := net.LookupHost(host)
+	if err != nil || len(ips) == 0 {
+		return false
+	}
+	var serverIPs strings.Builder
+	cmd := exec.Command("ssh", target, "hostname -I")
+	cmd.Stdout = &serverIPs
+	if cmd.Run() != nil {
+		return true // can't tell; don't nag on a probe failure
+	}
+	serverSet := map[string]bool{}
+	for _, ip := range strings.Fields(serverIPs.String()) {
+		serverSet[ip] = true
+	}
+	for _, ip := range ips {
+		if serverSet[ip] {
+			return true
+		}
+	}
+	return false
 }
 
 // waitHealthy polls docker's health status for the app's container (found

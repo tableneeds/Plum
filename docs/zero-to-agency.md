@@ -58,8 +58,15 @@ provisions TLS.
 ## 4. Point DNS
 
 At the client's DNS: an **A record** for their domain (and `www`) to the
-droplet's IP. Do this before the first deploy so Once can get a
-Let's Encrypt certificate immediately.
+droplet's IP. **This must happen before the first deploy** — Once
+verifies `https://<domain>` end-to-end as the final step of a first
+deploy and rolls back if the domain doesn't reach the server yet
+(`plum deploy` checks this up front and warns you). Proxied DNS
+(Cloudflare in Full strict mode) is fine.
+
+Building ahead of a domain cutover? Use a staging hostname you control
+(`preview.your-agency.com`) for the first deploy, then reconfigure to
+the real domain when the client flips DNS.
 
 ## 5. Deploy
 
