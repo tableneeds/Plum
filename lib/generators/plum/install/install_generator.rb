@@ -30,7 +30,19 @@ module Plum
       def mount_engine
         return if options[:skip_route]
 
-        route %(mount Plum::Engine, at: "#{options[:mount_path]}")
+        # Mounted at "/", Plum serves every path the app doesn't claim — so
+        # it must come AFTER the app's own routes (notably `get "up"`, the
+        # health check load balancers and deploy tooling probe). Rails'
+        # `route` helper prepends, which would shadow them; append at the
+        # bottom of the block instead.
+        inject_into_file "config/routes.rb", before: /^end\s*\z/ do
+          <<~RUBY.indent(2)
+
+            # Plum last: mounted at #{options[:mount_path].inspect} it serves every path
+            # the app doesn't claim, so app routes (like /up) must come first.
+            mount Plum::Engine, at: #{options[:mount_path].inspect}
+          RUBY
+        end
       end
 
       def print_next_steps

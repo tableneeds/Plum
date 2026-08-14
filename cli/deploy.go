@@ -67,17 +67,31 @@ func runDeploy(rem config.Remote, remoteName, dir string) error {
 	}); err != nil {
 		return err
 	}
-	fmt.Println(ui.Dim(fmt.Sprintf("  %dMB over the wire — no registry involved", shipped/1024/1024)))
+	fmt.Println(ui.Dim(fmt.Sprintf("  %dMB over the wire — no registry accounts involved", shipped/1024/1024)))
+
+	// Once insists on pulling before it deploys — it won't use an image
+	// that's merely loaded in the daemon. So the server keeps a loopback-
+	// only registry:2 container (~10MB, bound to 127.0.0.1, invisible to
+	// the internet) as the handoff point: tag the shipped image into it,
+	// push server-side (instant), and give Once a ref it can pull.
+	localRef := "127.0.0.1:5000/" + image
+	if err := ui.Spin("Staging image for Once", func() error {
+		script := "docker inspect plum-registry >/dev/null 2>&1 || docker run -d --name plum-registry --restart unless-stopped -p 127.0.0.1:5000:5000 registry:2 >/dev/null; " +
+			"docker tag " + shellQuote(image) + " " + shellQuote(localRef) + " && docker push -q " + shellQuote(localRef) + " >/dev/null"
+		return sshRun(rem, target, script, nil)
+	}); err != nil {
+		return fmt.Errorf("staging the image on the server failed: %w", err)
+	}
 
 	deployed := sshProbe(target, onceBinOrDefault(rem)+" list 2>/dev/null | grep -qF "+shellQuote(rem.OnceApp))
 	if deployed {
 		ui.Step("Rolling %s to the new image", rem.OnceApp)
-		if err := sshRun(rem, target, onceBinOrDefault(rem)+" update "+shellQuote(rem.OnceApp)+" --image "+shellQuote(image)+" --auto-update=false", nil); err != nil {
+		if err := sshRun(rem, target, onceBinOrDefault(rem)+" update "+shellQuote(rem.OnceApp)+" --image "+shellQuote(localRef)+" --auto-update=false", nil); err != nil {
 			return fmt.Errorf("once update failed: %w", err)
 		}
 	} else {
 		ui.Step("First deploy of %s", rem.OnceApp)
-		if err := sshRun(rem, target, onceBinOrDefault(rem)+" deploy "+shellQuote(image)+" --host "+shellQuote(rem.OnceApp)+" --auto-update=false", nil); err != nil {
+		if err := sshRun(rem, target, onceBinOrDefault(rem)+" deploy "+shellQuote(localRef)+" --host "+shellQuote(rem.OnceApp)+" --auto-update=false", nil); err != nil {
 			return fmt.Errorf("once deploy failed: %w", err)
 		}
 	}

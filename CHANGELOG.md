@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- Fixed the install generator mounting Plum ABOVE the app's own routes:
+  Rails' `route` helper prepends, so an at-"/" mount shadowed everything
+  below it — including `get "up"`, the health check that load balancers
+  and deploy tooling (Once, kamal-proxy, plum deploy) probe, which made
+  freshly scaffolded sites fail health checks with Plum's 404 page. The
+  mount is now appended at the bottom of routes.rb with a comment
+  explaining why it must stay last. Found by the first real `plum new` →
+  `plum deploy` run.
+
 - Fixed `plum connect` in a directory with no plum.yml silently targeting
   the globally active project (running it from a fresh repo could show —
   or with --reconfigure, rewrite — a different project's connection).
