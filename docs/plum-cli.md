@@ -123,8 +123,18 @@ plum.yml (e.g. `client.preview.your-agency.com` behind a wildcard A
 record) you get clean branded preview URLs; with nothing configured it
 auto-derives `<app>.<server-ip>.sslip.io` — magic wildcard DNS that
 resolves to your server with zero setup. Preview and production are
-independent apps, so previews never touch the live site, and going live
-later is just `plum deploy` once real DNS is in place.
+independent apps, so previews never touch a live site.
+
+```
+plum promote [remote]
+```
+
+Go-live for a preview, in place: re-homes the preview app onto the
+production domain (`once update --host`) — same container, same
+database, all the content built during the preview — with TLS
+provisioned on the spot. Preflights that a preview exists, that the
+production hostname isn't already a separate app, and that DNS reaches
+the server (confirm to override for proxied DNS).
 
 The full story — one droplet, several client sites, honest costs — is
 [the zero-to-agency guide](zero-to-agency.md).

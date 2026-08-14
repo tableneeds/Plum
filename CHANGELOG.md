@@ -5,6 +5,12 @@
 - `plum deploy`'s health wait no longer requires a Dockerfile HEALTHCHECK:
   images without one are probed via HTTP /up through the proxy instead
   (resolved to loopback so SNI routing matches).
+- Added `plum promote`: go-live for a preview, in place. The preview app
+  is re-homed onto the production domain via `once update --host` — same
+  container, same database, all content built during the preview — with
+  TLS provisioned on the spot. Preflights preview existence, hostname
+  collisions, and DNS. Verified live: a hostname re-home round-trip on a
+  running app served on the new domain within seconds, data intact.
 - Added `plum deploy --preview` — the agency preview workflow: ship the
   same image as a separate Once app under a preview hostname, shareable
   with a client before their domain points anywhere. Uses `preview_host:`

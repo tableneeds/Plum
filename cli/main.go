@@ -31,6 +31,7 @@ var siteCommands = []usageEntry{
 	{"plum tutorial [--serve [addr]]", "Interactive guided tour (--serve hosts it over SSH)"},
 	{"plum new NAME", "Create a deploy-ready Plum site (installs Ruby/Rails if needed)"},
 	{"plum deploy [remote] [--preview]", "Build locally, ship over SSH, go live — no registry"},
+	{"plum promote [remote]", "Re-home the preview app onto the production domain"},
 	{"plum connect [ip-or-host]", "Guided setup: SSH key, server access, plum.yml"},
 	{"plum init", "Create a starter plum.yml here (manual editing)"},
 	{"plum pull [remote] [--yes]", "Replace your local site with the remote's"},
@@ -89,6 +90,8 @@ func main() {
 		err = cmdNew(os.Args[2:])
 	case "deploy":
 		err = cmdDeploy(os.Args[2:])
+	case "promote":
+		err = cmdPromote(os.Args[2:])
 	case "connect":
 		err = cmdConnect(os.Args[2:])
 	case "init":

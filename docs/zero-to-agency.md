@@ -76,9 +76,22 @@ your server with zero configuration, so you have a shareable client
 preview URL before any real DNS exists. For branded previews, point one
 wildcard record (`*.preview.your-agency.com`) at the droplet and set
 `preview_host: client.preview.your-agency.com` on the remote in
-plum.yml. Iterate on the preview as long as you like; when the client
-flips DNS, `plum deploy` (no flag) puts the same site live under the
-real domain.
+plum.yml.
+
+Iterate on the preview as long as you like — build the content, tune the
+theme, let the client click around. Then, when they flip DNS to the
+droplet:
+
+```bash
+plum promote
+```
+
+The preview app *becomes* the site: same container, same database, every
+word of content you built during the preview — it simply starts answering
+to the real domain, with TLS provisioned on the spot. No rebuild, no
+content migration, no separate go-live deploy. (If the site should live
+on its own droplet instead, `plum connect` it there and `plum deploy` —
+site archives carry the content across.)
 
 ## 5. Deploy
 
