@@ -64,9 +64,21 @@ deploy and rolls back if the domain doesn't reach the server yet
 (`plum deploy` checks this up front and warns you). Proxied DNS
 (Cloudflare in Full strict mode) is fine.
 
-Building ahead of a domain cutover? Use a staging hostname you control
-(`preview.your-agency.com`) for the first deploy, then reconfigure to
-the real domain when the client flips DNS.
+Building ahead of a domain cutover? That's what previews are for:
+
+```bash
+plum deploy --preview
+```
+
+This ships the site as a *separate* Once app under a preview hostname —
+by default `<app>.<server-ip>.sslip.io`, magic wildcard DNS that reaches
+your server with zero configuration, so you have a shareable client
+preview URL before any real DNS exists. For branded previews, point one
+wildcard record (`*.preview.your-agency.com`) at the droplet and set
+`preview_host: client.preview.your-agency.com` on the remote in
+plum.yml. Iterate on the preview as long as you like; when the client
+flips DNS, `plum deploy` (no flag) puts the same site live under the
+real domain.
 
 ## 5. Deploy
 

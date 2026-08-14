@@ -235,7 +235,7 @@ func cmdConnect(args []string) error {
 				return cerr
 			}
 			if deployNow {
-				if err := runDeploy(newRemote, remoteName, dir); err != nil {
+				if err := runDeploy(newRemote, remoteName, dir, false); err != nil {
 					return err
 				}
 			} else {

@@ -27,12 +27,14 @@ func cmdDeploy(args []string) error {
 	if err != nil {
 		return err
 	}
-	return runDeploy(r.Remote, r.Name, dir)
+	return runDeploy(r.Remote, r.Name, dir, p.flags["preview"])
 }
 
 // runDeploy is the deploy machinery, callable from cmdDeploy or chained
-// from the end of a connect that found the app not deployed yet.
-func runDeploy(rem config.Remote, remoteName, dir string) error {
+// from the end of a connect that found the app not deployed yet. preview
+// deploys the same image as a SEPARATE once app under a preview hostname —
+// share it with the client, then deploy for real when DNS is ready.
+func runDeploy(rem config.Remote, remoteName, dir string, preview bool) error {
 	if rem.Via != config.ViaOnce {
 		return fmt.Errorf("plum deploy currently supports via: once remotes (this one is via: %s)", viaOrSSH(rem.Via))
 	}
@@ -48,14 +50,28 @@ func runDeploy(rem config.Remote, remoteName, dir string) error {
 		target = rem.User + "@" + rem.Host
 	}
 
+	appName := filepath.Base(absOrDot(dir))
+	appHost := rem.OnceApp
+	if preview {
+		appHost = rem.PreviewHost
+		if appHost == "" {
+			ip := serverPublicIP(target)
+			if ip == "" {
+				return fmt.Errorf("couldn't determine the server's IP for an sslip.io preview hostname — set preview_host in plum.yml instead")
+			}
+			appHost = strings.ToLower(appName) + "." + ip + ".sslip.io"
+		}
+		ui.Step("Preview deploy → %s", ui.Bold("https://"+appHost))
+	}
+
 	// Once's first-deploy verification curls https://<once_app> from the
 	// server — if DNS doesn't route there yet, the deploy builds, ships,
 	// boots healthy... and then gets torn down at the finish line. Check
 	// up front instead of after 200MB. (Proxied DNS — Cloudflare — resolves
 	// elsewhere but still routes correctly, hence a confirm, not a block.)
-	firstDeploy := !sshProbe(target, onceBinOrDefault(rem)+" list 2>/dev/null | grep -qF "+shellQuote(rem.OnceApp))
-	if firstDeploy && !dnsPointsAtServer(rem.OnceApp, target) {
-		ui.Warn("%s doesn't resolve to this server yet — Once verifies https://%s at the end of a first deploy and will roll it back.", rem.OnceApp, rem.OnceApp)
+	firstDeploy := !sshProbe(target, onceBinOrDefault(rem)+" list 2>/dev/null | grep -qF "+shellQuote(appHost))
+	if firstDeploy && !strings.HasSuffix(appHost, ".sslip.io") && !dnsPointsAtServer(appHost, target) {
+		ui.Warn("%s doesn't resolve to this server yet — Once verifies https://%s at the end of a first deploy and will roll it back.", appHost, appHost)
 		fmt.Println(ui.Dim("Point the domain's A record at the server first (or use a staging hostname you control). Proxied DNS (Cloudflare) is fine to continue with."))
 		proceed, cerr := ui.Confirm("Deploy anyway?", false)
 		if cerr != nil {
@@ -66,7 +82,6 @@ func runDeploy(rem config.Remote, remoteName, dir string) error {
 		}
 	}
 
-	appName := filepath.Base(absOrDot(dir))
 	image := fmt.Sprintf("%s:plum-%s", strings.ToLower(appName), time.Now().UTC().Format("20060102-150405"))
 
 	// Rails images must match the server's architecture, not the laptop's.
@@ -104,23 +119,23 @@ func runDeploy(rem config.Remote, remoteName, dir string) error {
 	}
 
 	if !firstDeploy {
-		ui.Step("Rolling %s to the new image", rem.OnceApp)
-		if err := sshRun(rem, target, onceBinOrDefault(rem)+" update "+shellQuote(rem.OnceApp)+" --image "+shellQuote(localRef)+" --auto-update=false", nil); err != nil {
+		ui.Step("Rolling %s to the new image", appHost)
+		if err := sshRun(rem, target, onceBinOrDefault(rem)+" update "+shellQuote(appHost)+" --image "+shellQuote(localRef)+" --auto-update=false", nil); err != nil {
 			return fmt.Errorf("once update failed: %w", err)
 		}
 	} else {
-		ui.Step("First deploy of %s", rem.OnceApp)
-		if err := sshRun(rem, target, onceBinOrDefault(rem)+" deploy "+shellQuote(localRef)+" --host "+shellQuote(rem.OnceApp)+" --auto-update=false", nil); err != nil {
+		ui.Step("First deploy of %s", appHost)
+		if err := sshRun(rem, target, onceBinOrDefault(rem)+" deploy "+shellQuote(localRef)+" --host "+shellQuote(appHost)+" --auto-update=false", nil); err != nil {
 			return fmt.Errorf("once deploy failed: %w", err)
 		}
 	}
 
-	if !ui.Check("App healthy", func() bool { return waitHealthy(target, rem.OnceApp, 120*time.Second) }) {
+	if !ui.Check("App healthy", func() bool { return waitHealthy(target, appHost, 120*time.Second) }) {
 		return fmt.Errorf("the app never reported healthy — try `plum logs %s` to see why", remoteName)
 	}
 
 	ui.Blank()
-	ui.Success("Deployed %s to %s %s", ui.Bold(image), rem.OnceApp, ui.Dim("(plum logs --follow to watch it)"))
+	ui.Success("Deployed %s to %s %s", ui.Bold(image), "https://"+appHost, ui.Dim("(plum logs --follow to watch it)"))
 	return nil
 }
 
@@ -171,6 +186,22 @@ func sshRun(rem config.Remote, target, command string, stdin io.Reader) error {
 	cmd.Stdout = nil
 	cmd.Stderr = os.Stderr
 	return cmd.Run()
+}
+
+// serverPublicIP asks the server for its first address — DigitalOcean and
+// friends list the public one first.
+func serverPublicIP(target string) string {
+	var out strings.Builder
+	cmd := exec.Command("ssh", target, "hostname -I")
+	cmd.Stdout = &out
+	if cmd.Run() != nil {
+		return ""
+	}
+	fields := strings.Fields(out.String())
+	if len(fields) == 0 {
+		return ""
+	}
+	return fields[0]
 }
 
 // dnsPointsAtServer reports whether host's A records intersect the

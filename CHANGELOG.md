@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- Added `plum deploy --preview` — the agency preview workflow: ship the
+  same image as a separate Once app under a preview hostname, shareable
+  with a client before their domain points anywhere. Uses `preview_host:`
+  from plum.yml (wildcard-record agency domains) or auto-derives
+  `<app>.<server-ip>.sslip.io` with zero DNS setup. Previews are
+  independent apps: they never touch the live site, and going live later
+  is a plain `plum deploy`.
 - `plum deploy` now preflights DNS on first deploys: Once verifies
   https://<hostname> as its final step and rolls the app back when the
   domain doesn't reach the server, so the CLI checks A records against

@@ -63,6 +63,11 @@ type Remote struct {
 	// `once deploy --host ...` when the app was installed — which is often
 	// different from Host (an SSH alias/IP for the box itself).
 	OnceApp string `yaml:"once_app,omitempty"`
+
+	// PreviewHost, when set, is where `plum deploy --preview` ships —
+	// e.g. client.preview.your-agency.com behind a wildcard A record.
+	// Left empty, previews auto-derive <app>.<server-ip>.sslip.io.
+	PreviewHost string `yaml:"preview_host,omitempty"`
 	// OnceBin is the once executable's name/path ON THE SERVER (not local).
 	// Default: "once".
 	OnceBin string `yaml:"once_bin,omitempty"`

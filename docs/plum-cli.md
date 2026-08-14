@@ -112,6 +112,20 @@ for the container's health check to go green. Auto-update is switched
 off for these apps: there's no registry to poll, so the site changes
 when you deploy it — never by surprise. Currently `via: once` remotes.
 
+```
+plum deploy --preview
+```
+
+Ships the same image as a **separate Once app under a preview hostname** —
+the agency workflow: share the work-in-progress with a client before
+their domain points anywhere. With `preview_host:` set on the remote in
+plum.yml (e.g. `client.preview.your-agency.com` behind a wildcard A
+record) you get clean branded preview URLs; with nothing configured it
+auto-derives `<app>.<server-ip>.sslip.io` — magic wildcard DNS that
+resolves to your server with zero setup. Preview and production are
+independent apps, so previews never touch the live site, and going live
+later is just `plum deploy` once real DNS is in place.
+
 The full story — one droplet, several client sites, honest costs — is
 [the zero-to-agency guide](zero-to-agency.md).
 
