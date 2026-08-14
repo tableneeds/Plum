@@ -231,11 +231,17 @@ func dnsPointsAtServer(host, target string) bool {
 	return false
 }
 
-// waitHealthy polls docker's health status for the app's container (found
-// by the `once` label, same trick as plum logs) until it reports healthy.
+// waitHealthy polls the app's health until it answers: docker's health
+// status when the image defines a HEALTHCHECK, otherwise an HTTP probe of
+// /up through the proxy (resolved to loopback so routing and SNI match) —
+// plenty of Dockerfiles ship without a HEALTHCHECK directive.
 func waitHealthy(target, onceApp string, patience time.Duration) bool {
 	script := `c="$(docker ps --format '{{.Names}} {{.Label "once"}}' | grep -F ` + shellQuote(onceApp) + ` | head -n 1 | cut -d' ' -f1)"; ` +
-		`[ -n "$c" ] && docker inspect --format '{{.State.Health.Status}}' "$c" 2>/dev/null | grep -q healthy`
+		`[ -n "$c" ] || exit 1; ` +
+		`h="$(docker inspect --format '{{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}}' "$c" 2>/dev/null)"; ` +
+		`[ "$h" = healthy ] && exit 0; ` +
+		`[ "$h" = none ] && curl -sk --max-time 4 --resolve ` + shellQuote(onceApp+":443:127.0.0.1") + ` -o /dev/null -w '%{http_code}' https://` + shellQuote(onceApp) + `/up | grep -q 200 && exit 0; ` +
+		`exit 1`
 	deadline := time.Now().Add(patience)
 	for time.Now().Before(deadline) {
 		if sshProbe(target, script) {

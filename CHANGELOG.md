@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- `plum deploy`'s health wait no longer requires a Dockerfile HEALTHCHECK:
+  images without one are probed via HTTP /up through the proxy instead
+  (resolved to loopback so SNI routing matches).
 - Added `plum deploy --preview` — the agency preview workflow: ship the
   same image as a separate Once app under a preview hostname, shareable
   with a client before their domain points anywhere. Uses `preview_host:`
