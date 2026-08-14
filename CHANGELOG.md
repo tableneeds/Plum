@@ -7,6 +7,13 @@
   or with --reconfigure, rewrite — a different project's connection).
   Connect now always means "set up the current directory"; only an
   explicit `--project NAME` redirects it.
+- Connect now finishes the journey: when the once app isn't deployed yet
+  it offers to build and ship right there (chains into plum deploy), and
+  connecting a project always makes it the active one — working in a
+  directory means that's the project you're "in". A brand-new site's app
+  question also now defaults to "a new app on this server (type its
+  hostname)" instead of pre-selecting an already-deployed app, which
+  would have silently pointed the repo at another site's container.
 - Untangled project vs. remote in connect's wording: the wizard now asks
   for an "Environment name" (production, staging — plum.yml's remotes)
   with a line explaining the concept, and the closing hint no longer

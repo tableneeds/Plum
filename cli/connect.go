@@ -230,7 +230,17 @@ func cmdConnect(args []string) error {
 		if !ui.Check(fmt.Sprintf("once lists %s", onceApp), func() bool {
 			return sshProbe(target, "once list 2>/dev/null | grep -qF "+shellQuote(onceApp))
 		}) {
-			fmt.Println(ui.Dim(fmt.Sprintf("Deploy it with `once deploy <image> --host %s` and you're set.", onceApp)))
+			deployNow, cerr := ui.Confirm("It isn't deployed yet — build and ship it now with plum deploy?", true)
+			if cerr != nil {
+				return cerr
+			}
+			if deployNow {
+				if err := runDeploy(newRemote, remoteName, dir); err != nil {
+					return err
+				}
+			} else {
+				fmt.Println(ui.Dim("Whenever you're ready: plum deploy"))
+			}
 		}
 	case config.ViaKamal:
 		if _, err := exec.LookPath("kamal"); err != nil {
@@ -533,11 +543,20 @@ func registerProject(dir string) {
 	if err != nil {
 		return
 	}
-	for _, p := range reg.Projects {
+
+	// Already registered (under whatever name)? Connecting here still means
+	// "this is the project I'm working on" — make it the active one.
+	for existingName, p := range reg.Projects {
 		if absOrDot(p.Path) == abs {
-			return // already registered, under whatever name the user chose
+			if reg.Active != existingName {
+				if err := reg.SetActive(existingName); err == nil && reg.Save() == nil {
+					ui.Success("Now the active project: %q", existingName)
+				}
+			}
+			return
 		}
 	}
+
 	name := filepath.Base(abs)
 	if _, taken := reg.Projects[name]; taken {
 		return // name collision with a different path — leave it to `plum projects add`
@@ -546,10 +565,8 @@ func registerProject(dir string) {
 		return
 	}
 	activated := ""
-	if reg.Active == "" {
-		if err := reg.SetActive(name); err == nil {
-			activated = " and made it the active project"
-		}
+	if err := reg.SetActive(name); err == nil {
+		activated = " and made it the active project"
 	}
 	if err := reg.Save(); err != nil {
 		return
@@ -590,28 +607,28 @@ func askOnceApp(user, host, previous string, loginOK bool) (string, error) {
 	}
 
 	if len(apps) == 0 {
-		return ui.Input("App hostname (the --host you gave `once deploy`)", previous)
+		return ui.Input("App hostname (the site's domain)", previous)
 	}
 
-	const other = "other" // no real app hostname is bare "other"; typed hostnames pass through anyway
-	choices := make([]ui.Choice, 0, len(apps)+1)
-	def := ""
+	// A brand-new site should NOT default to adopting an app that's
+	// already deployed — that silently points this repo at another site's
+	// container. New hostname is the default unless this repo previously
+	// chose one of the deployed apps.
+	const fresh = "new"
+	choices := []ui.Choice{{Label: "a new app on this server (type its hostname)", Value: fresh}}
+	def := fresh
 	for _, app := range apps {
-		choices = append(choices, ui.Choice{Label: app, Value: app})
+		choices = append(choices, ui.Choice{Label: app + " — already deployed; adopt it", Value: app})
 		if app == previous {
 			def = app
 		}
 	}
-	if def == "" {
-		def = apps[0]
-	}
-	choices = append(choices, ui.Choice{Label: "something else (type it in)", Value: other})
 	picked, err := ui.Select("Which app is this repo?", choices, def)
 	if err != nil {
 		return "", err
 	}
-	if picked == other {
-		return ui.Input("App hostname (the --host you gave `once deploy`)", previous)
+	if picked == fresh {
+		return ui.Input("App hostname (the site's domain)", previous)
 	}
 	return picked, nil
 }

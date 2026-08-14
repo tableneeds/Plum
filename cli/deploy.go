@@ -26,7 +26,12 @@ func cmdDeploy(args []string) error {
 	if err != nil {
 		return err
 	}
-	rem := r.Remote
+	return runDeploy(r.Remote, r.Name, dir)
+}
+
+// runDeploy is the deploy machinery, callable from cmdDeploy or chained
+// from the end of a connect that found the app not deployed yet.
+func runDeploy(rem config.Remote, remoteName, dir string) error {
 	if rem.Via != config.ViaOnce {
 		return fmt.Errorf("plum deploy currently supports via: once remotes (this one is via: %s)", viaOrSSH(rem.Via))
 	}
@@ -55,9 +60,10 @@ func cmdDeploy(args []string) error {
 	}
 
 	var shipped int64
-	if err := ui.Spin(fmt.Sprintf("Shipping image to %s", r.Name), func() error {
-		shipped, err = shipImage(rem, target, image)
-		return err
+	if err := ui.Spin(fmt.Sprintf("Shipping image to %s", remoteName), func() error {
+		var shipErr error
+		shipped, shipErr = shipImage(rem, target, image)
+		return shipErr
 	}); err != nil {
 		return err
 	}
@@ -77,7 +83,7 @@ func cmdDeploy(args []string) error {
 	}
 
 	if !ui.Check("App healthy", func() bool { return waitHealthy(target, rem.OnceApp, 120*time.Second) }) {
-		return fmt.Errorf("the app never reported healthy — try `plum logs %s` to see why", r.Name)
+		return fmt.Errorf("the app never reported healthy — try `plum logs %s` to see why", remoteName)
 	}
 
 	ui.Blank()
