@@ -30,10 +30,17 @@ module Plum
       end
     end
 
-    initializer "plum.importmap", before: "importmap" do |app|
-      if app.config.respond_to?(:importmap)
-        app.config.importmap.paths << root.join("config/plum_importmap.rb")
-      end
+    # Build a Plum-scoped importmap instead of merging Plum's pins into the
+    # host app's global importmap. Plum's layouts render this map (host JS stack
+    # + Plum's additions), while the host app's own pages keep a clean importmap
+    # free of Plum's controllers/lexxy/activestorage pins. Runs after the host's
+    # importmap is configured so we can copy its paths.
+    initializer "plum.importmap", after: "importmap" do |app|
+      next unless defined?(Importmap::Map) && app.config.respond_to?(:importmap)
+
+      Plum.importmap = Importmap::Map.new
+      Array(app.config.importmap.paths).each { |path| Plum.importmap.draw(path) }
+      Plum.importmap.draw(root.join("config/plum_importmap.rb"))
     end
   end
 end

@@ -7,7 +7,7 @@
   <%= csp_meta_tag %>
   <%= favicon_link_tag "plum-mark.svg", type: "image/svg+xml" %>
   <%= stylesheet_link_tag "plum/control_panel", "data-turbo-track": "reload" %>
-  <%= javascript_importmap_tags %>
+  <%= javascript_importmap_tags(importmap: Plum.importmap || Rails.application.importmap) %>
   <style>
     :root { --plum-accent: <%= Plum.configuration.cp_accent_color %>; }
     .bg-purple-600 { background-color: var(--plum-accent) !important; }
