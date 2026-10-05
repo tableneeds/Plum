@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_08_11_090000) do
+ActiveRecord::Schema[8.0].define(version: 2026_10_05_190000) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
@@ -51,6 +51,45 @@ ActiveRecord::Schema[8.0].define(version: 2026_08_11_090000) do
     t.index ["site_id"], name: "index_plum_assets_on_site_id"
   end
 
+  create_table "plum_comment_moderations", force: :cascade do |t|
+    t.integer "comment_id", null: false
+    t.string "moderator_gid", null: false
+    t.string "action", null: false
+    t.string "previous_status", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["comment_id"], name: "index_plum_comment_moderations_on_comment_id"
+  end
+
+  create_table "plum_comment_reports", force: :cascade do |t|
+    t.integer "comment_id", null: false
+    t.string "reporter_gid", null: false
+    t.text "reason", null: false
+    t.datetime "resolved_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["comment_id", "reporter_gid"], name: "index_plum_comment_reports_on_comment_id_and_reporter_gid", unique: true
+    t.index ["comment_id"], name: "index_plum_comment_reports_on_comment_id"
+  end
+
+  create_table "plum_comments", force: :cascade do |t|
+    t.integer "discussion_id", null: false
+    t.integer "parent_id"
+    t.string "author_gid", null: false
+    t.string "author_name", null: false
+    t.string "author_badge"
+    t.text "body", null: false
+    t.string "status", default: "pending", null: false
+    t.boolean "pinned", default: false, null: false
+    t.integer "video_seconds"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["author_gid", "created_at"], name: "index_plum_comments_on_author_gid_and_created_at"
+    t.index ["discussion_id", "status", "id"], name: "index_plum_comments_on_discussion_id_and_status_and_id"
+    t.index ["discussion_id"], name: "index_plum_comments_on_discussion_id"
+    t.index ["parent_id"], name: "index_plum_comments_on_parent_id"
+  end
+
   create_table "plum_content_types", force: :cascade do |t|
     t.string "name"
     t.string "handle"
@@ -60,8 +99,21 @@ ActiveRecord::Schema[8.0].define(version: 2026_08_11_090000) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer "site_id", null: false
+    t.boolean "comments_enabled", default: false, null: false
     t.index ["site_id", "handle"], name: "index_plum_content_types_on_site_id_and_handle", unique: true
     t.index ["site_id"], name: "index_plum_content_types_on_site_id"
+  end
+
+  create_table "plum_discussions", force: :cascade do |t|
+    t.integer "site_id", null: false
+    t.string "commentable_type", null: false
+    t.string "commentable_id", null: false
+    t.string "subject_handle", null: false
+    t.boolean "closed", default: false, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["site_id", "commentable_type", "commentable_id"], name: "plum_discussion_subject_unique", unique: true
+    t.index ["site_id"], name: "index_plum_discussions_on_site_id"
   end
 
   create_table "plum_entries", force: :cascade do |t|
@@ -81,6 +133,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_08_11_090000) do
     t.string "locale", default: "en", null: false
     t.integer "origin_id"
     t.json "draft_data"
+    t.string "comments_mode", default: "inherit", null: false
     t.index ["author_id"], name: "index_plum_entries_on_author_id"
     t.index ["content_type_id"], name: "index_plum_entries_on_content_type_id"
     t.index ["origin_id", "locale"], name: "index_plum_entries_on_origin_id_and_locale", unique: true
@@ -250,7 +303,12 @@ ActiveRecord::Schema[8.0].define(version: 2026_08_11_090000) do
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "plum_assets", "plum_sites", column: "site_id"
+  add_foreign_key "plum_comment_moderations", "plum_comments", column: "comment_id"
+  add_foreign_key "plum_comment_reports", "plum_comments", column: "comment_id"
+  add_foreign_key "plum_comments", "plum_comments", column: "parent_id"
+  add_foreign_key "plum_comments", "plum_discussions", column: "discussion_id"
   add_foreign_key "plum_content_types", "plum_sites", column: "site_id"
+  add_foreign_key "plum_discussions", "plum_sites", column: "site_id"
   add_foreign_key "plum_entries", "plum_content_types", column: "content_type_id"
   add_foreign_key "plum_entries", "plum_entries", column: "origin_id"
   add_foreign_key "plum_entries", "plum_sites", column: "site_id"

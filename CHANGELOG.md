@@ -1,6 +1,13 @@
 # Changelog
 
-## Unreleased
+## 0.3.0 — 2026-10-05
+
+- Add opt-in discussions for Plum entries and registered host models, with independent reader authentication and tenant/content authorization.
+- Add moderated plain-text comments, one-level replies, reporting, pinning, close/reopen controls, and moderation audit records.
+- Add theme-inherited Liquid templates and customizable Rails views/helpers, after-commit notification hooks, and content-type/entry discussion settings.
+- Upgrade: install engine migrations and migrate on every upgrade to 0.3.0, even when comments are disabled. See `docs/comments.md` for host authorization and backup requirements.
+
+## 0.2.3 — 2026-09-19
 
 - `plum deploy`'s health wait no longer requires a Dockerfile HEALTHCHECK:
   images without one are probed via HTTP /up through the proxy instead

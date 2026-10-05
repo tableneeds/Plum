@@ -2,4 +2,5 @@
   <h1>{{ entry.title }}</h1>
 
   {{ entry.data.sections }}
+  {% if entry.discussion_url %}<p class="plum-discussion-link"><a href="{{ entry.discussion_url }}">Questions &amp; discussion →</a></p>{% endif %}
 </article>

@@ -1,0 +1,16 @@
+<h1 class="text-2xl font-bold mb-4">Comments</h1>
+<nav class="flex gap-4 mb-6"><% %w[pending approved hidden reported].each do |status| %><%= link_to status.titleize, cp_comments_path(status: status), class: "underline" %><% end %></nav>
+<% if @comments.empty? %><p>No comments in this view.</p><% end %>
+<% @comments.each do |comment| %>
+<article class="border rounded p-4 mb-4">
+<h2 class="font-bold"><%= comment.discussion.commentable&.plum_discussion_title %></h2>
+<p><%= comment.author_name %> · <%= comment.status %> · <%= comment.created_at.to_fs(:short) %></p>
+<p class="whitespace-pre-wrap my-4"><%= comment.body %></p>
+<% comment.reports.where(resolved_at: nil).each do |report| %><p>Report: <%= report.reason %></p><% end %>
+<div class="flex gap-4 flex-wrap"><% %w[approve hide pin unpin resolve_reports].each do |operation| %><% next if operation == "pin" && comment.parent_id.present? %><%= button_to operation.humanize, cp_comment_path(comment), method: :patch, params: { operation: operation }, class: "underline" %><% end %>
+<%= button_to comment.discussion.closed? ? "Reopen discussion" : "Close discussion", cp_close_discussion_path(comment.discussion), method: :patch, params: { closed: !comment.discussion.closed? }, class: "underline" %></div>
+</article>
+<% end %>
+<% current_page = params[:page].to_i.clamp(1, 10000) %>
+<%= link_to "Previous", cp_comments_path(status: @status, page: current_page - 1) if current_page > 1 %>
+<%= link_to "Next", cp_comments_path(status: @status, page: current_page + 1) %>

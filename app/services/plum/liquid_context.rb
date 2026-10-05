@@ -24,6 +24,11 @@ module Plum
       }.compact.merge(Plum.content_sources_for(controller, site: site))
     end
 
+    # Shared layout data without exposing the site's other entries or host sources.
+    def layout_context
+      { "site" => site_context, "globals" => globals_context, "nav" => nav_context, "forms" => forms_context }
+    end
+
     private
 
     attr_reader :controller, :site, :entry, :theme_name, :theme_settings
@@ -60,6 +65,9 @@ module Plum
         "url" => public_entry_path(entry),
         "data" => entry_data_context(entry, relationship_depth: relationship_depth, expand_blocks: expand_blocks)
       }
+      if Plum.configuration.comments.enabled && entry.plum_comments_enabled?
+        ctx["discussion_url"] = "#{controller.request.script_name.to_s.chomp('/')}/discussions/entries/#{entry.id}"
+      end
       if entry.association(:terms).loaded? && entry.terms.any?
         ctx["terms"] = entry.terms.group_by { |t| t.taxonomy.handle }.transform_values do |terms|
           terms.map { |t| { "name" => t.name, "slug" => t.slug, "url" => "/#{t.taxonomy.slug}/#{t.slug}" } }

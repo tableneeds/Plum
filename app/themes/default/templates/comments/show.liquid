@@ -1,0 +1,15 @@
+<link rel="stylesheet" href="{{ discussion.stylesheet_url }}">
+<section class="plum-discussion" aria-labelledby="discussion-title">
+{% for notice in discussion.notices %}<p role="status">{{ notice }}</p>{% endfor %}
+{% if discussion.back_url != blank %}<a href="{{ discussion.back_url }}">Back to {{ discussion.title }}</a>{% endif %}
+<h1 id="discussion-title">{{ discussion.title }}</h1>
+<h2>Questions &amp; discussion</h2>
+<p>Ask a question, share a reflection, or join the conversation. Please be kind and stay on topic. Comments may be reviewed before appearing.</p>
+{% if discussion.comments == empty %}<p>No comments to show yet.</p>{% endif %}
+{{ discussion.comments_html }}
+<nav aria-label="Discussion pages">{% if discussion.previous_url %}<a href="{{ discussion.previous_url }}">Previous</a>{% endif %}{% if discussion.next_url %}<a href="{{ discussion.next_url }}">Next</a>{% endif %}</nav>
+{% if discussion.open == false %}<p>This discussion is closed to new comments.</p>
+{% elsif discussion.signed_in %}{{ discussion.form_html }}
+{% else %}<p>Sign in to join the discussion.</p>{% if discussion.login_url != blank %}<a href="{{ discussion.login_url }}">Sign in</a>{% endif %}
+{% endif %}
+</section>

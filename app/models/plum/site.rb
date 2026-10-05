@@ -5,6 +5,7 @@ module Plum
     belongs_to :owner, polymorphic: true, optional: true
 
     has_one :site_setting, dependent: :destroy
+    has_many :discussions, class_name: "Plum::Discussion", dependent: :destroy
     has_many :content_types, dependent: :destroy
     has_many :entries, dependent: :destroy
     has_many :globals, dependent: :destroy
