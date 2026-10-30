@@ -1,0 +1,7 @@
+<form method="post" action="{{ discussion.post_url }}" class="plum-comment-form">
+<input type="hidden" name="authenticity_token" value="{{ discussion.csrf_token }}">
+{% if form.parent_id %}<input type="hidden" name="comment[parent_id]" value="{{ form.parent_id }}">{% endif %}
+<label for="comment-body-{{ form.id }}">{% if form.parent_id %}Your reply{% else %}Your comment{% endif %}</label>
+<textarea id="comment-body-{{ form.id }}" name="comment[body]" maxlength="10000" rows="4" required></textarea>
+<button type="submit">{% if form.parent_id %}Send reply{% else %}Send comment{% endif %}</button>
+</form>

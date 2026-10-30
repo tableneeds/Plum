@@ -1,0 +1,6 @@
+<%= form_with url: discussion_comments_path(handle: context.handle, subject_id: context.subject.id), scope: :comment do |form| %>
+<% if parent %><%= form.hidden_field :parent_id, value: parent.id %><% end %>
+<%= form.label :body, parent ? "Your reply" : "Your comment", for: "comment-body-#{parent&.id || 'new'}" %>
+<%= form.text_area :body, required: true, maxlength: 10000, rows: 4, id: "comment-body-#{parent&.id || 'new'}" %>
+<%= form.submit parent ? "Send reply" : "Send comment" %>
+<% end %>

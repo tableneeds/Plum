@@ -109,6 +109,7 @@ module Plum
         record.name = config["name"]
         record.icon = config["icon"]
         record.singleton = config["singleton"] unless config["singleton"].nil?
+        record.comments_enabled = config["comments_enabled"] unless config["comments_enabled"].nil?
         record.blueprint = merged_blueprint(record, config)
         track(result, record, file)
       end
@@ -207,6 +208,7 @@ module Plum
           "handle" => config["handle"].to_s,
           "icon" => config["icon"].presence,
           "singleton" => !!config["singleton"],
+          "comments_enabled" => !!config["comments_enabled"],
           "route_prefix" => config["route_prefix"].presence,
           "fields" => config["fields"] || []
         }
@@ -225,6 +227,7 @@ module Plum
         "handle" => record.handle,
         "icon" => record.icon,
         "singleton" => record.singleton,
+        "comments_enabled" => record.comments_enabled,
         "route_prefix" => record.route_prefix,
         "fields" => record.fields
       }

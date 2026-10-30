@@ -56,7 +56,7 @@ module Plum
           "exported_at" => Time.current.iso8601,
           "site" => record(site, %w[id name domain theme_name settings theme_settings custom_css]),
           "site_setting" => site.site_setting && record(site.site_setting, site_setting_fields),
-          "content_types" => records(site.content_types, %w[id name handle singleton blueprint icon]),
+          "content_types" => records(site.content_types, %w[id name handle singleton blueprint icon comments_enabled]),
           "fieldsets" => records(site.fieldsets, %w[id name handle fields]),
           "taxonomies" => records(site.taxonomies, %w[id name handle slug]),
           "terms" => records(site.terms, %w[id taxonomy_id name slug position]),
@@ -76,7 +76,7 @@ module Plum
       end
 
       def entry_record(entry)
-        record(entry, %w[id content_type_id title slug status data published_at author_name author_email author_gid locale origin_id]).merge(
+        record(entry, %w[id content_type_id title slug status data published_at author_name author_email author_gid locale origin_id comments_mode]).merge(
           "term_ids" => entry.term_ids
         )
       end
@@ -167,7 +167,7 @@ module Plum
         )
         maps[:sites][source["id"]] = @site.id
 
-        import_simple(:content_types, ContentType, %w[name handle singleton blueprint icon])
+        import_simple(:content_types, ContentType, %w[name handle singleton blueprint icon comments_enabled])
         import_simple(:fieldsets, Fieldset, %w[name handle fields])
         import_simple(:taxonomies, Taxonomy, %w[name handle slug])
         import_terms
@@ -239,7 +239,7 @@ module Plum
 
       def import_entries
         Array(data["entries"]).each do |source|
-          entry = Entry.create!(source.slice("title", "slug", "status", "data", "published_at", "author_name", "author_email", "author_gid", "locale").merge(
+          entry = Entry.create!(source.slice("title", "slug", "status", "data", "published_at", "author_name", "author_email", "author_gid", "locale", "comments_mode").merge(
             "site_id" => @site.id,
             "content_type_id" => mapped!(:content_types, source["content_type_id"])
           ))

@@ -9,7 +9,7 @@ larger Rails app.
 Add Plum to your Gemfile:
 
 ```ruby
-gem "plum-cms", "~> 0.1.0"
+gem "plum-cms", "~> 0.3.0"
 ```
 
 Then:
@@ -402,3 +402,7 @@ bin/rails server
 Login: `admin@example.com` / `password`
 
 For Bagel Boy demo content: `bin/rails runner "load 'db/seeds/bagel_boy.rb'"`
+
+### Optional comments
+
+Add moderated discussions to Plum entries or your own Rails models, with host-owned authentication and customizable views. See [Comments and discussions](docs/comments.md).

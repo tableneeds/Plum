@@ -1,0 +1,5 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Discussion</title><%= csrf_meta_tags %><%= stylesheet_link_tag "plum/comments" %></head>
+<body><main class="plum-discussion"><% flash.each do |_kind, message| %><p role="status"><%= message %></p><% end %><%= yield %></main></body>
+</html>

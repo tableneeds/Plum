@@ -88,6 +88,9 @@
                 class: "flex items-center px-4 py-2 mt-2 text-sm font-medium rounded-md plum-sidebar-link #{request.path.include?('/cp/nav_menus') ? 'active' : ''}" %>
             <%= link_to "Taxonomies", "#{cp_prefix}/taxonomies",
                 class: "flex items-center px-4 py-2 mt-2 text-sm font-medium rounded-md plum-sidebar-link #{request.path.include?('/taxonomies') ? 'active' : ''}" %>
+            <% if Plum.configuration.comments.enabled && Plum.configuration.comments.moderator_resolver.call(controller, current_site) %>
+              <%= link_to "Comments", cp_comments_path, class: "flex items-center px-4 py-2 mt-2 text-sm font-medium rounded-md plum-sidebar-link" %>
+            <% end %>
             <%= link_to "Forms", cp_form_definitions_path,
                 class: "flex items-center px-4 py-2 mt-2 text-sm font-medium rounded-md plum-sidebar-link #{request.path.include?('/cp/forms') ? 'active' : ''}" %>
           </div>

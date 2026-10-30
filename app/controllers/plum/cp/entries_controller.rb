@@ -179,7 +179,7 @@ module Plum
       end
 
       def entry_params
-        permitted = params.require(:entry).permit(:title, :slug, :status, :published_at, :locale)
+        permitted = params.require(:entry).permit(:title, :slug, :status, :published_at, :locale, :comments_mode)
         if params[:entry][:data].is_a?(ActionController::Parameters)
           submitted = params[:entry][:data].permit!.to_h
           # Writing mode only submits the field being written, so merge it

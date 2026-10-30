@@ -1,4 +1,5 @@
 require_relative "content_source_registry"
+require_relative "comments/configuration"
 
 module Plum
   class Configuration
@@ -9,7 +10,7 @@ module Plum
                   :powered_by_name, :powered_by_url,
                   :static_cache_enabled, :static_cache_path, :config_path
     attr_writer :theme_paths
-    attr_reader :content_sources
+    attr_reader :content_sources, :comments
 
     def initialize
       @authorize_with = :plum
@@ -37,6 +38,7 @@ module Plum
       # nil = default to Rails.root/plum when the tasks are invoked.
       @config_path = nil
       @content_sources = ContentSourceRegistry.new
+      @comments = Comments::Configuration.new
       @current_site_resolver = ->(_controller) { Plum::Site.first_or_create_standalone! }
       @current_user_resolver = lambda { |controller|
         Plum::User.find_by(id: controller.session[:plum_user_id]) if controller.session[:plum_user_id]

@@ -1,0 +1,19 @@
+<% back_url = @context.config.subject_url_resolver.call(self.controller, @context.subject) %>
+<% if back_url.present? %><%= link_to "Back to #{@context.subject.plum_discussion_title}", back_url %><% end %>
+<h1><%= @context.subject.plum_discussion_title %></h1>
+<h2>Questions &amp; discussion</h2>
+<p>Ask a question, share a reflection, or join the conversation. Please be kind and stay on topic. Comments may be reviewed before appearing.</p>
+<%= render "plum/discussions/comments", context: @context, comments: @comments %>
+<nav aria-label="Discussion pages">
+<%= link_to "Previous", discussion_path(handle: @context.handle, subject_id: @context.subject.id, page: page - 1) if page > 1 %>
+<%= link_to "Next", discussion_path(handle: @context.handle, subject_id: @context.subject.id, page: page + 1) if @comments.size == 50 %>
+</nav>
+<% if !@context.open? %>
+<p>This discussion is closed to new comments.</p>
+<% elsif @context.author_gid %>
+<%= render "plum/discussions/form", context: @context, parent: nil %>
+<% else %>
+<p>Sign in to join the discussion.</p>
+<% login_url = @context.config.login_url_resolver.call(self.controller) %>
+<%= link_to "Sign in", login_url if login_url.present? %>
+<% end %>

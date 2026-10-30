@@ -1,6 +1,7 @@
 module Plum
   class Entry < ApplicationRecord
     include SiteScoped
+    include Commentable
     include StaticCacheInvalidation
 
     belongs_to :content_type
@@ -20,6 +21,8 @@ module Plum
     # deleted while published, so a non-technical editor can't orphan the home
     # page by renaming or removing it.
     HOMEPAGE_SLUG = "home".freeze
+
+    validates :comments_mode, inclusion: { in: %w[inherit open closed disabled] }
 
     enum :status, { draft: 0, published: 1, scheduled: 2 }
 
@@ -44,6 +47,14 @@ module Plum
       term = "%#{query}%"
       where("title LIKE ? OR slug LIKE ?", term, term)
     }
+
+    def plum_comments_enabled?
+      comments_mode != "disabled" && (comments_mode != "inherit" || content_type.comments_enabled?)
+    end
+
+    def plum_comments_open?
+      plum_comments_enabled? && comments_mode != "closed"
+    end
 
     def field_value(handle)
       data&.dig(handle)

@@ -10,6 +10,9 @@
       </div>
     <% end %>
 
+    <% if Plum.configuration.comments.enabled %>
+      <div><%= f.label :comments_mode, "Discussion" %> <%= f.select :comments_mode, [["Use content type setting", "inherit"], ["Open", "open"], ["Closed (existing comments remain visible)", "closed"], ["Disabled (hide discussion)", "disabled"]] %></div>
+    <% end %>
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6" style="align-items: start;">
       <!-- Main content -->
       <div class="lg:col-span-2 space-y-6">

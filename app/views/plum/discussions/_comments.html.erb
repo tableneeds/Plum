@@ -1,0 +1,13 @@
+<% if comments.empty? %><p>No comments to show yet.</p><% end %>
+<% comments.each do |comment| %>
+<article id="comment-<%= comment.id %>" class="plum-comment">
+<header><strong><%= comment.author_name %></strong> <% if comment.author_badge.present? %><span><%= comment.author_badge %></span><% end %> <time datetime="<%= comment.created_at.iso8601 %>"><%= comment.created_at.to_date.to_fs(:long) %></time> <%= "Pinned" if comment.pinned? %></header>
+<% if comment.parent %><p>In reply to <%= comment.parent.author_name %></p><% end %>
+<% if comment.video_seconds %><p>At <%= comment.video_seconds / 60 %>:<%= "%02d" % (comment.video_seconds % 60) %></p><% end %>
+<p class="plum-comment-body"><%= comment.body %></p>
+<% if context.author_gid %>
+<% if context.open? && comment.parent_id.nil? %><details><summary>Reply</summary><%= render "plum/discussions/form", context: context, parent: comment %></details><% end %>
+<details><summary>Report</summary><%= form_with url: report_discussion_comment_path(handle: context.handle, subject_id: context.subject.id, id: comment.id), scope: :report do |form| %><%= form.label :reason, "Reason for reporting", for: "report-reason-#{comment.id}" %><%= form.text_area :reason, id: "report-reason-#{comment.id}", required: true, maxlength: 1000 %><%= form.submit "Send report" %><% end %></details>
+<% end %>
+</article>
+<% end %>

@@ -30,6 +30,14 @@ module Plum
         end
       end
 
+      # Render a theme fragment through the same inheritance and filter pipeline.
+      def render_partial(template_name, context = {})
+        path = ThemeResolver.new.find_template(current_theme(context), template_name)
+        raise "Template not found: #{template_name}" unless path
+
+        Liquid::Template.parse(File.read(path)).render(context, filters: [ LiquidFilters ], registers: render_registers(context))
+      end
+
       private
 
       def current_theme(context)

@@ -67,7 +67,7 @@ module Plum
       end
 
       def content_type_params
-        permitted = params.require(:content_type).permit(:name, :handle, :singleton, :icon, :blueprint)
+        permitted = params.require(:content_type).permit(:name, :handle, :singleton, :comments_enabled, :icon, :blueprint)
         if permitted[:blueprint].is_a?(String)
           permitted[:blueprint] = JSON.parse(permitted[:blueprint]) rescue {}
         end

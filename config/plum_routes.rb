@@ -4,6 +4,8 @@ Plum::Engine.routes.draw do
   delete "logout", to: "sessions#destroy"
 
   namespace :cp do
+    resources :comments, only: [ :index, :update ]
+    patch "discussions/:id", to: "comments#close", as: :close_discussion
     root "dashboard#show"
     resources :content_types do
       post :apply_fieldset, on: :member
@@ -37,6 +39,10 @@ Plum::Engine.routes.draw do
     end
     get "theme_previews/:handle", to: "theme_previews#show", as: :theme_preview
   end
+
+  get "discussions/:handle/:subject_id", to: "discussions#show", as: :discussion
+  post "discussions/:handle/:subject_id/comments", to: "discussions#create", as: :discussion_comments
+  post "discussions/:handle/:subject_id/comments/:id/report", to: "discussions#report", as: :report_discussion_comment
 
   post "forms/:handle", to: "form_submissions#create", as: :form
   namespace :api do

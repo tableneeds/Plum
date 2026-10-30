@@ -9,6 +9,9 @@
     </div>
   <% end %>
 
+  <% if Plum.configuration.comments.enabled %>
+    <div><%= f.check_box :comments_enabled %> <%= f.label :comments_enabled, "Enable comments by default for this content type" %></div>
+  <% end %>
   <div class="bg-white shadow rounded-lg p-6 space-y-6">
     <div>
       <%= f.label :name, class: "block text-sm font-medium text-gray-700" %>

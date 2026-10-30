@@ -1,0 +1,8 @@
+<article id="comment-{{ comment.id }}" class="plum-comment">
+<header><strong>{{ comment.author_name }}</strong> {% if comment.author_badge != blank %}<span>{{ comment.author_badge }}</span>{% endif %} <time datetime="{{ comment.created_at }}">{{ comment.date }}</time> {% if comment.pinned %}Pinned{% endif %}</header>
+{% if comment.parent_id %}<p>In reply to {{ comment.parent_author_name }}</p>{% endif %}
+{% if comment.video_seconds %}<p>At {{ comment.video_time }}</p>{% endif %}
+<p class="plum-comment-body">{{ comment.body }}</p>
+{% if comment.reply_form_html %}<details><summary>Reply</summary>{{ comment.reply_form_html }}</details>{% endif %}
+{% if comment.report_form_html %}<details><summary>Report</summary>{{ comment.report_form_html }}</details>{% endif %}
+</article>

@@ -1,0 +1,6 @@
+<form method="post" action="{{ comment.report_url }}" class="plum-comment-report-form">
+<input type="hidden" name="authenticity_token" value="{{ discussion.csrf_token }}">
+<label for="report-reason-{{ comment.id }}">Reason for reporting</label>
+<textarea id="report-reason-{{ comment.id }}" name="report[reason]" maxlength="1000" required></textarea>
+<button type="submit">Send report</button>
+</form>
